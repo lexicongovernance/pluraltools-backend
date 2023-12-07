@@ -22,7 +22,7 @@ async function main() {
 
   // run
   await runMigrations(envVariables.DB_CONNECTION_URL);
-  app.use(authRouter({ dbPool }));
+  app.use('/api', authRouter({ dbPool }));
   app.listen(8080, () => {
     console.log(`Listening on port: ${8080}`);
   });
