@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "tsc",
     "build": "node esbuild.config.mjs",
-    "start": "node dist/index.js",
+    "start": "node  --env-file=.env dist/index.js",
     "dev:tsc": "tsc --watch --preserveWatchOutput",
     "dev:node": "node --watch --env-file=.env dist/index.js",
     "dev:esbuild": "pnpm run build --watch",

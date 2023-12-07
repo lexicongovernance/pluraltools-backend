@@ -8,9 +8,7 @@ export function createNonce() {
   return async function (req: Request, res: Response) {
     try {
       req.session.nonce = hexToBigInt(toHexString(getRandomValues(30))).toString();
-
       await req.session.save();
-
       return res.json({ nonce: req.session.nonce });
     } catch (error) {
       console.error(`[ERROR] ${error}`);
@@ -29,32 +27,31 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
         res.status(400).send();
         return;
       }
-
       const pcd = await SemaphoreSignaturePCDPackage.deserialize(req.body.pcd);
-
-      if (!(await SemaphoreSignaturePCDPackage.verify(pcd))) {
+      console.log('@here', pcd);
+      const isVerified = await SemaphoreSignaturePCDPackage.verify(pcd);
+      console.log('@here 1');
+      if (!isVerified) {
         console.error(`[ERROR] ZK ticket PCD is not valid`);
 
         res.status(401).send();
         return;
       }
-
+      console.log('@here 2', req.session.nonce);
       if (pcd.claim.signedMessage !== req.session.nonce) {
-        console.error(`[ERROR] PCD watermark doesn't match`);
+        console.error(`[ERROR] PCD nonce doesn't match`);
 
         res.status(401).send();
         return;
       }
 
       // create user
-
       await req.session.save();
-
-      res.status(200).send('OK');
+      console.log('@here 3');
+      return res.status(200).send('OK');
     } catch (error: any) {
-      console.error(`[ERROR] ${error.message}`);
-
-      res.sendStatus(500);
+      console.error(`[ERROR] ${JSON.stringify(error)}`);
+      return res.sendStatus(500);
     }
   };
 }
