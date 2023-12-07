@@ -5,6 +5,7 @@ import { default as express } from 'express';
 import { environmentVariables } from './types';
 import * as db from './db';
 import { apiRouter } from './routers/api';
+import { authRouter } from './routers/auth';
 const app = express();
 
 async function runMigrations(dbUrl: string) {
@@ -21,6 +22,10 @@ async function main() {
 
   // run
   await runMigrations(envVariables.DB_CONNECTION_URL);
+  app.use(authRouter({ dbPool }));
+  app.listen(8080, () => {
+    console.log(`Listening on port: ${8080}`);
+  });
 }
 
 main();

@@ -3,7 +3,7 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type * as db from '../../db';
 import { getRandomValues, hexToBigInt, toHexString } from '@pcd/util';
 
-export function createNonce(dbPool: PostgresJsDatabase<typeof db>) {
+export function createNonce() {
   return async function (req: Request, res: Response) {
     try {
       req.session.nonce = hexToBigInt(toHexString(getRandomValues(30))).toString();

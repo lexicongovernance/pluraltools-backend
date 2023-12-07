@@ -5,7 +5,7 @@ import { createNonce, verifyNonce } from '../services/auth/zupass';
 const router = express.Router();
 
 export function authRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
-  router.get('/zupass/nonce', createNonce(dbPool));
+  router.get('/zupass/nonce', createNonce());
   router.post('/zupass/verify', verifyNonce(dbPool));
 
   return router;
