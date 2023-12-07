@@ -6,6 +6,6 @@ await esbuild.build({
   entryPoints: ['src/index.ts'],
   platform: 'node',
   outfile: 'dist/index.js',
-  target: 'es6',
+  target: 'ESNext',
   format: 'cjs',
 });
