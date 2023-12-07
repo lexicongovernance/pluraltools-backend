@@ -10,7 +10,6 @@ const router = express.Router();
 declare module 'iron-session' {
   interface IronSessionData {
     nonce: string;
-    ticket: string;
   }
 }
 
