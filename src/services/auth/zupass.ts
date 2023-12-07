@@ -10,7 +10,7 @@ export function createNonce() {
 
       await req.session.save();
 
-      res.status(200).send(req.session.nonce);
+      return res.json({ nonce: req.session.nonce });
     } catch (error) {
       console.error(`[ERROR] ${error}`);
 

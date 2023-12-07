@@ -23,7 +23,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
     ironSession({
       ttl: 1209600, // Expiry: 14 days.
       cookieName: 'forum_app_cookie',
-      password: 'password',
+      password: '0001020304050607080900010203040506070809000102030405060708090001',
       cookieOptions: {
         secure: process.env.NODE_ENV === 'production',
       },
