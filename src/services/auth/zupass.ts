@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type * as db from '../../db';
-import { getRandomValues, hexToBigInt, toHexString } from '@pcd/util';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
+import { getRandomValues, hexToBigInt, toHexString } from '@pcd/util';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { Request, Response } from 'express';
+import type * as db from '../../db';
 
 export function createNonce() {
   return async function (req: Request, res: Response) {
