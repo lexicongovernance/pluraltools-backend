@@ -4,7 +4,7 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import type * as db from '../../db';
 import { users } from '../../db';
-import { federatedCredentials } from '../../db/federatedCredentials';
+import { federatedCredentials, type FederatedCredential } from '../../db/federatedCredentials';
 import { eq } from 'drizzle-orm';
 
 export function createNonce() {
@@ -48,17 +48,24 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
       }
 
       // create federated credential
-      const federatedCredential = await dbPool
-        .select({
-          id: federatedCredentials.id,
-          userId: federatedCredentials.userId,
-        })
+      const federatedCredential: FederatedCredential[] = await dbPool
+        .select()
         .from(federatedCredentials)
         .where(eq(federatedCredentials.subject, pcd.claim.identityCommitment));
 
+      console.log({
+        federatedCredential,
+        sql: dbPool
+          .select()
+          .from(federatedCredentials)
+          // zupass provider
+          // idx identity commitment
+          .where(eq(federatedCredentials.subject, pcd.claim.identityCommitment))
+          .toSQL().sql,
+      });
       if (federatedCredential.length === 0) {
         // create user
-        const user: db.User[] = await dbPool.insert(users).values({});
+        const user: db.User[] = await dbPool.insert(users).values({}).returning();
 
         if (!user[0]) {
           throw new Error('Failed to create user');
@@ -66,6 +73,8 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
 
         await dbPool.insert(federatedCredentials).values({
           userId: user[0]?.id,
+          provider: 'zupass',
+          subject: pcd.claim.identityCommitment,
         });
 
         req.session.userId = user[0].id;

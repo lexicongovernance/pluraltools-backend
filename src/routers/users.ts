@@ -4,7 +4,7 @@ import type * as db from '../db';
 import { getUser } from '../services/users';
 const router = express.Router();
 
-export function userRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
+export function usersRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.get('/', getUser(dbPool));
 
   return router;

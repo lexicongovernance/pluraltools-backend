@@ -16,6 +16,11 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
         })
         .from(users)
         .where(eq(users.id, userId));
+
+      if (user.length === 0) {
+        return res.status(401).json({ errors: ['No user found'] });
+      }
+
       return res.json(user);
     } catch (error: any) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);

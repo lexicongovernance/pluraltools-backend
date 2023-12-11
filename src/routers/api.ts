@@ -4,6 +4,7 @@ import { default as express } from 'express';
 import { ironSession } from 'iron-session/express';
 import { authRouter } from './auth';
 import cors from 'cors';
+import { usersRouter } from './users';
 
 const router = express.Router();
 
@@ -31,5 +32,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
   );
   // routes
   router.use('/auth', authRouter({ dbPool }));
+  router.use('/users', usersRouter({ dbPool }));
+
   return router;
 }
