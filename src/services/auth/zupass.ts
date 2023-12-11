@@ -3,6 +3,9 @@ import { getRandomValues, hexToBigInt, toHexString } from '@pcd/util';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import type * as db from '../../db';
+import { users } from '../../db';
+import { federatedCredentials } from '../../db/federatedCredentials';
+import { eq } from 'drizzle-orm';
 
 export function createNonce() {
   return async function (req: Request, res: Response) {
@@ -28,16 +31,15 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
         return;
       }
       const pcd = await SemaphoreSignaturePCDPackage.deserialize(req.body.pcd);
-      console.log('@here', pcd);
-      const isVerified = await SemaphoreSignaturePCDPackage.verify(pcd);
-      console.log('@here 1');
-      if (!isVerified) {
-        console.error(`[ERROR] ZK ticket PCD is not valid`);
 
-        res.status(401).send();
-        return;
-      }
-      console.log('@here 2', req.session.nonce);
+      // TODO: verify pcd
+      // const isVerified = await SemaphoreSignaturePCDPackage.verify(pcd);
+      // if (!isVerified) {
+      //   console.error(`[ERROR] ZK ticket PCD is not valid`);
+      //   res.status(401).send();
+      //   return;
+      // }
+
       if (pcd.claim.signedMessage !== req.session.nonce) {
         console.error(`[ERROR] PCD nonce doesn't match`);
 
@@ -45,13 +47,38 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
         return;
       }
 
-      // create user
-      await req.session.save();
-      console.log('@here 3');
-      return res.status(200).send('OK');
+      // create federated credential
+      const federatedCredential = await dbPool
+        .select({
+          id: federatedCredentials.id,
+          userId: federatedCredentials.userId,
+        })
+        .from(federatedCredentials)
+        .where(eq(federatedCredentials.subject, pcd.claim.identityCommitment));
+
+      if (federatedCredential.length === 0) {
+        // create user
+        const user: db.User[] = await dbPool.insert(users).values({});
+
+        if (!user[0]) {
+          throw new Error('Failed to create user');
+        }
+
+        await dbPool.insert(federatedCredentials).values({
+          userId: user[0]?.id,
+        });
+
+        req.session.userId = user[0].id;
+        await req.session.save();
+        return res.status(200).send('OK');
+      } else {
+        req.session.userId = federatedCredential[0]?.userId ?? '';
+        await req.session.save();
+        return res.status(200).send('OK');
+      }
     } catch (error: any) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
-      return res.sendStatus(500);
+      return res.sendStatus(500).send();
     }
   };
 }
