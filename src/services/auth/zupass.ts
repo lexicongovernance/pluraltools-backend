@@ -32,13 +32,12 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
       }
       const pcd = await SemaphoreSignaturePCDPackage.deserialize(req.body.pcd);
 
-      // TODO: verify pcd
-      // const isVerified = await SemaphoreSignaturePCDPackage.verify(pcd);
-      // if (!isVerified) {
-      //   console.error(`[ERROR] ZK ticket PCD is not valid`);
-      //   res.status(401).send();
-      //   return;
-      // }
+      const isVerified = await SemaphoreSignaturePCDPackage.verify(pcd);
+      if (!isVerified) {
+        console.error(`[ERROR] ZK ticket PCD is not valid`);
+        res.status(401).send();
+        return;
+      }
 
       if (pcd.claim.signedMessage !== req.session.nonce) {
         console.error(`[ERROR] PCD nonce doesn't match`);
