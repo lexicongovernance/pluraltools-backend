@@ -8,8 +8,6 @@ const router = express.Router();
 export function authRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.get('/zupass/nonce', createNonce());
   router.post('/zupass/verify', verifyNonce(dbPool));
-
-  router.delete('/logout', destroySession());
-
+  router.post('/logout', destroySession());
   return router;
 }

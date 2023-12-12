@@ -33,6 +33,7 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
       const pcd = await SemaphoreSignaturePCDPackage.deserialize(req.body.pcd);
 
       const isVerified = await SemaphoreSignaturePCDPackage.verify(pcd);
+
       if (!isVerified) {
         console.error(`[ERROR] ZK ticket PCD is not valid`);
         res.status(401).send();
@@ -52,16 +53,6 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
         .from(federatedCredentials)
         .where(eq(federatedCredentials.subject, pcd.claim.identityCommitment));
 
-      console.log({
-        federatedCredential,
-        sql: dbPool
-          .select()
-          .from(federatedCredentials)
-          // zupass provider
-          // idx identity commitment
-          .where(eq(federatedCredentials.subject, pcd.claim.identityCommitment))
-          .toSQL().sql,
-      });
       if (federatedCredential.length === 0) {
         // create user
         const user: db.User[] = await dbPool.insert(users).values({}).returning();
