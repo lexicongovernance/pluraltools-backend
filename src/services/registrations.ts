@@ -9,9 +9,11 @@ import { z } from 'zod';
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input
+    const userId = req.session.userId;
+    req.body.userId = userId;
     const body = insertRegistrationSchema.safeParse(req.body);
     if (!body.success) {
-      return res.status(400).json({ errors: [body.error] });
+      return res.status(400).json({ errors: body.error.issues });
     }
 
     // check if unique keys are available
@@ -21,23 +23,29 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: [uniqueValidation.errors] });
     }
 
-    // upsert to registration table
-    const newRegistration = await dbPool
-      .insert(registrations)
-      .values(body.data)
-      .onConflictDoUpdate({
-        target: registrations.userId,
-        set: {
+    const registration = await dbPool
+      .select()
+      .from(registrations)
+      .where(eq(registrations.userId, userId));
+
+    if (registration.length > 0) {
+      const updatedRegistration = await dbPool
+        .update(registrations)
+        .set({
           email: body.data.email,
           username: body.data.username,
           proposalAbstract: body.data.proposalAbstract,
           proposalTitle: body.data.proposalTitle,
           status: body.data.status,
-        },
-      })
-      .returning();
+        })
+        .returning();
+      return res.json({ data: updatedRegistration });
+    } else {
+      // insert to registration table
+      const newRegistration = await dbPool.insert(registrations).values(body.data).returning();
 
-    return res.json({ data: newRegistration?.[0] });
+      return res.json({ data: newRegistration });
+    }
   };
 }
 
