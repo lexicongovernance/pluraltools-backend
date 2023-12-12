@@ -28,6 +28,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
       password: '0001020304050607080900010203040506070809000102030405060708090001',
       cookieOptions: {
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       },
     })
   );

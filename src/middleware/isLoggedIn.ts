@@ -5,8 +5,7 @@ export function isLoggedIn() {
     if (req.session?.userId) {
       next();
     } else {
-      req.session.destroy();
-      return res.status(403).clearCookie('forum_app_cookie', { path: '/' }).send();
+      return res.status(401).send();
     }
   };
 }
