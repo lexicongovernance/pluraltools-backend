@@ -89,6 +89,6 @@ export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       .from(registrations)
       .where(eq(registrations.userId, userId));
 
-    return res.json({ registration: registration.at(0) });
+    return res.json({ data: registration });
   };
 }

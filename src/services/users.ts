@@ -21,7 +21,7 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
         return res.status(401).json({ errors: ['No user found'] });
       }
 
-      return res.json(user);
+      return res.json({ data: user });
     } catch (error: any) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500);
