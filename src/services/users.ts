@@ -8,6 +8,10 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ errors: ['No user found'] });
+      }
+
       const user = await dbPool
         .select({
           id: users.id,
