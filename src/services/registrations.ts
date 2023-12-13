@@ -37,6 +37,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
           proposalAbstract: body.data.proposalAbstract,
           proposalTitle: body.data.proposalTitle,
           status: body.data.status,
+          updatedAt: new Date(),
         })
         .returning();
       return res.json({ data: updatedRegistration });
