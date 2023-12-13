@@ -28,7 +28,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       .from(registrations)
       .where(eq(registrations.userId, userId));
 
-    if (registration.length > 0) {
+    if (registration.length > 0 && registration[0]) {
       const updatedRegistration = await dbPool
         .update(registrations)
         .set({
@@ -39,6 +39,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
           status: body.data.status,
           updatedAt: new Date(),
         })
+        .where(eq(registrations.id, registration[0].id))
         .returning();
       return res.json({ data: updatedRegistration });
     } else {
