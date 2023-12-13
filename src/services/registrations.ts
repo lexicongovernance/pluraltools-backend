@@ -1,8 +1,7 @@
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type * as db from '../db';
+import * as db from '../db';
 import type { Request, Response } from 'express';
-import { registrations } from '../db/registrations';
-import { and, eq, ne, or } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { insertRegistrationSchema } from '../types';
 import { z } from 'zod';
 
@@ -25,12 +24,12 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
 
     const registration = await dbPool
       .select()
-      .from(registrations)
-      .where(eq(registrations.userId, userId));
+      .from(db.registrations)
+      .where(eq(db.registrations.userId, userId));
 
     if (registration.length > 0 && registration[0]) {
       const updatedRegistration = await dbPool
-        .update(registrations)
+        .update(db.registrations)
         .set({
           email: body.data.email,
           username: body.data.username,
@@ -39,12 +38,12 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
           status: body.data.status,
           updatedAt: new Date(),
         })
-        .where(eq(registrations.id, registration[0].id))
+        .where(eq(db.registrations.id, registration[0].id))
         .returning();
       return res.json({ data: updatedRegistration });
     } else {
       // insert to registration table
-      const newRegistration = await dbPool.insert(registrations).values(body.data).returning();
+      const newRegistration = await dbPool.insert(db.registrations).values(body.data).returning();
 
       return res.json({ data: newRegistration });
     }
@@ -69,8 +68,10 @@ async function validateUniqueKeys(
   if (data.username) {
     const usernames = await dbPool
       .select()
-      .from(registrations)
-      .where(and(eq(registrations.username, data.username), ne(registrations.userId, data.userId)));
+      .from(db.registrations)
+      .where(
+        and(eq(db.registrations.username, data.username), ne(db.registrations.userId, data.userId))
+      );
 
     if (usernames.length > 0) {
       res.errors.username = 'username is already taken';
@@ -80,8 +81,8 @@ async function validateUniqueKeys(
   if (data.email) {
     const emails = await dbPool
       .select()
-      .from(registrations)
-      .where(and(eq(registrations.email, data.email), ne(registrations.userId, data.userId)));
+      .from(db.registrations)
+      .where(and(eq(db.registrations.email, data.email), ne(db.registrations.userId, data.userId)));
 
     if (emails.length > 0) {
       res.errors.email = 'email is already taken';
@@ -89,16 +90,4 @@ async function validateUniqueKeys(
   }
 
   return res;
-}
-
-export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const userId = req.session.userId;
-    const registration = await dbPool
-      .select()
-      .from(registrations)
-      .where(eq(registrations.userId, userId));
-
-    return res.json({ data: registration });
-  };
 }

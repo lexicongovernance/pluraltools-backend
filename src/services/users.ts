@@ -1,23 +1,17 @@
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type * as db from '../db';
+import * as db from '../db';
 import type { Request, Response } from 'express';
-import { users } from '../db';
 import { eq } from 'drizzle-orm';
 
 export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
-      const user = await dbPool
-        .select({
-          id: users.id,
-          username: users.username,
-          email: users.email,
-        })
-        .from(users)
-        .where(eq(users.id, userId));
+      const user = await dbPool.query.users.findFirst({
+        where: eq(db.users.id, userId),
+      });
 
-      if (user.length === 0) {
+      if (!user) {
         return res.status(401).json({ errors: ['No user found'] });
       }
 
@@ -26,5 +20,27 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500);
     }
+  };
+}
+
+export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const sessionUserId = req.session.userId;
+    const userId = req.params.userId;
+    if (userId !== sessionUserId) {
+      return res.status(400).json({
+        errors: [
+          {
+            message: 'Not authorized to query this user',
+          },
+        ],
+      });
+    }
+
+    const registration = await dbPool.query.registrations.findFirst({
+      where: eq(db.registrations.userId, userId),
+    });
+
+    return res.json({ data: registration });
   };
 }
