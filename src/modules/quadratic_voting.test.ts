@@ -1,5 +1,4 @@
 import { quadraticVoting } from './quadratic_voting';
-import * as assert from 'assert';
 
 describe('quadraticVoting', () => {
     test('calculates quadratic votes for each agent and sum of quadratic votes', () => {
@@ -28,7 +27,7 @@ describe('quadraticVoting', () => {
   
       console.log('Quadratic Votes:', result);
       console.log('Sum of Quadratic Votes:', sum);
-      assert.strictEqual(true, true);
+      expect(true).toBe(true);
     });
   });
 

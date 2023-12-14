@@ -1,5 +1,4 @@
 import { PluralVoting } from './plural_voting';
-import * as assert from 'assert';
 
 // Define instance outside the tests
 const groups = [[0, 1], [1, 2, 3], [0, 2]];
@@ -97,6 +96,6 @@ describe('clusterMatch', () => {
 
     const pluralityScore = new PluralVoting(exampleGroups, exampleContributions);
     pluralityScore.pluralScoreCalculation(exampleGroups, exampleContributions);
-    assert.strictEqual(true, true);
+    expect(true).toBe(true);
   });
 });
