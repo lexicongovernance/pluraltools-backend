@@ -12,7 +12,7 @@ env:
   # Github Container registry
   REGISTRY: us-east1-docker.pkg.dev
   REGISTRY_PATH: ${{ secrets.GCP_PROJECT_ID }}/lexicon
-  GCP_REGION: us-central1
+  GCP_REGION: us-east1
   SERVICE_NAME: forum-backend
 
 jobs:
