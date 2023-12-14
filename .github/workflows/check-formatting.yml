@@ -25,14 +25,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install dependencies with pnpm
-        run: pnpm install --frozen-lockfile
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: |
+            - recursive: true
+              args: [--frozen-lockfile, --strict-peer-dependencies]
+            - args: [--global, prettier, typescript]
 
       - name: Review linting
         run: pnpm format
