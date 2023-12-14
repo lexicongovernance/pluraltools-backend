@@ -30,12 +30,13 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       },
-    })
+    }),
   );
   // routes
   router.use('/auth', authRouter({ dbPool }));
   router.use('/users', usersRouter({ dbPool }));
   router.use('/registrations', registrationsRouter({ dbPool }));
+  router.use('/groups', registrationsRouter({ dbPool }));
 
   return router;
 }
