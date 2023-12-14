@@ -29,7 +29,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ${{ env.REGISTRY }}
-          username: _json_key_base64
+          username: _json_key
           password: ${{ secrets.GCP_SA_KEY }}
 
       # Extract metadata (tags, labels) for Docker
