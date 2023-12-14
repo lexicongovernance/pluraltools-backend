@@ -12,8 +12,8 @@
         "strict": true,
         "noUncheckedIndexedAccess": true,
         /* If NOT transpiling with TypeScript: */
-        "moduleResolution": "Bundler",
-        "module": "ESNext",
+        //"moduleResolution": "Bundler",
+        "module": "commonjs",
         "noEmit": true,
         /* If your code doesn't run in the DOM: */
         "lib": ["es2022"]
