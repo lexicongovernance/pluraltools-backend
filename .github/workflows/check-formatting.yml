@@ -25,11 +25,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: 'yarn'
-          cache-dependency-path: ./yarn.lock
-          registry-url: 'https://registry.npmjs.org/'
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
 
-      - run: yarn install --frozen-lockfile
+      - name: Install dependencies with pnpm
+        run: pnpm install --frozen-lockfile
 
-      - name: Review formatting
-        run: yarn format
+      - name: Review linting
+        run: pnpm format

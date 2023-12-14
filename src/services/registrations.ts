@@ -52,7 +52,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
 
 async function validateUniqueKeys(
   dbPool: PostgresJsDatabase<typeof db>,
-  data: z.infer<typeof insertRegistrationSchema>
+  data: z.infer<typeof insertRegistrationSchema>,
 ): Promise<{ errors: { username?: string; email?: string } }> {
   const res = {
     errors: {
@@ -70,7 +70,7 @@ async function validateUniqueKeys(
       .select()
       .from(db.registrations)
       .where(
-        and(eq(db.registrations.username, data.username), ne(db.registrations.userId, data.userId))
+        and(eq(db.registrations.username, data.username), ne(db.registrations.userId, data.userId)),
       );
 
     if (usernames.length > 0) {

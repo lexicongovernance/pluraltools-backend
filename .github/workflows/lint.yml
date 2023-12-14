@@ -3,8 +3,6 @@ name: Linting
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'docs/**'
   pull_request:
     types: [opened, synchronize]
 
@@ -26,11 +24,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-          cache: 'yarn'
-          cache-dependency-path: ./yarn.lock
-          registry-url: 'https://registry.npmjs.org/'
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
 
-      - run: yarn install --frozen-lockfile # optional, --immutable
+      - name: Install dependencies with pnpm
+        run: pnpm install --frozen-lockfile
 
       - name: Review linting
-        run: yarn lint
+        run: pnpm lint
