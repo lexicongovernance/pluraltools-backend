@@ -22,7 +22,7 @@ async function main() {
   // run
   await runMigrations(envVariables.DB_CONNECTION_URL);
   app.use('/api', apiRouter({ dbPool }));
-  app.listen(envVariables.PORT ?? 8080, '0.0.0.0', () => {
+  app.listen(isNaN(Number(envVariables.PORT)) ? Number(envVariables.PORT): 8080, '0.0.0.0', () => {
     console.log(`Listening on port: ${envVariables.PORT ?? 8080}`);
   });
 }
