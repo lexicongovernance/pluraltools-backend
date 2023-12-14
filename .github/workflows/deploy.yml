@@ -1,9 +1,13 @@
 name: Build and Push Docker Image
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Linting", "Check Formatting"]
+    types:
+      - completed
     branches:
       - main
+    
 
 jobs:
   build-and-push:
