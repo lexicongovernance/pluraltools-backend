@@ -29,8 +29,7 @@ jobs:
         with:
           version: 8
           run_install:
-            -  args: [--frozen-lockfile, --strict-peer-dependencies]
-            - args: [--global, prettier, typescript]
+            - args: [--frozen-lockfile, --strict-peer-dependencies]
 
       - name: Review linting
         run: pnpm lint
