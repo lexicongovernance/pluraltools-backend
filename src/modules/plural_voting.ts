@@ -131,11 +131,9 @@ class PluralVoting {
     return Math.sqrt(result);
     }
 
-    public analyze(groups: number[][], contributions: number[]): void {
+    public pluralScoreCalculation(groups: number[][], contributions: number[]): void {
         const result: number = this.clusterMatch(groups, contributions);
-    
-        console.log(groups);
-        console.log(result);
+        console.log("Plurality Score", result);
     }
 }
 
@@ -146,7 +144,7 @@ export { PluralVoting };
 const exampleGroups: number[][] = [[0, 1], [1, 2, 3], [0, 2]];
 const exampleContributions: number[] = [1, 2, 3, 4];
 
-const groupAnalysis = new PluralVoting(exampleGroups, exampleContributions);
-groupAnalysis.analyze(exampleGroups, exampleContributions);
+const pluralityScore = new PluralVoting(exampleGroups, exampleContributions);
+pluralityScore.pluralScoreCalculation(exampleGroups, exampleContributions);
 
 
