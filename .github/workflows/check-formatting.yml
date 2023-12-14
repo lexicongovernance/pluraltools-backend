@@ -1,0 +1,35 @@
+name: Check Formatting
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  # group runs by <name of the workflow>-<name of job>-<branch name>
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  formatting:
+    name: Review formatting
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: ./yarn.lock
+          registry-url: 'https://registry.npmjs.org/'
+
+      - run: yarn install --frozen-lockfile
+
+      - name: Review formatting
+        run: yarn format
