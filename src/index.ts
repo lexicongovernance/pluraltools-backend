@@ -22,8 +22,8 @@ async function main() {
   // run
   await runMigrations(envVariables.DB_CONNECTION_URL);
   app.use('/api', apiRouter({ dbPool }));
-  app.listen(8080, '0.0.0.0', () => {
-    console.log(`Listening on port: ${8080}`);
+  app.listen(envVariables.PORT ?? 8080, '0.0.0.0', () => {
+    console.log(`Listening on port: ${envVariables.PORT ?? 8080}`);
   });
 }
 

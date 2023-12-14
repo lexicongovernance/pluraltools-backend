@@ -2,7 +2,7 @@
   "name": "forum",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "lint": "tsc",
     "build": "node esbuild.config.mjs",
