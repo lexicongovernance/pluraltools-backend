@@ -13,7 +13,7 @@
     "dev:esbuild": "pnpm run build:watch",
     "dev": "run-p dev:*",
     "generate": "drizzle-kit generate:pg",
-    "test": "jest"
+    "test": "jest",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
     "format:fix": "prettier --write \"src/**/*.{ts,md}\""
   },
