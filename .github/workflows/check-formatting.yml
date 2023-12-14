@@ -27,10 +27,8 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: |
-            - recursive: true
-              args: [--frozen-lockfile, --strict-peer-dependencies]
-            - args: [--global, prettier, typescript]
+          run_install:
+            - args: [--frozen-lockfile, --strict-peer-dependencies]
 
       - name: Review linting
         run: pnpm format
