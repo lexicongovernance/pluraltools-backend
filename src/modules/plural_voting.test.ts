@@ -1,13 +1,16 @@
-import {createGroupMemberships, commonGroup, K, clusterMatch } from './plural_voting';
+import { PluralVoting } from './plural_voting';
 
-// test create group memberships 
+// Define instance outside the tests
+const groups = [[0, 1], [1, 2, 3], [0, 2]];
+const contributions: number[] = [1, 2, 3, 4];
+const pluralVoting = new PluralVoting(groups, contributions);
+
+// Test create group memberships
 describe('createGroupMemberships', () => {
-  test('creates group memberships correctly', () => {
-    const groups = [[0, 1], [1, 2, 3], [0, 2]];
-
-    const result = createGroupMemberships(groups);
-    expect(result).toEqual([[0, 2], [0, 1], [1, 2], [1]]);
-  });
+    test('creates group memberships correctly', () => {
+        const result = pluralVoting.createGroupMemberships(groups);
+        expect(result).toEqual([[0, 2], [0, 1], [1, 2], [1]]);
+    });
 });
 
 
@@ -16,14 +19,14 @@ describe('commonGroup', () => {
   test('should return true if participants share a common group', () => {
     const groupMemberships: number[][] = [[0, 2], [0, 1], [1, 2], [1]];
 
-    const result = commonGroup(0, 1, groupMemberships);
+    const result = pluralVoting.commonGroup(0, 1, groupMemberships);
     expect(result).toBe(true);
   });
 
   test('should return false if participants do not share a common group', () => {
     const groupMemberships: number[][] = [[0, 2], [0, 1], [1, 2], [1]];
 
-    const result = commonGroup(0, 3, groupMemberships);
+    const result = pluralVoting.commonGroup(0, 3, groupMemberships);
     expect(result).toBe(false);
   });
 });
@@ -37,7 +40,7 @@ describe('K function', () => {
     const groupMemberships = [[0], [1, 2]];
     const contributions = [4, 9, 16];
 
-    const result = K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(i, group, groupMemberships, contributions);
     expect(result).toEqual(4); 
   });
 
@@ -47,7 +50,7 @@ describe('K function', () => {
     const groupMemberships = [[0, 1], [1, 2]];
     const contributions = [4, 9, 16];
 
-    const result = K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(i, group, groupMemberships, contributions);
     expect(result).toEqual(2);
   });
 
@@ -57,7 +60,7 @@ describe('K function', () => {
     const groupMemberships = [[0], [0, 1, 2]];
     const contributions = [4, 9, 16];
 
-    const result = K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(i, group, groupMemberships, contributions);
     expect(result).toEqual(2);
   });
 
@@ -67,7 +70,7 @@ describe('K function', () => {
     const groupMemberships = [[0, 1], [0, 1, 2]];
     const contributions = [4, 9, 16];
 
-    const result = K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(i, group, groupMemberships, contributions);
     expect(result).toEqual(2);
   });
 });
@@ -82,7 +85,7 @@ describe('clusterMatch', () => {
     // Expected result
     const expectedScore = 4;
 
-    const result = clusterMatch(groups, contributions);
+    const result = pluralVoting.clusterMatch(groups, contributions);
     expect(result).toEqual(expectedScore);
   });
 });
