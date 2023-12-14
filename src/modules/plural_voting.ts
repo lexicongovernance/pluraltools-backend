@@ -141,10 +141,11 @@ class PluralVoting {
 export { PluralVoting };
   
 // Example usage
+/*
 const exampleGroups: number[][] = [[0, 1], [1, 2, 3], [0, 2]];
 const exampleContributions: number[] = [1, 2, 3, 4];
 
 const pluralityScore = new PluralVoting(exampleGroups, exampleContributions);
 pluralityScore.pluralScoreCalculation(exampleGroups, exampleContributions);
-
+*/
 

@@ -24,10 +24,11 @@ function quadraticVoting(votes: number[]): [Record<number, number>, number] {
 // Export functions
 export {quadraticVoting};
 
+/*
 // Example usage:
 const votes: number[] = [4, 9, 16];
 const [result, sum] = quadraticVoting(votes);
   
 console.log('Quadratic Votes:', result);
 console.log('Sum of Quadratic Votes:', sum);
-  
+*/
