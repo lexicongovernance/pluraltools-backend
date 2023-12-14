@@ -8,7 +8,7 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
     try {
       const userId = req.session.userId;
       const user = await dbPool.query.users.findFirst({
-        where: eq(db.users.id, userId),
+        where: eq(db.users.id, userId),        
       });
 
       if (!user) {
