@@ -118,6 +118,9 @@ function createGroupMemberships(groups: number[][]): number[][] {
   
     return Math.sqrt(result);
   }
+
+// Export functions
+export { createGroupMemberships, commonGroup, K, clusterMatch };
   
 // Example usage
 const exampleGroups: number[][] = [[0, 1], [1, 2, 3], [0, 2]];
