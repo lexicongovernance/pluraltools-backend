@@ -24,8 +24,6 @@ async function main() {
     user: connectionConfig.user,
     password: connectionConfig.password,
     database: connectionConfig.database ?? undefined,
-    // NOTE: casting this to undefined since pg-connection-string allows for
-    // more types than postgres driver.
     ssl: connectionConfig.ssl as undefined,
   });
 
