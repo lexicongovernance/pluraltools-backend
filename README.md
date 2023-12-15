@@ -6,7 +6,7 @@
 2. [routers](./src/routers/) contains all the api routers which map urls to the service.
 3. [services](./src/services/) contains all business logic for the routes.
 4. [middleware](./src/middleware/) contains all the middleware that is used in the routers before the code reaches the service.
-5. [modules](./src/modules/) contains all voting models implemented in the forum backend. 
+5. [modules](./src/modules/) contains all voting models implemented in the forum backend.
 6. [types](./src/types/) contains all the zod types that are needed for validation.
 
 ## For developers
@@ -17,3 +17,7 @@
 4. update .env with connection string `postgresql://postgres:secretpassword@localhost:5432`
 5. pnpm i
 6. pnpm dev
+
+### unit testing
+
+- expects a database to be available at `postgresql://postgres:secretpassword@localhost:5432`
