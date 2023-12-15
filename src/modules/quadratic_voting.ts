@@ -5,24 +5,23 @@ function quadraticVoting(votes: number[]): [Record<number, number>, number] {
   const quadraticVotesDict: Record<number, number> = {};
 
   for (let agentI = 0; agentI < votes.length; agentI++) {
-
     if (votes[agentI] === undefined) {
       throw new Error(`Vote for agent ${agentI} is undefined.`);
     }
-    const quadraticVotesAgentI = Math.sqrt(votes[agentI]!); 
+    const quadraticVotesAgentI = Math.sqrt(votes[agentI]!);
     quadraticVotesDict[agentI] = quadraticVotesAgentI;
   }
 
   const sumQuadraticVotes = Object.values(quadraticVotesDict).reduce(
-      (acc, value) => acc + value,
-      0
+    (acc, value) => acc + value,
+    0,
   );
 
   return [quadraticVotesDict, sumQuadraticVotes];
 }
 
 // Export functions
-export {quadraticVoting};
+export { quadraticVoting };
 
 /*
 // Example usage:

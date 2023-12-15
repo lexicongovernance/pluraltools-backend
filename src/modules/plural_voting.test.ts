@@ -1,18 +1,21 @@
 import { PluralVoting } from './plural_voting';
 
 // Define instance outside the tests
-const groups = [[0, 1], [1, 2, 3], [0, 2]];
+const groups = [
+  [0, 1],
+  [1, 2, 3],
+  [0, 2],
+];
 const contributions: number[] = [1, 2, 3, 4];
 const pluralVoting = new PluralVoting(groups, contributions);
 
 // Test create group memberships
 describe('createGroupMemberships', () => {
-    test('creates group memberships correctly', () => {
-        const result = pluralVoting.createGroupMemberships(groups);
-        expect(result).toEqual([[0, 2], [0, 1], [1, 2], [1]]);
-    });
+  test('creates group memberships correctly', () => {
+    const result = pluralVoting.createGroupMemberships(groups);
+    expect(result).toEqual([[0, 2], [0, 1], [1, 2], [1]]);
+  });
 });
-
 
 // test common group
 describe('commonGroup', () => {
@@ -31,8 +34,7 @@ describe('commonGroup', () => {
   });
 });
 
-
-// test vote attenuation 
+// test vote attenuation
 describe('K function', () => {
   test('should not attenuate votes of i if i is not in group and does not have any relations with members of the group', () => {
     const i = 0;
@@ -41,13 +43,16 @@ describe('K function', () => {
     const contributions = [4, 9, 16];
 
     const result = pluralVoting.K(i, group, groupMemberships, contributions);
-    expect(result).toEqual(4); 
+    expect(result).toEqual(4);
   });
 
   test('should attenuate votes of i if i has a shared group membership with another member of the group even if i is not in the group', () => {
     const i = 0;
     const group = [1];
-    const groupMemberships = [[0, 1], [1, 2]];
+    const groupMemberships = [
+      [0, 1],
+      [1, 2],
+    ];
     const contributions = [4, 9, 16];
 
     const result = pluralVoting.K(i, group, groupMemberships, contributions);
@@ -67,7 +72,10 @@ describe('K function', () => {
   test('should attenuate votes of i if both conditions above that lead to attenuation are satisfied', () => {
     const i = 0;
     const group = [1];
-    const groupMemberships = [[0, 1], [0, 1, 2]];
+    const groupMemberships = [
+      [0, 1],
+      [0, 1, 2],
+    ];
     const contributions = [4, 9, 16];
 
     const result = pluralVoting.K(i, group, groupMemberships, contributions);
@@ -75,8 +83,7 @@ describe('K function', () => {
   });
 });
 
-
-// Test connection oriented cluster match 
+// Test connection oriented cluster match
 describe('clusterMatch', () => {
   test('calculates plurality score according to connection oriented cluster match', () => {
     const groups: number[][] = [[0], [1]];
@@ -91,7 +98,11 @@ describe('clusterMatch', () => {
 
   test('', () => {
     // Example usage:
-    const exampleGroups: number[][] = [[0, 1], [1, 2, 3], [0, 2]];
+    const exampleGroups: number[][] = [
+      [0, 1],
+      [1, 2, 3],
+      [0, 2],
+    ];
     const exampleContributions: number[] = [1, 2, 3, 4];
 
     const pluralityScore = new PluralVoting(exampleGroups, exampleContributions);
