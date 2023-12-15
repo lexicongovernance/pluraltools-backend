@@ -69,11 +69,17 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
 
         req.session.userId = user[0].id;
         await req.session.save();
-        return res.status(200).send('OK');
+        return res.status(200).json({ data: user[0] });
       } else {
+        if (!federatedCredential[0]) {
+          throw new Error('expected federated credential to exist');
+        }
+        const user = await dbPool.query.users.findFirst({
+          where: eq(users.id, federatedCredential[0].userId),
+        });
         req.session.userId = federatedCredential[0]?.userId ?? '';
         await req.session.save();
-        return res.status(200).send('OK');
+        return res.status(200).json({ data: user });
       }
     } catch (error: any) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
