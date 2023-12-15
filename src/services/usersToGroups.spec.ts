@@ -7,7 +7,6 @@ import postgres from 'postgres';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
-// Test create group memberships
 describe('service: usersToGroups', function () {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<{}>;
