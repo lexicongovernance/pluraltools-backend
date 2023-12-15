@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+import pgConnectionString from 'pg-connection-string';
 import { default as express } from 'express';
 import { environmentVariables } from './types';
 import * as db from './db';
@@ -16,7 +17,16 @@ async function runMigrations(dbUrl: string) {
 async function main() {
   // setup
   const envVariables = environmentVariables.parse(process.env);
-  const sql = postgres(envVariables.DB_CONNECTION_URL);
+  const connectionConfig = pgConnectionString.parse(envVariables.DB_CONNECTION_URL);
+  const sql = postgres({
+    host: connectionConfig.host ?? undefined,
+    port: connectionConfig.port ? parseInt(connectionConfig.port) : undefined,
+    user: connectionConfig.user,
+    password: connectionConfig.password,
+    database: connectionConfig.database ?? undefined,
+    ssl: connectionConfig.ssl as undefined,
+  });
+
   const dbPool = drizzle(sql, { schema: db });
 
   // run
