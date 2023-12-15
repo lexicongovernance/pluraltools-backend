@@ -18,7 +18,6 @@ async function main() {
   // setup
   const envVariables = environmentVariables.parse(process.env);
   const connectionConfig = pgConnectionString.parse(envVariables.DB_CONNECTION_URL);
-  console.log({ connectionConfig });
   const sql = postgres({
     host: connectionConfig.host ?? undefined,
     port: connectionConfig.port ? parseInt(connectionConfig.port) : undefined,
