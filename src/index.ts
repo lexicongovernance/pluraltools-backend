@@ -8,8 +8,8 @@ import * as db from './db';
 import { apiRouter } from './routers/api';
 const app = express();
 
-async function runMigrations(dbUrl: string) {
-  const sql = postgres(dbUrl, { max: 1 });
+async function runMigrations(options: postgres.Options<{}> | undefined) {
+  const sql = postgres({ ...options, max: 1 });
   const db = drizzle(sql);
   await migrate(db, { migrationsFolder: 'migrations' });
 }
@@ -18,19 +18,18 @@ async function main() {
   // setup
   const envVariables = environmentVariables.parse(process.env);
   const connectionConfig = pgConnectionString.parse(envVariables.DB_CONNECTION_URL);
-  const sql = postgres({
+  const connectionOptions: postgres.Options<{}> | undefined = {
     host: connectionConfig.host ?? undefined,
     port: connectionConfig.port ? parseInt(connectionConfig.port) : undefined,
     user: connectionConfig.user,
     password: connectionConfig.password,
     database: connectionConfig.database ?? undefined,
     ssl: connectionConfig.ssl as undefined,
-  });
-
+  };
+  const sql = postgres(connectionOptions);
   const dbPool = drizzle(sql, { schema: db });
-
-  // run
-  await runMigrations(envVariables.DB_CONNECTION_URL);
+  // run migrations
+  await runMigrations(connectionOptions);
   app.use('/api', apiRouter({ dbPool }));
   app.listen(
     !isNaN(Number(envVariables.PORT)) ? Number(envVariables.PORT) : 8080,
