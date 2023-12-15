@@ -1,7 +1,7 @@
 import { PostgresJsDatabase, drizzle } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { overwriteUsersToGroups } from './usersToGroups';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { createDbPool } from '../utils/createDbPool';
 import postgres from 'postgres';
 
@@ -51,6 +51,17 @@ describe('service: usersToGroups', function () {
   });
 
   afterAll(async function () {
+    // delete user to groups
+    await dbPool.delete(db.usersToGroups).where(eq(db.usersToGroups.userId, user?.id ?? ''));
+    // delete groups
+    await dbPool.delete(db.groups).where(
+      inArray(
+        db.groups.id,
+        defaultGroups.map((g) => g.id),
+      ),
+    );
+    // delete user
+    await dbPool.delete(db.users).where(eq(db.users.id, user?.id ?? ''));
     await dbConnection.end();
   });
 });
