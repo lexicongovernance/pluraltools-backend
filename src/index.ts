@@ -1,21 +1,13 @@
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { default as express } from 'express';
-import { environmentVariables } from './types';
 import { apiRouter } from './routers/api';
-import { createDbPool } from './utils/createDbPool';
-import { z } from 'zod';
+import { environmentVariables } from './types';
+import { createDbPool } from './utils/db/createDbPool';
+import { runMigrations } from './utils/db/runMigrations';
 const app = express();
 
-async function runMigrations(dbConnectionUrl: string) {
-  const { dbPool } = createDbPool(dbConnectionUrl, { max: 1 });
-  await migrate(dbPool, { migrationsFolder: 'migrations' });
-}
-
 async function main() {
-  // setup
   const envVariables = environmentVariables.parse(process.env);
   const { dbPool } = createDbPool(envVariables.DB_CONNECTION_URL, {});
-  // run migrations
   await runMigrations(envVariables.DB_CONNECTION_URL);
   app.use('/api', apiRouter({ dbPool }));
   app.listen(
