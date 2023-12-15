@@ -12,7 +12,7 @@ export const registrations = pgTable('registrations', {
   email: varchar('email', { length: 256 }).unique(),
   proposalTitle: varchar('proposal_title', { length: 256 }).notNull(),
   proposalAbstract: varchar('proposal_abstract'),
-  status: registrationEnum('status'),
+  status: registrationEnum('status').default('DRAFT'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
