@@ -17,7 +17,7 @@ COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/dist ./dist
 EXPOSE 8080
 
-CMD [ "node", "dist/index.js" ]
+ENTRYPOINT [ "node", "dist/index.js" ]
 
 
 
