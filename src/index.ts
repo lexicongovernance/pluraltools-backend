@@ -6,8 +6,8 @@ import { createDbPool } from './utils/createDbPool';
 import { z } from 'zod';
 const app = express();
 
-async function runMigrations(envVariables: z.infer<typeof environmentVariables>) {
-  const { dbPool } = createDbPool(envVariables.DB_CONNECTION_URL, { max: 1 });
+async function runMigrations(dbConnectionUrl: string) {
+  const { dbPool } = createDbPool(dbConnectionUrl, { max: 1 });
   await migrate(dbPool, { migrationsFolder: 'migrations' });
 }
 
@@ -16,7 +16,7 @@ async function main() {
   const envVariables = environmentVariables.parse(process.env);
   const { dbPool } = createDbPool(envVariables.DB_CONNECTION_URL, {});
   // run migrations
-  await runMigrations(envVariables);
+  await runMigrations(envVariables.DB_CONNECTION_URL);
   app.use('/api', apiRouter({ dbPool }));
   app.listen(
     !isNaN(Number(envVariables.PORT)) ? Number(envVariables.PORT) : 8080,
