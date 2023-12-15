@@ -1,4 +1,9 @@
 import { createInsertSchema } from 'drizzle-zod';
 import { registrations } from '../db/registrations';
+import { z } from 'zod';
 
-export const insertRegistrationSchema = createInsertSchema(registrations);
+const groupIds = z.string().array();
+
+export const insertRegistrationSchema = createInsertSchema(registrations).extend({
+  groupIds,
+});
