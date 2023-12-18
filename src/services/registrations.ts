@@ -31,7 +31,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
     const newRegistration = await upsertRegistration(dbPool, existingRegistration, body.data);
     const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
     const out = { ...newRegistration, groups: updatedGroups };
-    return res.json(out);
+    return res.json({ data: out });
   };
 }
 
