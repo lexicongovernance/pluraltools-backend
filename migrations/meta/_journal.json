@@ -29,6 +29,13 @@
       "when": 1702590491449,
       "tag": "0003_naive_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1702917823528,
+      "tag": "0004_brave_golden_guardian",
+      "breakpoints": true
     }
   ]
 }
