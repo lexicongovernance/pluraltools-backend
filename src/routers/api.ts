@@ -6,6 +6,7 @@ import { authRouter } from './auth';
 import cors from 'cors';
 import { usersRouter } from './users';
 import { registrationsRouter } from './registrations';
+import { usersToRegistrationOptionsRouter } from './registrationOptions';
 
 const router = express.Router();
 
@@ -37,6 +38,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
   router.use('/users', usersRouter({ dbPool }));
   router.use('/registrations', registrationsRouter({ dbPool }));
   router.use('/groups', registrationsRouter({ dbPool }));
+  router.use('/registrationOptions', usersToRegistrationOptionsRouter({ dbPool }));
 
   return router;
 }
