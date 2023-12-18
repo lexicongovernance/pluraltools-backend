@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import { and, eq, ne } from 'drizzle-orm';
 import { insertRegistrationSchema } from '../types';
 import { z } from 'zod';
+import { overwriteUsersToGroups } from './usersToGroups';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -11,6 +12,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
     const userId = req.session.userId;
     req.body.userId = userId;
     const body = insertRegistrationSchema.safeParse(req.body);
+
     if (!body.success) {
       return res.status(400).json({ errors: body.error.issues });
     }
@@ -22,32 +24,51 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: [uniqueValidation.errors] });
     }
 
-    const registration = await dbPool
-      .select()
-      .from(db.registrations)
-      .where(eq(db.registrations.userId, userId));
+    const existingRegistration = await dbPool.query.registrations.findFirst({
+      where: eq(db.registrations.userId, userId),
+    });
 
-    if (registration.length > 0 && registration[0]) {
-      const updatedRegistration = await dbPool
-        .update(db.registrations)
-        .set({
-          email: body.data.email,
-          username: body.data.username,
-          proposalAbstract: body.data.proposalAbstract,
-          proposalTitle: body.data.proposalTitle,
-          status: body.data.status,
-          updatedAt: new Date(),
-        })
-        .where(eq(db.registrations.id, registration[0].id))
-        .returning();
-      return res.json({ data: updatedRegistration });
-    } else {
-      // insert to registration table
-      const newRegistration = await dbPool.insert(db.registrations).values(body.data).returning();
-
-      return res.json({ data: newRegistration });
-    }
+    const newRegistration = await upsertRegistration(dbPool, existingRegistration, body.data);
+    const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+    const out = { ...newRegistration, groups: updatedGroups };
+    return res.json(out);
   };
+}
+
+async function upsertRegistration(
+  dbPool: PostgresJsDatabase<typeof db>,
+  registration: db.Registration | undefined,
+  body: z.infer<typeof insertRegistrationSchema>,
+) {
+  if (registration) {
+    const updatedRegistration = await dbPool
+      .update(db.registrations)
+      .set({
+        email: body.email,
+        username: body.username,
+        proposalAbstract: body.proposalAbstract,
+        proposalTitle: body.proposalTitle,
+        status: body.status,
+        updatedAt: new Date(),
+      })
+      .where(eq(db.registrations.id, registration.id))
+      .returning();
+    return updatedRegistration[0];
+  } else {
+    // insert to registration table
+    const newRegistration = await dbPool
+      .insert(db.registrations)
+      .values({
+        userId: body.userId,
+        email: body.email,
+        username: body.username,
+        proposalAbstract: body.proposalAbstract,
+        proposalTitle: body.proposalTitle,
+        status: body.status,
+      })
+      .returning();
+    return newRegistration[0];
+  }
 }
 
 async function validateUniqueKeys(
