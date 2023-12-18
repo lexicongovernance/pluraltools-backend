@@ -41,7 +41,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       groups: updatedGroups,
       registrationOptions: updatedRegistrationOptions,
     };
-    return res.json(out);
+    return res.json({ data: out });
   };
 }
 
