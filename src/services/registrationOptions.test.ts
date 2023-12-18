@@ -22,15 +22,15 @@ describe('service: registrationOptions', function () {
     user = (await dbPool.insert(db.users).values({}).returning())[0];
 
     // Insert registration options for the user
-  const registrationOptions = ['option1', 'option2', 'option3'];
-  const userRegistrationOptions = registrationOptions.map((registrationOptionId) => ({
-    id: registrationOptionId,
-    name: 'Example Name', 
-    category: 'Example Category',
-    created_at: new Date(), 
-    updated_at: new Date(), 
-  }));
-  await dbPool.insert(db.registrationOptions).values(userRegistrationOptions).execute();
+    const registrationOptions = ['option1', 'option2', 'option3'];
+    const userRegistrationOptions = registrationOptions.map((registrationOptionId) => ({
+      id: registrationOptionId,
+      name: 'Example Name',
+      category: 'Example Category',
+      created_at: new Date(),
+      updated_at: new Date(),
+    }));
+    await dbPool.insert(db.registrationOptions).values(userRegistrationOptions).execute();
   });
 
   test('should throw an error if it tries to delete a non-existing record', async () => {
@@ -76,7 +76,9 @@ describe('service: registrationOptions', function () {
 
   afterAll(async function () {
     // Delete user registration options
-    await dbPool.delete(db.usersToRegistrationOptions).where(eq(db.usersToRegistrationOptions.userId, user?.id ?? ''));
+    await dbPool
+      .delete(db.usersToRegistrationOptions)
+      .where(eq(db.usersToRegistrationOptions.userId, user?.id ?? ''));
 
     // delete user
     await dbPool.delete(db.users).where(eq(db.users.id, user?.id ?? ''));
