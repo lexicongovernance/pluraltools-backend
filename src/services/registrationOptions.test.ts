@@ -1,5 +1,25 @@
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { saveUsersToRegistrationOptions } from './registrationOptions';
-import { mockDbPool } from '../mock_db/mockDbPool';
+
+// Define a mock database pool
+const mockDbPool: PostgresJsDatabase<any> = {
+  users: {
+    select: jest.fn(),
+    insert: jest.fn(),
+    update: jest.fn(),
+  },
+  registrationOptions: {
+    select: jest.fn(),
+    insert: jest.fn(),
+    update: jest.fn(),
+  },
+  usersToRegistrationOptions: {
+    select: jest.fn(),
+    insert: jest.fn(),
+    update: jest.fn(),
+  },
+  // Add other mock tables as needed
+} as any;
 
 console.log = jest.fn();
 
