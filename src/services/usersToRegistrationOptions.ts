@@ -2,7 +2,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { eq } from 'drizzle-orm';
 
-export async function saveUsersToRegistrationOptions(
+export async function overWriteUsersToRegistrationOptions(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   newRegistrationOptions: string[],

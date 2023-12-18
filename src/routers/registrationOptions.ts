@@ -2,7 +2,7 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { default as express } from 'express';
 import type * as db from '../db';
 import { isLoggedIn } from '../middleware/isLoggedIn';
-import { saveUsersToRegistrationOptions } from '../services/registrationOptions';
+import { saveUsersToRegistrationOptions } from '../services/usersToRegistrationOptions';
 
 const router = express.Router();
 
