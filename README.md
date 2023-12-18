@@ -21,3 +21,9 @@
 ### unit testing
 
 - expects a database to be available at `postgresql://postgres:secretpassword@localhost:5432`
+
+### db migrations
+
+1. create a file in the [db](./src/db/) with the new table schema
+2. run `pnpm generate`
+3. restart server and migrations should auto run
