@@ -4,7 +4,7 @@ import { mockDbPool } from '../mock_db/mockDbPool';
 console.log = jest.fn();
 
 describe('saveUsersToRegistrationOptions', () => {
-  it('should delete existing records and insert new ones', async () => {
+  test('should throw an error if it tries to delete a non existing record', async () => {
     const userId = 'testUserId';
     const newRegistrationOptions = ['option1', 'option2'];
 
