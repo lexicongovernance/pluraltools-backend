@@ -5,6 +5,7 @@ import { and, eq, ne } from 'drizzle-orm';
 import { insertRegistrationSchema } from '../types';
 import { z } from 'zod';
 import { overwriteUsersToGroups } from './usersToGroups';
+import { overWriteUsersToRegistrationOptions } from './usersToRegistrationOptions';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -30,7 +31,16 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
 
     const newRegistration = await upsertRegistration(dbPool, existingRegistration, body.data);
     const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
-    const out = { ...newRegistration, groups: updatedGroups };
+    const updatedRegistrationOptions = await overWriteUsersToRegistrationOptions(
+      dbPool,
+      userId,
+      body.data.registrationOptionIds,
+    );
+    const out = {
+      ...newRegistration,
+      groups: updatedGroups,
+      registrationOptions: updatedRegistrationOptions,
+    };
     return res.json({ data: out });
   };
 }
