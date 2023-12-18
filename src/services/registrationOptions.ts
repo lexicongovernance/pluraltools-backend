@@ -9,7 +9,9 @@ export async function saveUsersToRegistrationOptions(
 ): Promise<db.UsersToRegistrationOptions[] | null> {
   // delete all registration options that previously existed for the user
   try {
-    await dbPool.delete(db.usersToRegistrationOptions).where(eq(db.usersToRegistrationOptions.userId, userId));
+    await dbPool
+      .delete(db.usersToRegistrationOptions)
+      .where(eq(db.usersToRegistrationOptions.userId, userId));
   } catch (e) {
     console.log('error deleting user registration options ' + JSON.stringify(e));
     return null;
@@ -18,7 +20,9 @@ export async function saveUsersToRegistrationOptions(
   // save the new ones
   const newUserToRegistrationOptions = await dbPool
     .insert(db.usersToRegistrationOptions)
-    .values(newRegistrationOptions.map((registrationOptionId) => ({ registrationOptionId, userId })))
+    .values(
+      newRegistrationOptions.map((registrationOptionId) => ({ registrationOptionId, userId })),
+    )
     .returning();
 
   // return new user registration options
