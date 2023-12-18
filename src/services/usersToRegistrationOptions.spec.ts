@@ -8,7 +8,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
-describe('service: registrationOptions', function () {
+describe('service: usersToRegistrationOptions', function () {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<{}>;
   let user: db.User | undefined;
