@@ -29,7 +29,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-async function sendRegistrationData(
+export async function sendRegistrationData(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
   userId: string,

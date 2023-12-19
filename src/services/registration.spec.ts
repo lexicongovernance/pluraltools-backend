@@ -1,17 +1,16 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
 import { runMigrations } from '../utils/db/runMigrations';
-import { Request, Response } from 'express';
-import { saveRegistration } from './registrations';
+import { sendRegistrationData } from './registrations';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
-describe('saveRegistration function', () => {
+describe('sendRegistrationData  function', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let user: db.User | undefined;
   let dbConnection: postgres.Sql<{}>;
@@ -60,25 +59,75 @@ describe('saveRegistration function', () => {
     };
   });
 
-  test('should save registration', async () => {
-    // Mock the Express request and response objects
-    const req: Request = {
-      session: { userId: user?.id },
-      body: testData,
-    } as Request;
-
+  test('send registration data', async () => {
     // Call the saveRegistration function
-    // await saveRegistration(dbPool)(req, res);
-    // console.log({ response, res });
+    const response = await sendRegistrationData(dbPool, testData, user?.id || '');
 
-    // // Assert the expected behavior based on the response
-    // expect(res.status).toHaveBeenCalledWith(200);
-    // expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ data: expect.any(Object) }));
+    // Check if response is defined
+    expect(response).toBeDefined();
+
+    // Check property existence and types
+    expect(response).toHaveProperty('id');
+    expect(response.id).toEqual(expect.any(String));
+    expect(response).toHaveProperty('userId');
+    expect(response.userId).toEqual(expect.any(String));
+
+    // Check array length
+    expect(response.groups).toEqual(expect.any(Array));
+    expect(response.groups).toHaveLength(2); // Assuming 2 groups in the example
+    expect(response.registrationOptions).toEqual(expect.any(Array));
+    expect(response.registrationOptions).toHaveLength(3); // Assuming 3 registration options in the example
+
+    // Check array element properties
+    response.groups!.forEach((group) => {
+      expect(group).toHaveProperty('id');
+      expect(group).toHaveProperty('userId');
+    });
+
+    response.registrationOptions!.forEach((option) => {
+      expect(option).toHaveProperty('id');
+      expect(option).toHaveProperty('userId');
+    });
+
+    // check timestamps
+    expect(response.createdAt).toEqual(expect.any(Date));
+    expect(response.updatedAt).toEqual(expect.any(Date));
+
+    // test for specific values
+    expect(response.proposalTitle).toEqual('some title');
   });
 
   afterAll(async () => {
+    // Delete user registration options
+    await dbPool
+      .delete(db.usersToRegistrationOptions)
+      .where(eq(db.usersToRegistrationOptions.userId, user?.id ?? ''));
+
+    // Delete registrations
+    await dbPool.delete(db.registrations).where(eq(db.registrations.userId, user?.id ?? ''));
+
+    // Delete user to groups
+    await dbPool.delete(db.usersToGroups).where(eq(db.usersToGroups.userId, user?.id ?? ''));
+
+    // Delete groups
+    await dbPool.delete(db.groups).where(
+      inArray(
+        db.groups.id,
+        defaultGroups.map((g) => g.id),
+      ),
+    );
+
+    // Delete registration options
+    await dbPool.delete(db.registrationOptions).where(
+      inArray(
+        db.registrationOptions.id,
+        defaultRegistrations.map((r) => r.id),
+      ),
+    );
+
     // delete user
-    //  await dbPool.delete(db.users).where(eq(db.users.id, user?.id ?? ''));
+    await dbPool.delete(db.users).where(eq(db.users.id, user?.id ?? ''));
+
     await dbConnection.end();
   });
 });
