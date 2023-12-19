@@ -1,10 +1,10 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
 import { runMigrations } from '../utils/db/runMigrations';
-import { Request, Response } from 'express-serve-static-core';
+import { Request, Response } from 'express';
 import { saveRegistration } from './registrations';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
