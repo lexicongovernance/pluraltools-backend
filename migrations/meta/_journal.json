@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1702313051141,
-      "tag": "0000_puzzling_onslaught",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1702419855836,
-      "tag": "0001_fat_morph",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1702501886927,
-      "tag": "0002_vengeful_terrax",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1702590491449,
-      "tag": "0003_naive_forge",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1702917823528,
-      "tag": "0004_brave_golden_guardian",
+      "when": 1702989181002,
+      "tag": "0000_mighty_supreme_intelligence",
       "breakpoints": true
     }
   ]

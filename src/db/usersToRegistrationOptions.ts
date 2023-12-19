@@ -18,13 +18,13 @@ export const usersToRegistrationOptions = pgTable('users_to_registration_options
 export const usersToRegistrationOptionsRelations = relations(
   usersToRegistrationOptions,
   ({ one }) => ({
-    user: one(users, {
-      fields: [usersToRegistrationOptions.userId],
-      references: [users.id],
-    }),
     registrationOption: one(registrationOptions, {
       fields: [usersToRegistrationOptions.registrationOptionId],
       references: [registrationOptions.id],
+    }),
+    user: one(users, {
+      fields: [usersToRegistrationOptions.userId],
+      references: [users.id],
     }),
   }),
 );
