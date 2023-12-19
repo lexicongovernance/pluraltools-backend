@@ -13,7 +13,7 @@ export const users = pgTable('users', {
 
 export const usersRelations = relations(users, ({ many }) => ({
   usersToGroups: many(usersToGroups),
-  registrationEnum: many(registrations),
+  registrations: many(registrations),
 }));
 
 export type User = typeof users.$inferSelect; // return type when queried
