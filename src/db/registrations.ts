@@ -1,5 +1,6 @@
 import { pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { users } from './users';
+import { relations } from 'drizzle-orm';
 
 export const registrationEnum = pgEnum('registration_enum', ['DRAFT', 'PUBLISHED']);
 
@@ -16,5 +17,12 @@ export const registrations = pgTable('registrations', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
+
+export const registrationRelations = relations(registrations, ({ one }) => ({
+  user: one(users, {
+    fields: [registrations.userId],
+    references: [users.id],
+  }),
+}));
 
 export type Registration = typeof registrations.$inferSelect; // return type when queried

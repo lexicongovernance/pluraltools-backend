@@ -24,25 +24,33 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
     if (uniqueValidation.errors.email || uniqueValidation.errors.username) {
       return res.status(400).json({ errors: [uniqueValidation.errors] });
     }
-
-    const existingRegistration = await dbPool.query.registrations.findFirst({
-      where: eq(db.registrations.userId, userId),
-    });
-
-    const newRegistration = await upsertRegistration(dbPool, existingRegistration, body.data);
-    const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
-    const updatedRegistrationOptions = await overWriteUsersToRegistrationOptions(
-      dbPool,
-      userId,
-      body.data.registrationOptionIds,
-    );
-    const out = {
-      ...newRegistration,
-      groups: updatedGroups,
-      registrationOptions: updatedRegistrationOptions,
-    };
+    const out = await sendRegistrationData(dbPool, body.data, userId);
     return res.json({ data: out });
   };
+}
+
+async function sendRegistrationData(
+  dbPool: PostgresJsDatabase<typeof db>,
+  data: z.infer<typeof insertRegistrationSchema>,
+  userId: string,
+) {
+  const existingRegistration = await dbPool.query.registrations.findFirst({
+    where: eq(db.registrations.userId, userId),
+  });
+  const newRegistration = await upsertRegistration(dbPool, existingRegistration, data);
+  const updatedGroups = await overwriteUsersToGroups(dbPool, userId, data.groupIds);
+  const updatedRegistrationOptions = await overWriteUsersToRegistrationOptions(
+    dbPool,
+    userId,
+    data.registrationOptionIds,
+  );
+  const out = {
+    ...newRegistration,
+    groups: updatedGroups,
+    registrationOptions: updatedRegistrationOptions,
+  };
+
+  return out;
 }
 
 async function upsertRegistration(
