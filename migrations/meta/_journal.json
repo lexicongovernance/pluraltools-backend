@@ -36,6 +36,13 @@
       "when": 1702917823528,
       "tag": "0004_brave_golden_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1702988282652,
+      "tag": "0005_massive_lilandra",
+      "breakpoints": true
     }
   ]
 }
