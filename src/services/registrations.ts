@@ -39,7 +39,7 @@ export async function sendRegistrationData(
   });
   const newRegistration = await upsertRegistration(dbPool, existingRegistration, data);
   const updatedGroups = await overwriteUsersToGroups(dbPool, userId, data.groupIds);
-  const updatedRegistrationOptions = await overWriteUsersToRegistrationOptions(
+  const updatedRegistrationOptions = await overwriteUsersToRegistrationOptions(
     dbPool,
     userId,
     data.registrationOptionIds,

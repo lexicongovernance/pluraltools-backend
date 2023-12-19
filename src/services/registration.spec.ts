@@ -84,7 +84,7 @@ describe('sendRegistrationData  function', () => {
       expect(group).toHaveProperty('userId');
     });
 
-    response.registrationOptions!.forEach((option) => {
+    response.registrationOptions!.forEach((option: any) => {
       expect(option).toHaveProperty('id');
       expect(option).toHaveProperty('userId');
     });
