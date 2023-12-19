@@ -1,5 +1,5 @@
 {
-  "id": "1fa291a6-ae2a-444d-9b45-267a7ada98ad",
+  "id": "fb8d7825-ea1c-44d5-959b-52bb6e1449c9",
   "prevId": "be7b08db-2b89-4567-ba3c-70d73550a4c4",
   "version": "5",
   "dialect": "pg",
@@ -385,21 +385,71 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "questions": {
-      "name": "questions",
+    "registration_options": {
+      "name": "registration_options",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
           "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
-        "title": {
-          "name": "title",
+        "category": {
+          "name": "category",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "users_to_registration_options": {
+      "name": "users_to_registration_options",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "registration_option_id": {
+          "name": "registration_option_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -418,12 +468,25 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "questions_id_cycles_id_fk": {
-          "name": "questions_id_cycles_id_fk",
-          "tableFrom": "questions",
-          "tableTo": "cycles",
+        "users_to_registration_options_user_id_users_id_fk": {
+          "name": "users_to_registration_options_user_id_users_id_fk",
+          "tableFrom": "users_to_registration_options",
+          "tableTo": "users",
           "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
             "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "users_to_registration_options_registration_option_id_registration_options_id_fk": {
+          "name": "users_to_registration_options_registration_option_id_registration_options_id_fk",
+          "tableFrom": "users_to_registration_options",
+          "tableTo": "registration_options",
+          "columnsFrom": [
+            "registration_option_id"
           ],
           "columnsTo": [
             "id"
