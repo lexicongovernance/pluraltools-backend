@@ -6,6 +6,8 @@ import postgres from 'postgres';
 import { runMigrations } from '../utils/db/runMigrations';
 import { Request, Response } from 'express';
 import { saveRegistration } from './registrations';
+import {z} from "zod";
+import { insertRegistrationSchema } from '../types';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -13,11 +15,9 @@ describe('saveRegistration function', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let user: db.User | undefined;
   let dbConnection: postgres.Sql<{}>;
-  let testData: {
-    userId: string;
-    groupIds: string[];
-    registrationOptionIds: string[];
-  };
+  let defaultGroups: db.Group[];
+  let testData : z.infer<typeof insertRegistrationSchema>;
+  let defaultRegistrations: db.RegistrationOption[];
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -26,10 +26,35 @@ describe('saveRegistration function', () => {
     dbConnection = initDb.connection;
     user = (await dbPool.insert(db.users).values({}).returning())[0];
 
+    // creates initial groups
+    defaultGroups = await dbPool
+      .insert(db.groups)
+      .values([
+        {
+          name: 'blue',
+        },
+        {
+          name: 'red',
+        },
+      ])
+      .returning();
+
+    // Insert registration options for the user
+    const registrationOptions = ['option1', 'option2', 'option3'];
+    const dbRegistrationOptions = registrationOptions.map((registrationOptionId) => ({
+      name: registrationOptionId,
+      category: 'Example Category',
+    }));
+    defaultRegistrations = await dbPool
+      .insert(db.registrationOptions)
+      .values(dbRegistrationOptions)
+      .returning();
+
     testData = {
       userId: user!.id,
-      groupIds: ['groupId1', 'groupId2'],
-      registrationOptionIds: ['optionId1', 'optionId2'],
+      proposalTitle: "some title",
+      groupIds: defaultGroups.map(group => group.id),
+      registrationOptionIds: defaultRegistrations.map(registrationOption => registrationOption.id),
     };
   });
 
