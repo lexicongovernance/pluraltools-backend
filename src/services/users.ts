@@ -45,7 +45,18 @@ export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       where: eq(db.usersToGroups.userId, userId),
     });
 
-    const out = { ...registration, groups: usersToGroups };
+    const usersToRegistrationOptions = await dbPool.query.usersToRegistrationOptions.findMany({
+      where: eq(db.usersToRegistrationOptions.userId, userId),
+      with: {
+        registrationOption: true,
+      },
+    });
+
+    const out = {
+      ...registration,
+      groups: usersToGroups,
+      registrationOptions: usersToRegistrationOptions,
+    };
     return res.json({ data: out });
   };
 }
