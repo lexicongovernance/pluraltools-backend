@@ -5,7 +5,7 @@ import { and, eq, ne } from 'drizzle-orm';
 import { insertRegistrationSchema } from '../types';
 import { z } from 'zod';
 import { overwriteUsersToGroups } from './usersToGroups';
-import { overWriteUsersToRegistrationOptions } from './usersToRegistrationOptions';
+import { overwriteUsersToRegistrationOptions } from './usersToRegistrationOptions';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {

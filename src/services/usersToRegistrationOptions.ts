@@ -2,11 +2,13 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { eq } from 'drizzle-orm';
 
-export async function overWriteUsersToRegistrationOptions(
+export async function overwriteUsersToRegistrationOptions(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   newRegistrationOptions: string[],
-): Promise<db.UsersToRegistrationOptions[] | null> {
+): Promise<
+  (db.UsersToRegistrationOptions & { registrationOption: db.RegistrationOption })[] | null
+> {
   // delete all registration options that previously existed for the user
   try {
     console.log('Deleting existing records...');
@@ -22,15 +24,21 @@ export async function overWriteUsersToRegistrationOptions(
   try {
     console.log('Inserting new records...');
     // save the new ones
-    const newUserToRegistrationOptions = await dbPool
+    await dbPool
       .insert(db.usersToRegistrationOptions)
       .values(
         newRegistrationOptions.map((registrationOptionId) => ({ registrationOptionId, userId })),
-      )
-      .returning();
+      );
+    const usersToRegistrationOptions = await dbPool.query.usersToRegistrationOptions.findMany({
+      where: eq(db.usersToRegistrationOptions.userId, userId),
+      with: {
+        registrationOption: true,
+      },
+    });
+
     console.log('Insertion successful.');
     // return new user registration options
-    return newUserToRegistrationOptions;
+    return usersToRegistrationOptions;
   } catch (e) {
     console.log('Error inserting new user registration options: ', e);
     return null;

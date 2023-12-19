@@ -1,6 +1,6 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { overWriteUsersToRegistrationOptions } from './usersToRegistrationOptions';
+import { overwriteUsersToRegistrationOptions } from './usersToRegistrationOptions';
 import { eq, inArray } from 'drizzle-orm';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
@@ -35,7 +35,7 @@ describe('service: usersToRegistrationOptions', function () {
 
   test('should save initial registration options', async () => {
     const initialRegistrationOptions = defaultRegistrations.map((r) => r.id);
-    const result = await overWriteUsersToRegistrationOptions(dbPool, user?.id || '', [
+    const result = await overwriteUsersToRegistrationOptions(dbPool, user?.id || '', [
       initialRegistrationOptions[0] ?? '',
     ]);
 
@@ -46,7 +46,7 @@ describe('service: usersToRegistrationOptions', function () {
   test('should overwrite registration options', async () => {
     // Insert some initial registration options for the user
     const initialRegistrationOptions = defaultRegistrations.map((r) => r.id);
-    const result = await overWriteUsersToRegistrationOptions(dbPool, user?.id || '', [
+    const result = await overwriteUsersToRegistrationOptions(dbPool, user?.id || '', [
       initialRegistrationOptions[1] ?? '',
     ]);
 
