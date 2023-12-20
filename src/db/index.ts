@@ -7,3 +7,4 @@ export * from './usersToGroups';
 export * from './questions';
 export * from './registrationOptions';
 export * from './usersToRegistrationOptions';
+export * from './options';
