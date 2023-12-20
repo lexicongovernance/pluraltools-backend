@@ -1,6 +1,7 @@
 import { pgTable, timestamp, integer, uuid, varchar } from 'drizzle-orm/pg-core';
 import { questions } from './questions';
 import { relations } from 'drizzle-orm';
+import { votes } from './votes';
 
 export const options = pgTable('options', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -13,11 +14,12 @@ export const options = pgTable('options', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const optionsRelations = relations(options, ({ one }) => ({
+export const optionsRelations = relations(options, ({ one, many }) => ({
   question: one(questions, {
     fields: [options.questionId],
     references: [questions.id],
   }),
+  votes: many(votes),
 }));
 
 export type Option = typeof options.$inferSelect;
