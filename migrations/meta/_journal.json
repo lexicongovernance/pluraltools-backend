@@ -15,6 +15,13 @@
       "when": 1703062026854,
       "tag": "0001_warm_falcon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1703081997843,
+      "tag": "0002_flimsy_guardian",
+      "breakpoints": true
     }
   ]
 }
