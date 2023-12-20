@@ -4,7 +4,7 @@ import { relations } from 'drizzle-orm';
 
 export const options = pgTable('options', {
   id: uuid('id').primaryKey().defaultRandom(),
-  questionId: uuid('id')
+  questionId: uuid('question_id')
     .references(() => questions.id)
     .notNull(),
   text: varchar('text', { length: 256 }).notNull(),

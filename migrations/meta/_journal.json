@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1702989181002,
-      "tag": "0000_mighty_supreme_intelligence",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1703086887963,
-      "tag": "0001_tearful_stardust",
+      "when": 1703088122332,
+      "tag": "0000_public_warbound",
       "breakpoints": true
     }
   ]
