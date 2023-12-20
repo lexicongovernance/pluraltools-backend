@@ -1,2 +1,3 @@
 export * from './environment';
-export * from './registration';
+export * from './registrations';
+export * from './votes';
