@@ -8,3 +8,4 @@ export * from './questions';
 export * from './registrationOptions';
 export * from './usersToRegistrationOptions';
 export * from './options';
+export * from './votes';

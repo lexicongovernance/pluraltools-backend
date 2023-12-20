@@ -17,4 +17,4 @@ export const cyclesRelations = relations(cycles, ({ many }) => ({
   questions: many(questions),
 }));
 
-export type Cycles = typeof cycles.$inferSelect;
+export type Cycle = typeof cycles.$inferSelect;
