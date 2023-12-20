@@ -1,11 +1,11 @@
 import { pgTable, timestamp, integer, uuid, varchar } from 'drizzle-orm/pg-core';
-import { cycles } from './cycles';
+import { questions } from './questions';
 import { relations } from 'drizzle-orm';
 
 export const options = pgTable('options', {
   id: uuid('id').primaryKey().defaultRandom(),
-  cycleId: uuid('id')
-    .references(() => cycles.id)
+  questionId: uuid('id')
+    .references(() => questions.id)
     .notNull(),
   text: varchar('text', { length: 256 }).notNull(),
   voteCount: integer('vote_count').notNull(),
@@ -14,9 +14,9 @@ export const options = pgTable('options', {
 });
 
 export const optionsRelations = relations(options, ({ one }) => ({
-  cycle: one(cycles, {
-    fields: [options.cycleId],
-    references: [cycles.id],
+  question: one(questions, {
+    fields: [options.questionId],
+    references: [questions.id],
   }),
 }));
 

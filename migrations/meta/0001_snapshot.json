@@ -1,5 +1,5 @@
 {
-  "id": "a7e3062e-4b46-48fb-9432-e6ee3bdfc00b",
+  "id": "34f359e1-18f0-4a00-a3c9-11bd907bee22",
   "prevId": "495bb222-08a0-4416-9d5a-4a9dc3d617c2",
   "version": "5",
   "dialect": "pg",
@@ -587,10 +587,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "options_id_cycles_id_fk": {
-          "name": "options_id_cycles_id_fk",
+        "options_id_questions_id_fk": {
+          "name": "options_id_questions_id_fk",
           "tableFrom": "options",
-          "tableTo": "cycles",
+          "tableTo": "questions",
           "columnsFrom": [
             "id"
           ],

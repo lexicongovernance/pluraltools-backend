@@ -8,8 +8,11 @@ export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
     const activeCycles = dbPool.query.cycles.findMany({
       where: and(lte(db.cycles.startAt, new Date()), gte(db.cycles.endAt, new Date())),
       with: {
-        questions: true,
-        options: true,
+        questions: {
+          with: {
+            options: true,
+          },
+        },
       },
     });
 
