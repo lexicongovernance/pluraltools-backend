@@ -1,4 +1,4 @@
-import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, integer, uuid, varchar } from 'drizzle-orm/pg-core';
 import { cycles } from './cycles';
 import { relations } from 'drizzle-orm';
 
@@ -8,6 +8,7 @@ export const options = pgTable('options', {
     .references(() => cycles.id)
     .notNull(),
   text: varchar('text', { length: 256 }).notNull(),
+  voteCount: integer('vote_count').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
