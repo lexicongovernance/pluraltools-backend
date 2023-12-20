@@ -69,8 +69,10 @@ CREATE TABLE IF NOT EXISTS "users_to_groups" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "questions" (
-	"id" uuid NOT NULL,
-	"title" varchar(256),
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"cycle_id" uuid NOT NULL,
+	"title" varchar(256) NOT NULL,
+	"description" varchar(256),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -87,6 +89,15 @@ CREATE TABLE IF NOT EXISTS "users_to_registration_options" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"registration_option_id" uuid NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "options" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"question_id" uuid NOT NULL,
+	"text" varchar(256) NOT NULL,
+	"vote_count" integer NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -116,7 +127,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "questions" ADD CONSTRAINT "questions_id_cycles_id_fk" FOREIGN KEY ("id") REFERENCES "cycles"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "questions" ADD CONSTRAINT "questions_cycle_id_cycles_id_fk" FOREIGN KEY ("cycle_id") REFERENCES "cycles"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -129,6 +140,12 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "users_to_registration_options" ADD CONSTRAINT "users_to_registration_options_registration_option_id_registration_options_id_fk" FOREIGN KEY ("registration_option_id") REFERENCES "registration_options"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "options" ADD CONSTRAINT "options_question_id_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "questions"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

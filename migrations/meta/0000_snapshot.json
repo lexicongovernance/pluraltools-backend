@@ -1,5 +1,5 @@
 {
-  "id": "495bb222-08a0-4416-9d5a-4a9dc3d617c2",
+  "id": "f8c75b8d-3a4c-4ce1-8f16-0f06bdc87560",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -392,11 +392,24 @@
         "id": {
           "name": "id",
           "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cycle_id": {
+          "name": "cycle_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "title": {
           "name": "title",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false
@@ -418,12 +431,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "questions_id_cycles_id_fk": {
-          "name": "questions_id_cycles_id_fk",
+        "questions_cycle_id_cycles_id_fk": {
+          "name": "questions_cycle_id_cycles_id_fk",
           "tableFrom": "questions",
           "tableTo": "cycles",
           "columnsFrom": [
-            "id"
+            "cycle_id"
           ],
           "columnsTo": [
             "id"
@@ -537,6 +550,69 @@
           "tableTo": "registration_options",
           "columnsFrom": [
             "registration_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "options": {
+      "name": "options",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vote_count": {
+          "name": "vote_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "options_question_id_questions_id_fk": {
+          "name": "options_question_id_questions_id_fk",
+          "tableFrom": "options",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
           ],
           "columnsTo": [
             "id"
