@@ -9,6 +9,7 @@ export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
       where: and(lte(db.cycles.startAt, new Date()), gte(db.cycles.endAt, new Date())),
       with: {
         questions: true,
+        options: true,
       },
     });
 
