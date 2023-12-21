@@ -1,7 +1,7 @@
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
-import { eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 
 export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -59,4 +59,46 @@ export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
     };
     return res.json({ data: out });
   };
+}
+
+export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const sessionUserId = req.session.userId;
+    const optionId = req.params.optionId;
+    const userId = req.params.userId;
+    if (userId !== sessionUserId) {
+      return res.status(400).json({
+        errors: [
+          {
+            message: 'Not authorized to query this user',
+          },
+        ],
+      });
+    }
+
+    if (!optionId) {
+      return res.status(400).json({
+        errors: [
+          {
+            message: 'Expected optionId in query params',
+          },
+        ],
+      });
+    }
+
+    const votesRow = await getVoteForOptionByUser(dbPool, userId, optionId);
+
+    return res.json({ data: votesRow });
+  };
+}
+
+export function getVoteForOptionByUser(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  optionId: string,
+) {
+  return dbPool.query.votes.findFirst({
+    where: and(eq(db.votes.userId, userId), eq(db.votes.optionId, optionId)),
+    orderBy: [desc(db.votes.createdAt)],
+  });
 }

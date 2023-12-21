@@ -1,7 +1,7 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import * as db from '../db';
 import { and, gte, lte } from 'drizzle-orm';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
+import * as db from '../db';
 
 export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {

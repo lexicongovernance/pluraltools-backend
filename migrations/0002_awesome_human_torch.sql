@@ -1,0 +1,1 @@
+ALTER TABLE "options" ALTER COLUMN "vote_count" SET DEFAULT 0;
