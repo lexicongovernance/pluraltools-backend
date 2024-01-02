@@ -92,13 +92,21 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function getVoteForOptionByUser(
+export async function getVoteForOptionByUser(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   optionId: string,
 ) {
-  return dbPool.query.votes.findFirst({
+  const response = await dbPool.query.votes.findFirst({
     where: and(eq(db.votes.userId, userId), eq(db.votes.optionId, optionId)),
     orderBy: [desc(db.votes.createdAt)],
   });
+  const defaultResponse = {
+    userId: userId,
+    optionId: optionId,
+    numOfVotes: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  return response ?? defaultResponse;
 }
