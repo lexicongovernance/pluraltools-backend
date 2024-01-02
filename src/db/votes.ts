@@ -1,7 +1,7 @@
 import { integer, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { relations } from 'drizzle-orm';
-import { options } from './options';
+import { questionOptions } from './questionOptions';
 
 export const votes = pgTable('votes', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -10,7 +10,7 @@ export const votes = pgTable('votes', {
     .references(() => users.id),
   optionId: uuid('option_id')
     .notNull()
-    .references(() => options.id),
+    .references(() => questionOptions.id),
   numOfVotes: integer('num_of_votes').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -21,9 +21,9 @@ export const votesRelations = relations(votes, ({ one }) => ({
     fields: [votes.userId],
     references: [users.id],
   }),
-  option: one(options, {
+  questionOptions: one(questionOptions, {
     fields: [votes.optionId],
-    references: [options.id],
+    references: [questionOptions.id],
   }),
 }));
 
