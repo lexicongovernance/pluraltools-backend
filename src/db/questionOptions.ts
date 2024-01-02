@@ -3,7 +3,7 @@ import { forumQuestions } from './forumQuestions';
 import { relations } from 'drizzle-orm';
 import { votes } from './votes';
 
-export const options = pgTable('options', {
+export const questionOptions = pgTable('question_options', {
   id: uuid('id').primaryKey().defaultRandom(),
   questionId: uuid('question_id')
     .references(() => forumQuestions.id)
@@ -14,12 +14,12 @@ export const options = pgTable('options', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const optionsRelations = relations(options, ({ one, many }) => ({
+export const questionOptionsRelations = relations(questionOptions, ({ one, many }) => ({
   forumQuestion: one(forumQuestions, {
-    fields: [options.questionId],
+    fields: [questionOptions.questionId],
     references: [forumQuestions.id],
   }),
   votes: many(votes),
 }));
 
-export type Option = typeof options.$inferSelect;
+export type QuestionOption = typeof questionOptions.$inferSelect;

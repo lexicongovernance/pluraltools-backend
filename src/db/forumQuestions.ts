@@ -1,7 +1,7 @@
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { cycles } from './cycles';
 import { relations } from 'drizzle-orm';
-import { options } from './options';
+import { questionOptions } from './questionOptions';
 
 export const forumQuestions = pgTable('forum_questions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -19,7 +19,7 @@ export const forumQuestionsRelations = relations(forumQuestions, ({ one, many })
     fields: [forumQuestions.cycleId],
     references: [cycles.id],
   }),
-  options: many(options),
+  questionOptions: many(questionOptions),
 }));
 
 export type ForumQuestion = typeof forumQuestions.$inferSelect;

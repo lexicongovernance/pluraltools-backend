@@ -14,7 +14,7 @@ describe('service: users', function () {
   let user: db.User | undefined;
   let cycle: db.Cycle | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
-  let option: db.Option | undefined;
+  let questionOption: db.QuestionOption | undefined;
 
   beforeAll(async function () {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -46,9 +46,9 @@ describe('service: users', function () {
     if (!forumQuestion) {
       throw new Error('failed to create question');
     }
-    option = (
+    questionOption = (
       await dbPool
-        .insert(db.options)
+        .insert(db.questionOptions)
         .values({
           questionId: forumQuestion.id,
           text: 'test option',
@@ -61,17 +61,17 @@ describe('service: users', function () {
     // create vote in db
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,
-      optionId: option!.id,
+      optionId: questionOption!.id,
       userId: user!.id,
     });
     // create second interaction with option
     await dbPool.insert(db.votes).values({
       numOfVotes: 10,
-      optionId: option!.id,
+      optionId: questionOption!.id,
       userId: user!.id,
     });
 
-    const vote = await getVoteForOptionByUser(dbPool, user!.id, option!.id);
+    const vote = await getVoteForOptionByUser(dbPool, user!.id, questionOption!.id);
 
     // expect the latest votes
     expect(vote?.numOfVotes).toBe(10);
@@ -81,7 +81,9 @@ describe('service: users', function () {
     // delete votes
     await dbPool.delete(db.votes).where(eq(db.votes.userId, user?.id ?? ''));
     // delete option
-    await dbPool.delete(db.options).where(eq(db.options.id, option?.id ?? ''));
+    await dbPool
+      .delete(db.questionOptions)
+      .where(eq(db.questionOptions.id, questionOption?.id ?? ''));
     // delete question
     await dbPool.delete(db.forumQuestions).where(eq(db.forumQuestions.id, forumQuestion?.id ?? ''));
     // delete cycle

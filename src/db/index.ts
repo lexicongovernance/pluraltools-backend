@@ -7,5 +7,5 @@ export * from './usersToGroups';
 export * from './forumQuestions';
 export * from './registrationOptions';
 export * from './usersToRegistrationOptions';
-export * from './options';
+export * from './questionOptions';
 export * from './votes';

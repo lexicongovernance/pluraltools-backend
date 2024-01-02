@@ -10,7 +10,7 @@ export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
       with: {
         forumQuestions: {
           with: {
-            options: true,
+            questionOptions: true,
           },
         },
       },
