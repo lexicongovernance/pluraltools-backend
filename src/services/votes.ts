@@ -23,12 +23,13 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
         optionId: body.data.optionId,
       })
       .returning();
-    
+
     // Read num_of_votes for the specific option_id
     const voteList = await dbPool
-      .select({numOfVotes: votes.numOfVotes})
+      .select({ numOfVotes: votes.numOfVotes })
       .from(votes)
       .where(eq(db.votes.optionId, body.data.optionId))
+      .execute();
 
     // Extract the list of numOfVotes from the result
     const numOfVotesList = voteList.map((vote) => vote.numOfVotes);
