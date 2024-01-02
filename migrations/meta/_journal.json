@@ -29,6 +29,13 @@
       "when": 1704227699273,
       "tag": "0003_spooky_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1704228747207,
+      "tag": "0004_spotty_dragon_man",
+      "breakpoints": true
     }
   ]
 }
