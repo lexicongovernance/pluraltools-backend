@@ -13,7 +13,7 @@ describe('service: users', function () {
   let dbConnection: postgres.Sql<{}>;
   let user: db.User | undefined;
   let cycle: db.Cycle | undefined;
-  let question: db.Question | undefined;
+  let forumQuestion: db.ForumQuestion | undefined;
   let option: db.Option | undefined;
 
   beforeAll(async function () {
@@ -34,23 +34,23 @@ describe('service: users', function () {
     if (!cycle) {
       throw new Error('failed to create cycle');
     }
-    question = (
+    forumQuestion = (
       await dbPool
-        .insert(db.questions)
+        .insert(db.forumQuestions)
         .values({
           cycleId: cycle.id,
           title: 'test question',
         })
         .returning()
     )[0];
-    if (!question) {
+    if (!forumQuestion) {
       throw new Error('failed to create question');
     }
     option = (
       await dbPool
         .insert(db.options)
         .values({
-          questionId: question.id,
+          questionId: forumQuestion.id,
           text: 'test option',
         })
         .returning()
@@ -83,7 +83,7 @@ describe('service: users', function () {
     // delete option
     await dbPool.delete(db.options).where(eq(db.options.id, option?.id ?? ''));
     // delete question
-    await dbPool.delete(db.questions).where(eq(db.questions.id, question?.id ?? ''));
+    await dbPool.delete(db.forumQuestions).where(eq(db.forumQuestions.id, forumQuestion?.id ?? ''));
     // delete cycle
     await dbPool.delete(db.cycles).where(eq(db.cycles.id, cycle?.id ?? ''));
     // delete user

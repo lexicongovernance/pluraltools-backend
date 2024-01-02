@@ -1,12 +1,12 @@
 import { pgTable, timestamp, integer, uuid, varchar } from 'drizzle-orm/pg-core';
-import { questions } from './questions';
+import { forumQuestions } from './forumQuestions';
 import { relations } from 'drizzle-orm';
 import { votes } from './votes';
 
 export const options = pgTable('options', {
   id: uuid('id').primaryKey().defaultRandom(),
   questionId: uuid('question_id')
-    .references(() => questions.id)
+    .references(() => forumQuestions.id)
     .notNull(),
   text: varchar('text', { length: 256 }).notNull(),
   voteCount: integer('vote_count').notNull().default(0),
@@ -15,9 +15,9 @@ export const options = pgTable('options', {
 });
 
 export const optionsRelations = relations(options, ({ one, many }) => ({
-  question: one(questions, {
+  forumQuestion: one(forumQuestions, {
     fields: [options.questionId],
-    references: [questions.id],
+    references: [forumQuestions.id],
   }),
   votes: many(votes),
 }));

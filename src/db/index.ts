@@ -4,7 +4,7 @@ export * from './groups';
 export * from './registrations';
 export * from './cycles';
 export * from './usersToGroups';
-export * from './questions';
+export * from './forumQuestions';
 export * from './registrationOptions';
 export * from './usersToRegistrationOptions';
 export * from './options';
