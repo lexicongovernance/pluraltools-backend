@@ -51,10 +51,9 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
         voteCount: totalVotes.toString(),
         updatedAt: new Date(),
       })
-      .where(eq(db.questionOptions.id, body.data.optionId))
-      .execute();
+      .where(eq(db.questionOptions.id, body.data.optionId));
 
     // Return new vote object and list of numOfVotes for the optionId
-    return res.json({ data: newVote[0], totalVotes });
+    return res.json({ data: { ...newVote[0], totalVotes } });
   };
 }
