@@ -46,12 +46,12 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
 
     // Update the options table with the new vote count
     await dbPool
-      .update(db.options)
+      .update(db.questionOptions)
       .set({
         voteCount: totalVotes,
         updatedAt: new Date(),
       })
-      .where(eq(db.options.id, body.data.optionId))
+      .where(eq(db.questionOptions.id, body.data.optionId))
       .execute();
 
     // Return new vote object and list of numOfVotes for the optionId
