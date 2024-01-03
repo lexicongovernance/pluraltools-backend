@@ -1,15 +1,21 @@
-function quadraticVoting(votes: number[]): [Record<number, number>, number] {
+function quadraticVoting(votes: Record<string, number>): [Record<string, number>, number] {
   // Calculates quadratic votes for each agent based on the square root of their votes.
-  // :param: (votes): An array representing the number of votes for each agent.
-  // :returns: A tuple containing a dictionary of quadratic votes for each agent and the sum of quadratic votes.
-  const quadraticVotesDict: Record<number, number> = {};
+  // :param: (votes): A dictionary representing the number of votes for each user.
+  // :returns: A tuple containing a dictionary of quadratic votes for each user and the sum of quadratic votes.
 
-  for (let agentI = 0; agentI < votes.length; agentI++) {
-    if (votes[agentI] === undefined) {
-      throw new Error(`Vote for agent ${agentI} is undefined.`);
+  const quadraticVotesDict: Record<string, number> = {};
+
+  for (const userId in votes) {
+    if (userId in votes) {
+      const vote = votes[userId];
+
+      if (vote === undefined) {
+        throw new Error(`Vote for user ${userId} is undefined.`);
+      }
+
+      const quadraticVotesUser = Math.sqrt(vote);
+      quadraticVotesDict[userId] = quadraticVotesUser;
     }
-    const quadraticVotesAgentI = Math.sqrt(votes[agentI]!);
-    quadraticVotesDict[agentI] = quadraticVotesAgentI;
   }
 
   const sumQuadraticVotes = Object.values(quadraticVotesDict).reduce(
@@ -25,9 +31,14 @@ export { quadraticVoting };
 
 /*
 // Example usage:
-const votes: number[] = [4, 9, 16];
+const votes: VotesDictionary = {
+  "user1": 4,
+  "user2": 9,
+  "user3": 16,
+};
+
 const [result, sum] = quadraticVoting(votes);
-  
+
 console.log('Quadratic Votes:', result);
 console.log('Sum of Quadratic Votes:', sum);
 */
