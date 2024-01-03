@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { questions } from './questions';
+import { forumQuestions } from './forumQuestions';
 
 export const cyclesEnum = pgEnum('cycles_enum', ['OPEN', 'CLOSED', 'RESULTS']);
 
@@ -14,7 +14,7 @@ export const cycles = pgTable('cycles', {
 });
 
 export const cyclesRelations = relations(cycles, ({ many }) => ({
-  questions: many(questions),
+  forumQuestions: many(forumQuestions),
 }));
 
 export type Cycle = typeof cycles.$inferSelect;
