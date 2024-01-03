@@ -48,7 +48,7 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
     await dbPool
       .update(db.questionOptions)
       .set({
-        voteCount: totalVotes,
+        voteCount: totalVotes.toString(),
         updatedAt: new Date(),
       })
       .where(eq(db.questionOptions.id, body.data.optionId))
