@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import { insertVotesSchema } from '../types';
 import { votes } from '../db/votes';
 import { eq } from 'drizzle-orm';
+import { quadraticVoting } from '../modules/quadratic_voting';
 
 export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -24,18 +25,24 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
       })
       .returning();
 
-    // Read num_of_votes for the specific option_id
-    const voteList = await dbPool
-      .select({ numOfVotes: votes.numOfVotes })
+    // Query num_of_votes and user_id for a specific option_id
+    const voteArray = await dbPool
+      .select({ userId: votes.userId, numOfVotes: votes.numOfVotes })
       .from(votes)
       .where(eq(db.votes.optionId, body.data.optionId))
       .execute();
 
-    // Extract the list of numOfVotes from the result
-    const numOfVotesList = voteList.map((vote) => vote.numOfVotes);
+    // Extract the dictionary of numOfVotes with userId as the key
+    const numOfVotesDictionary = voteArray.reduce(
+      (acc, vote) => {
+        acc[vote.userId] = vote.numOfVotes;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    // Sum the numOfVotesList (to be replaced by quadratic voting module)
-    const totalVotes = numOfVotesList.reduce((acc, votes) => acc + votes, 0);
+    // Sum of quadratic votes as defined in the quadratic voting model)
+    const [, totalVotes] = quadraticVoting(numOfVotesDictionary);
 
     // Update the options table with the new vote count
     await dbPool
@@ -48,6 +55,6 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
       .execute();
 
     // Return new vote object and list of numOfVotes for the optionId
-    return res.json({ data: newVote[0], numOfVotesList });
+    return res.json({ data: newVote[0], totalVotes });
   };
 }

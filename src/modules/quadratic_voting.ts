@@ -1,4 +1,4 @@
-function quadraticVoting(votes: Record<string, number>): [Record<string, number>, number] {
+export function quadraticVoting(votes: Record<string, number>): [Record<string, number>, number] {
   // Calculates quadratic votes for each agent based on the square root of their votes.
   // :param: (votes): A dictionary representing the number of votes for each user.
   // :returns: A tuple containing a dictionary of quadratic votes for each user and the sum of quadratic votes.
@@ -25,9 +25,6 @@ function quadraticVoting(votes: Record<string, number>): [Record<string, number>
 
   return [quadraticVotesDict, sumQuadraticVotes];
 }
-
-// Export functions
-export { quadraticVoting };
 
 /*
 // Example usage:
