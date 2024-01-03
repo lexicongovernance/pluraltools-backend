@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1703088122332,
-      "tag": "0000_public_warbound",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1703088498932,
-      "tag": "0001_ambiguous_steve_rogers",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1703111837981,
-      "tag": "0002_awesome_human_torch",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1704227699273,
-      "tag": "0003_spooky_forge",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1704228747207,
-      "tag": "0004_spotty_dragon_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1704287884861,
-      "tag": "0005_lazy_mariko_yashida",
+      "when": 1704292983122,
+      "tag": "0000_past_yellowjacket",
       "breakpoints": true
     }
   ]
