@@ -2,13 +2,17 @@ import { quadraticVoting } from './quadratic_voting';
 
 describe('quadraticVoting', () => {
   test('calculates quadratic votes for each agent and sum of quadratic votes', () => {
-    const votes: number[] = [4, 9, 16];
+    const votes: Record<string, number> = {
+      user1: 4,
+      user2: 9,
+      user3: 16,
+    };
 
     // Expected result
-    const expectedQuadraticVotesDict = {
-      0: 2, // sqrt(4) = 2
-      1: 3, // sqrt(9) = 3
-      2: 4, // sqrt(16) = 4
+    const expectedQuadraticVotesDict: Record<string, number> = {
+      user1: 2, // sqrt(4) = 2
+      user2: 3, // sqrt(9) = 3
+      user3: 4, // sqrt(16) = 4
     };
 
     const expectedSumQuadraticVotes = 2 + 3 + 4;
@@ -22,7 +26,11 @@ describe('quadraticVoting', () => {
 
   test('', () => {
     // Example usage:
-    const votes: number[] = [4, 9, 16];
+    const votes: Record<string, number> = {
+      user1: 4,
+      user2: 9,
+      user3: 16,
+    };
     const [result, sum] = quadraticVoting(votes);
 
     console.log('Quadratic Votes:', result);
