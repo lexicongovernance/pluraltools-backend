@@ -86,6 +86,7 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
       });
     }
 
+
     const votesRow = await getVotesForCycleByUser(dbPool, userId, cycleId);
 
     return res.json({ data: votesRow });
