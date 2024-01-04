@@ -1,5 +1,5 @@
 {
-  "id": "b0143a66-0a4b-4618-8013-3b7018d56edc",
+  "id": "7935914d-e336-4e5c-867e-197b8b5f98d9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -223,49 +223,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "groups": {
-      "name": "groups",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "users": {
       "name": "users",
       "schema": "",
@@ -390,76 +347,6 @@
           "tableTo": "events",
           "columnsFrom": [
             "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "users_to_groups": {
-      "name": "users_to_groups",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "group_id": {
-          "name": "group_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "users_to_groups_user_id_users_id_fk": {
-          "name": "users_to_groups_user_id_users_id_fk",
-          "tableFrom": "users_to_groups",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "users_to_groups_group_id_groups_id_fk": {
-          "name": "users_to_groups_group_id_groups_id_fk",
-          "tableFrom": "users_to_groups",
-          "tableTo": "groups",
-          "columnsFrom": [
-            "group_id"
           ],
           "columnsTo": [
             "id"
@@ -679,8 +566,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "registration_id": {
-          "name": "registration_id",
+        "event_id": {
+          "name": "event_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -690,6 +577,12 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         },
         "type": {
           "name": "type",
@@ -721,12 +614,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "registration_fields_registration_id_registrations_id_fk": {
-          "name": "registration_fields_registration_id_registrations_id_fk",
+        "registration_fields_event_id_events_id_fk": {
+          "name": "registration_fields_event_id_events_id_fk",
           "tableFrom": "registration_fields",
-          "tableTo": "registrations",
+          "tableTo": "events",
           "columnsFrom": [
-            "registration_id"
+            "event_id"
           ],
           "columnsTo": [
             "id"

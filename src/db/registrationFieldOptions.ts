@@ -13,7 +13,10 @@ export const registrationFieldOptions = pgTable('registration_options', {
 });
 
 export const registrationFieldOptionsRelations = relations(registrationFieldOptions, ({ one }) => ({
-  registrationField: one(registrationFields),
+  registrationField: one(registrationFields, {
+    fields: [registrationFieldOptions.registrationFieldId],
+    references: [registrationFields.id],
+  }),
 }));
 
 export type RegistrationFieldOption = typeof registrationFieldOptions.$inferSelect;

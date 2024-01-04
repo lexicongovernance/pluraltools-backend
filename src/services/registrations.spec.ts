@@ -80,8 +80,6 @@ describe('sendRegistrationData  function', () => {
     expect(response.updatedAt).toEqual(expect.any(Date));
   });
   afterAll(async () => {
-    // Delete events
-    await dbPool.delete(db.events).where(eq(db.events.id, defaultEvent.id));
     // Delete registration data
     await dbPool
       .delete(db.registrationData)
@@ -92,6 +90,8 @@ describe('sendRegistrationData  function', () => {
         .where(eq(db.registrationFields.id, defaultRegistrationField.id));
     // Delete registrations
     await dbPool.delete(db.registrations).where(eq(db.registrations.userId, user?.id ?? ''));
+    // Delete events
+    await dbPool.delete(db.events).where(eq(db.events.id, defaultEvent.id));
     // delete user
     await dbPool.delete(db.users).where(eq(db.users.id, user?.id ?? ''));
     await dbConnection.end();

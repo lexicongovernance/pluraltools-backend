@@ -24,7 +24,10 @@ export const registrationFields = pgTable('registration_fields', {
 });
 
 export const registrationFieldsRelations = relations(registrationFields, ({ one, many }) => ({
-  event: one(events),
+  event: one(events, {
+    fields: [registrationFields.eventId],
+    references: [events.id],
+  }),
   registrationFieldOptions: many(registrationFieldOptions),
   registrationData: many(registrationData),
 }));

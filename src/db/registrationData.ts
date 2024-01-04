@@ -17,8 +17,14 @@ export const registrationData = pgTable('registration_data', {
 });
 
 export const registrationDataRelations = relations(registrationData, ({ one }) => ({
-  registration: one(registrations),
-  registrationField: one(registrationFields),
+  registration: one(registrations, {
+    fields: [registrationData.registrationId],
+    references: [registrations.id],
+  }),
+  registrationField: one(registrationFields, {
+    fields: [registrationData.registrationFieldId],
+    references: [registrationFields.id],
+  }),
 }));
 
 export type RegistrationData = typeof registrationData.$inferSelect; // return type when queried
