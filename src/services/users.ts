@@ -116,5 +116,12 @@ export async function getVotesForCycleByUser(
     where: eq(db.cycles.id, cycleId),
   });
 
-  return response;
+  const out = response
+    .map((cycle) =>
+      cycle.forumQuestions.map((question) =>
+        question.questionOptions.map((option) => option.votes),
+      ),
+    )
+    .flat(3);
+  return out;
 }

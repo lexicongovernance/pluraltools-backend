@@ -75,7 +75,7 @@ describe('service: users', function () {
 
     const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
     // expect the latest votes
-    expect(votes[0]?.forumQuestions[0]?.questionOptions[0]?.votes[0]?.numOfVotes).toBe(10);
+    expect(votes[0]?.numOfVotes).toBe(10);
   });
 
   test('should not get votes for other user', async function () {
@@ -92,14 +92,11 @@ describe('service: users', function () {
       userId: otherUser!.id,
     });
 
+    // user 1 gets votes but it should not include otherUser votes
     const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
 
     // no votes have otherUser's id in array
-    expect(
-      votes[0]?.forumQuestions[0]?.questionOptions[0]?.votes.filter(
-        (vote) => vote.userId === otherUser?.id,
-      ).length,
-    ).toBe(0);
+    expect(votes.filter((vote) => vote.userId === otherUser?.id).length).toBe(0);
   });
 
   afterAll(async function () {
