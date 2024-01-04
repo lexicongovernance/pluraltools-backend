@@ -64,7 +64,7 @@ export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
 export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const sessionUserId = req.session.userId;
-    const optionId = req.params.optionId;
+    const cycleId = req.params.cycleId;
     const userId = req.params.userId;
     if (userId !== sessionUserId) {
       return res.status(400).json({
@@ -76,17 +76,17 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
       });
     }
 
-    if (!optionId) {
+    if (!cycleId) {
       return res.status(400).json({
         errors: [
           {
-            message: 'Expected optionId in query params',
+            message: 'Expected cycleId in query params',
           },
         ],
       });
     }
 
-    const votesRow = await getVotesForCycleByUser(dbPool, userId, optionId);
+    const votesRow = await getVotesForCycleByUser(dbPool, userId, cycleId);
 
     return res.json({ data: votesRow });
   };
@@ -116,5 +116,10 @@ export async function getVotesForCycleByUser(
     where: eq(db.cycles.id, cycleId),
   });
 
-  return response;
+  const out = response.flatMap((cycle) =>
+    cycle.forumQuestions.flatMap((question) =>
+      question.questionOptions.flatMap((option) => option.votes),
+    ),
+  );
+  return out;
 }
