@@ -23,6 +23,11 @@ export async function overwriteRegistrationData({
     console.log('error deleting registration data ' + JSON.stringify(e));
     return null;
   }
+
+  if (!registrationData.length) {
+    return [];
+  }
+
   // save the new ones
   const newRegistrationData = await dbPool
     .insert(db.registrationData)

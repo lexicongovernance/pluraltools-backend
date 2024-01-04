@@ -24,7 +24,7 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       const out = await sendRegistrationData(dbPool, body.data, userId);
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving registration ' + JSON.stringify(e));
+      console.log('error saving registration ' + e);
       return res.sendStatus(500);
     }
   };
@@ -40,7 +40,7 @@ export async function sendRegistrationData(
   });
   const newRegistration = await upsertRegistration(dbPool, existingRegistration, data);
   if (!newRegistration) {
-    throw new Error('Error saving registration');
+    throw new Error('failed to save registration');
   }
   const updatedRegistrationData = await overwriteRegistrationData({
     dbPool,

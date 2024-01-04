@@ -16,11 +16,11 @@ export function getRegistrationFields(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: ['eventId is required'] });
     }
 
-    const registrationFields = await dbPool.query.registrationFields.findMany({
+    const registrationFields = await dbPool.query.events.findMany({
       with: {
-        registrationFieldOptions: true,
+        registrationFields: true,
       },
-      where: (fields, { eq }) => eq(fields.eventId, eventId),
+      where: (fields, { eq }) => eq(fields.id, eventId),
     });
 
     return res.json({ data: registrationFields });
@@ -31,6 +31,7 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const eventId = req.params.eventId;
     const userId = req.session.userId;
+    console.log({ userId });
     if (!userId) {
       return res.status(400).json({ errors: ['userId is required'] });
     }

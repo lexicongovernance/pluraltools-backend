@@ -5,7 +5,6 @@ import { ironSession } from 'iron-session/express';
 import { authRouter } from './auth';
 import cors from 'cors';
 import { usersRouter } from './users';
-import { registrationsRouter } from './registrations';
 import { votesRouter } from './votes';
 import { cyclesRouter } from './cycles';
 import { eventsRouter } from './events';
@@ -38,7 +37,6 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
   // routes
   router.use('/auth', authRouter({ dbPool }));
   router.use('/users', usersRouter({ dbPool }));
-  router.use('/registrations', registrationsRouter({ dbPool }));
   router.use('/votes', votesRouter({ dbPool }));
   router.use('/cycles', cyclesRouter({ dbPool }));
   router.use('/events', eventsRouter({ dbPool }));
