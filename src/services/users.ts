@@ -116,12 +116,10 @@ export async function getVotesForCycleByUser(
     where: eq(db.cycles.id, cycleId),
   });
 
-  const out = response
-    .map((cycle) =>
-      cycle.forumQuestions.map((question) =>
-        question.questionOptions.map((option) => option.votes),
-      ),
-    )
-    .flat(3);
+  const out = response.flatMap((cycle) =>
+    cycle.forumQuestions.flatMap((question) =>
+      question.questionOptions.flatMap((option) => option.votes),
+    ),
+  );
   return out;
 }
