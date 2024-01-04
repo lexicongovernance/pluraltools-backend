@@ -39,7 +39,6 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
         `),
     );
 
-
     // Extract the dictionary of numOfVotes with userId as the key
     const numOfVotesDictionary = voteArray.reduce(
       (acc, vote) => {
