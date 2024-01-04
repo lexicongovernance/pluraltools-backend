@@ -1,7 +1,6 @@
-import { boolean, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { registrations } from './registrations';
 import { relations } from 'drizzle-orm';
-import { registrationFieldOptions } from '.';
+import { boolean, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { events, registrationData, registrationFieldOptions } from '.';
 
 export const registrationFieldEnum = pgEnum('registration_field_enum', [
   'SELECT',
@@ -13,18 +12,21 @@ export const registrationFieldEnum = pgEnum('registration_field_enum', [
 
 export const registrationFields = pgTable('registration_fields', {
   id: uuid('id').primaryKey().defaultRandom(),
-  registrationId: uuid('registration_id')
-    .references(() => registrations.id)
+  eventId: uuid('event_id')
+    .references(() => events.id)
     .notNull(),
   name: varchar('name').notNull(),
+  description: varchar('description'),
   type: registrationFieldEnum('type').notNull(),
   isRequired: boolean('is_required').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-// relations
 export const registrationFieldsRelations = relations(registrationFields, ({ one, many }) => ({
-  registration: one(registrations),
+  event: one(events),
   registrationFieldOptions: many(registrationFieldOptions),
+  registrationData: many(registrationData),
 }));
+
+export type RegistrationField = typeof registrationFields.$inferSelect; // return type when queried

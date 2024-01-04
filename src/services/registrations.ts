@@ -1,31 +1,32 @@
+import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import * as db from '../db';
 import type { Request, Response } from 'express';
-import { and, eq, ne } from 'drizzle-orm';
-import { insertRegistrationSchema } from '../types';
+import { and, ne } from 'drizzle-orm';
 import { z } from 'zod';
-import { overwriteUsersToGroups } from './usersToGroups';
-import { overwriteUsersToRegistrationOptions } from './usersToRegistrationOptions';
+import { insertRegistrationSchema } from '../types';
+import * as db from '../db';
+import { overwriteRegistrationData } from './registrationData';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input
+    const eventId = req.params.eventId;
     const userId = req.session.userId;
     req.body.userId = userId;
+    req.body.eventId = eventId;
     const body = insertRegistrationSchema.safeParse(req.body);
 
     if (!body.success) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    // check if unique keys are available
-    const uniqueValidation = await validateUniqueKeys(dbPool, body.data);
-
-    if (uniqueValidation.errors.email || uniqueValidation.errors.username) {
-      return res.status(400).json({ errors: [uniqueValidation.errors] });
+    try {
+      const out = await sendRegistrationData(dbPool, body.data, userId);
+      return res.json({ data: out });
+    } catch (e) {
+      console.log('error saving registration ' + JSON.stringify(e));
+      return res.sendStatus(500);
     }
-    const out = await sendRegistrationData(dbPool, body.data, userId);
-    return res.json({ data: out });
   };
 }
 
@@ -35,19 +36,21 @@ export async function sendRegistrationData(
   userId: string,
 ) {
   const existingRegistration = await dbPool.query.registrations.findFirst({
-    where: eq(db.registrations.userId, userId),
+    where: and(eq(db.registrations.userId, userId), eq(db.registrations.eventId, data.eventId)),
   });
   const newRegistration = await upsertRegistration(dbPool, existingRegistration, data);
-  const updatedGroups = await overwriteUsersToGroups(dbPool, userId, data.groupIds);
-  const updatedRegistrationOptions = await overwriteUsersToRegistrationOptions(
+  if (!newRegistration) {
+    throw new Error('Error saving registration');
+  }
+  const updatedRegistrationData = await overwriteRegistrationData({
     dbPool,
-    userId,
-    data.registrationOptionIds,
-  );
+    registrationId: newRegistration.id,
+    registrationData: data.registrationData,
+  });
+
   const out = {
     ...newRegistration,
-    groups: updatedGroups,
-    registrationOptions: updatedRegistrationOptions,
+    registrationData: updatedRegistrationData,
   };
 
   return out;
@@ -62,10 +65,8 @@ async function upsertRegistration(
     const updatedRegistration = await dbPool
       .update(db.registrations)
       .set({
-        email: body.email,
-        username: body.username,
-        proposalAbstract: body.proposalAbstract,
-        proposalTitle: body.proposalTitle,
+        userId: body.userId,
+        eventId: body.eventId,
         status: body.status,
         updatedAt: new Date(),
       })
@@ -78,55 +79,10 @@ async function upsertRegistration(
       .insert(db.registrations)
       .values({
         userId: body.userId,
-        email: body.email,
-        username: body.username,
-        proposalAbstract: body.proposalAbstract,
-        proposalTitle: body.proposalTitle,
+        eventId: body.eventId,
         status: body.status,
       })
       .returning();
     return newRegistration[0];
   }
-}
-
-async function validateUniqueKeys(
-  dbPool: PostgresJsDatabase<typeof db>,
-  data: z.infer<typeof insertRegistrationSchema>,
-): Promise<{ errors: { username?: string; email?: string } }> {
-  const res = {
-    errors: {
-      username: '',
-      email: '',
-    },
-  };
-
-  if (!data.username && !data.email) {
-    return res;
-  }
-
-  if (data.username) {
-    const usernames = await dbPool
-      .select()
-      .from(db.registrations)
-      .where(
-        and(eq(db.registrations.username, data.username), ne(db.registrations.userId, data.userId)),
-      );
-
-    if (usernames.length > 0) {
-      res.errors.username = 'username is already taken';
-    }
-  }
-
-  if (data.email) {
-    const emails = await dbPool
-      .select()
-      .from(db.registrations)
-      .where(and(eq(db.registrations.email, data.email), ne(db.registrations.userId, data.userId)));
-
-    if (emails.length > 0) {
-      res.errors.email = 'email is already taken';
-    }
-  }
-
-  return res;
 }

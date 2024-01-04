@@ -23,44 +23,6 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const sessionUserId = req.session.userId;
-    const userId = req.params.userId;
-    if (userId !== sessionUserId) {
-      return res.status(400).json({
-        errors: [
-          {
-            message: 'Not authorized to query this user',
-          },
-        ],
-      });
-    }
-
-    const registration = await dbPool.query.registrations.findFirst({
-      where: eq(db.registrations.userId, userId),
-    });
-
-    const usersToGroups = await dbPool.query.usersToGroups.findMany({
-      where: eq(db.usersToGroups.userId, userId),
-    });
-
-    const usersToRegistrationOptions = await dbPool.query.usersToRegistrationOptions.findMany({
-      where: eq(db.usersToRegistrationOptions.userId, userId),
-      with: {
-        registrationOption: true,
-      },
-    });
-
-    const out = {
-      ...registration,
-      groups: usersToGroups,
-      registrationOptions: usersToRegistrationOptions,
-    };
-    return res.json({ data: out });
-  };
-}
-
 export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const sessionUserId = req.session.userId;
