@@ -13,23 +13,19 @@ class PluralVoting {
 
   public createGroupMemberships(groups: Record<string, string[]>): Record<string, string[]> {
     // Define group memberships for each participant.
-    // :param: groups (list of lists): a list denotes the group and contains its members.
-    // :returns (list of lists): returns a list of group memberships for each participant.
+    // :param: groups (dict): a dictionary of groups as keys where the values are arrays of group members (users).
+    // :returns (dict): returns a dict of group memberships (value) for each user (key).
     const memberships: Record<string, string[]> = {};
 
-    for (let i = 0; i < groups.length; i++) {
-      const currentGroup = groups[i];
-      if (Array.isArray(currentGroup)) {
-        for (let j of currentGroup) {
-          const currentMembership = memberships[j] as number[] | undefined;
-          memberships[j] = [...(currentMembership || []), i];
-        }
+    for (const [groupName, members] of Object.entries(groups)) {
+      for (const member of members) {
+        memberships[member] = [...(memberships[member] || []), groupName];
       }
     }
 
     return memberships;
   }
-
+  /*
   public commonGroup(i: number, j: number, groupMemberships: number[][]): boolean {
     // Define an identifier indicating whether two participants share the same group or whether any
     // other member of the group of the second agent shares a group with the first agent.
@@ -140,6 +136,7 @@ class PluralVoting {
     const result: number = this.clusterMatch(groups, contributions);
     console.log('Plurality Score', result);
   }
+  */
 }
 
 // Export functions
