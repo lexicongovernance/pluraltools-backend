@@ -18,7 +18,11 @@ export function getRegistrationFields(dbPool: PostgresJsDatabase<typeof db>) {
 
     const registrationFields = await dbPool.query.events.findMany({
       with: {
-        registrationFields: true,
+        registrationFields: {
+          with: {
+            registrationFieldOptions: true,
+          },
+        },
       },
       where: (fields, { eq }) => eq(fields.id, eventId),
     });
