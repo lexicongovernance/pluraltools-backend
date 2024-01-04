@@ -1,21 +1,21 @@
 class PluralVoting {
   // Class that contains the functions to calculate a plural score for each project proposal.
-  // :param: groups (list of lists): a list denotes the group and contains its members.
-  // :param: contributions (list): number of participant's votes for a given project proposal.
+  // :param: groups (dict): a dictionary of groups as keys where the values are arrays of group members (users).
+  // :param: contributions (dict): the keys identify users and the values denote the votes for a given project proposal.
   // :returns: plurality score
-  public groups: number[][];
-  public contributions: number[];
+  public groups: Record<string, string[]>;
+  public contributions: Record<string, number>;
 
-  constructor(groups: number[][], contributions: number[]) {
+  constructor(groups: Record<string, string[]>, contributions: Record<string, number>) {
     this.groups = groups;
     this.contributions = contributions;
   }
 
-  public createGroupMemberships(groups: number[][]): number[][] {
+  public createGroupMemberships(groups: Record<string, string[]>): Record<string, string[]> {
     // Define group memberships for each participant.
     // :param: groups (list of lists): a list denotes the group and contains its members.
     // :returns (list of lists): returns a list of group memberships for each participant.
-    const memberships: number[][] = [];
+    const memberships: Record<string, string[]> = {};
 
     for (let i = 0; i < groups.length; i++) {
       const currentGroup = groups[i];
@@ -147,9 +147,25 @@ export { PluralVoting };
 
 // Example usage
 /*
-const exampleGroups: number[][] = [[0, 1], [1, 2, 3], [0, 2]];
-const exampleContributions: number[] = [1, 2, 3, 4];
+const groups: number[][] = [[0, 1], [1, 2, 3], [0, 2]];
+const contributions: number[] = [1, 2, 3, 4];
 
-const pluralityScore = new PluralVoting(exampleGroups, exampleContributions);
-pluralityScore.pluralScoreCalculation(exampleGroups, exampleContributions);
+const pluralityScore = new PluralVoting(groups, contributions);
+pluralityScore.pluralScoreCalculation(groups, contributions);
+
+const groups: Record<string, string[]> = {
+      group0: [user0, user1],
+      group1: [user1, user2, user3],
+      group2: [user0, user2],
+    };
+
+const contributions: Record<string, number> = {
+      user0: 1,
+      user1: 2,
+      user2: 3,
+      user3: 4,
+    };
+
+const pluralityScore = new PluralVoting(groups, contributions);
+pluralityScore.pluralScoreCalculation(groups, contributions);
 */

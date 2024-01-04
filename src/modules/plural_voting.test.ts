@@ -96,7 +96,7 @@ describe('clusterMatch', () => {
     expect(result).toEqual(expectedScore);
   });
 
-  test('', () => {
+  test('noting but prints result', () => {
     // Example usage:
     const exampleGroups: number[][] = [
       [0, 1],

@@ -28,7 +28,7 @@ export function quadraticVoting(votes: Record<string, number>): [Record<string, 
 
 /*
 // Example usage:
-const votes: VotesDictionary = {
+const votes: Record<string, number> = {
   "user1": 4,
   "user2": 9,
   "user3": 16,
