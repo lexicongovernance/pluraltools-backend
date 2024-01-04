@@ -1,5 +1,5 @@
 {
-  "id": "7935914d-e336-4e5c-867e-197b8b5f98d9",
+  "id": "77c6ff24-e0a0-4235-b157-6b07fec93b6b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -14,6 +14,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
         },
         "start_at": {
           "name": "start_at",
@@ -50,7 +56,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "cycles_event_id_events_id_fk": {
+          "name": "cycles_event_id_events_id_fk",
+          "tableFrom": "cycles",
+          "tableTo": "events",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },

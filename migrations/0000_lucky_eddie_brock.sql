@@ -18,6 +18,7 @@ END $$;
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "cycles" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"event_id" uuid NOT NULL,
 	"start_at" timestamp NOT NULL,
 	"end_at" timestamp NOT NULL,
 	"status" "cycles_enum" DEFAULT 'OPEN',
@@ -115,6 +116,12 @@ CREATE TABLE IF NOT EXISTS "registration_data" (
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "cycles" ADD CONSTRAINT "cycles_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "federated_credentials" ADD CONSTRAINT "federated_credentials_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE no action ON UPDATE no action;

@@ -17,7 +17,6 @@ describe('sendRegistrationData  function', () => {
   let testData: z.infer<typeof insertRegistrationSchema>;
   let defaultEvent: db.Event;
   let defaultRegistrationField: db.RegistrationField;
-  let defaultRegistrationFieldOptions: db.RegistrationFieldOption[];
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
     await runMigrations(DB_CONNECTION_URL);
