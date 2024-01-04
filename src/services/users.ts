@@ -86,27 +86,35 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
       });
     }
 
-    const votesRow = await getVoteForOptionByUser(dbPool, userId, optionId);
+    const votesRow = await getVotesForCycleByUser(dbPool, userId, optionId);
 
     return res.json({ data: votesRow });
   };
 }
 
-export async function getVoteForOptionByUser(
+export async function getVotesForCycleByUser(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
-  optionId: string,
+  cycleId: string,
 ) {
-  const response = await dbPool.query.votes.findFirst({
-    where: and(eq(db.votes.userId, userId), eq(db.votes.optionId, optionId)),
-    orderBy: [desc(db.votes.createdAt)],
+  const response = await dbPool.query.cycles.findMany({
+    with: {
+      forumQuestions: {
+        with: {
+          questionOptions: {
+            with: {
+              votes: {
+                where: and(eq(db.votes.userId, userId)),
+                limit: 1,
+                orderBy: [desc(db.votes.createdAt)],
+              },
+            },
+          },
+        },
+      },
+    },
+    where: eq(db.cycles.id, cycleId),
   });
-  const defaultResponse = {
-    userId: userId,
-    optionId: optionId,
-    numOfVotes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  return response ?? defaultResponse;
+
+  return response;
 }
