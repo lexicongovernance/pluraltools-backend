@@ -2,6 +2,9 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
 import { and, desc, eq } from 'drizzle-orm';
+import { getVoteForOptionByUser } from './votes';
+import { insertUserSchema } from '../types/users';
+import { overwriteUsersToGroups } from './usersToGroups';
 
 export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -54,21 +57,28 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export async function getVoteForOptionByUser(
-  dbPool: PostgresJsDatabase<typeof db>,
-  userId: string,
-  optionId: string,
-) {
-  const response = await dbPool.query.votes.findFirst({
-    where: and(eq(db.votes.userId, userId), eq(db.votes.optionId, optionId)),
-    orderBy: [desc(db.votes.createdAt)],
-  });
-  const defaultResponse = {
-    userId: userId,
-    optionId: optionId,
-    numOfVotes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+export const updateUser = (dbPool: PostgresJsDatabase<typeof db>) => async () => {
+  return async function (req: Request, res: Response) {
+    // parse input
+    const userId = req.session.userId;
+    const body = insertUserSchema.safeParse(req.body);
+
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.errors });
+    }
+
+    // update user
+    const user = await dbPool
+      .update(db.users)
+      .set({
+        email: body.data.email,
+        username: body.data.username,
+      })
+      .where(eq(db.users.id, userId))
+      .returning();
+
+    const updatedGroups = overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+
+    return res.json({ data: { user, updatedGroups } });
   };
-  return response ?? defaultResponse;
-}
+};

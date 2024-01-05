@@ -3,7 +3,7 @@ import * as db from '../db';
 import type { Request, Response } from 'express';
 import { insertVotesSchema } from '../types';
 import { votes } from '../db/votes';
-import { eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { quadraticVoting } from '../modules/quadratic_voting';
 
 export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
@@ -56,4 +56,23 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
     // Return new vote object and list of numOfVotes for the optionId
     return res.json({ data: { ...newVote[0], totalVotes } });
   };
+}
+
+export async function getVoteForOptionByUser(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  optionId: string,
+) {
+  const response = await dbPool.query.votes.findFirst({
+    where: and(eq(db.votes.userId, userId), eq(db.votes.optionId, optionId)),
+    orderBy: [desc(db.votes.createdAt)],
+  });
+  const defaultResponse = {
+    userId: userId,
+    optionId: optionId,
+    numOfVotes: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  return response ?? defaultResponse;
 }
