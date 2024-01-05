@@ -144,12 +144,12 @@ export class PluralVoting {
     return Math.sqrt(result);
   }
 
-  public pluralScoreCalculation(
-    groups: Record<string, string[]>,
-    contributions: Record<string, number>,
-  ): void {
-    const result: number = this.clusterMatch(groups, contributions);
-    console.log('Plurality Score', result);
+  public pluralScoreCalculation() // groups: Record<string, string[]>,
+  // contributions: Record<string, number>,
+  : number {
+    const result: number = this.clusterMatch(this.groups, this.contributions);
+
+    return result;
   }
 }
 

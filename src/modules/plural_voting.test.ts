@@ -115,22 +115,8 @@ describe('clusterMatch', () => {
   });
 
   test('noting but prints result', () => {
-    // Example usage:
-    const exampleGroups: Record<string, string[]> = {
-      group0: ['user0', 'user1'],
-      group1: ['user1', 'user2', 'user3'],
-      group2: ['user0', 'user2'],
-    };
-
-    const exampleContributions: Record<string, number> = {
-      user0: 1,
-      user1: 2,
-      user2: 3,
-      user3: 4,
-    };
-
-    const pluralityScore = new PluralVoting(exampleGroups, exampleContributions);
-    pluralityScore.pluralScoreCalculation(exampleGroups, exampleContributions);
+    const score = pluralVoting.pluralScoreCalculation();
+    console.log('Plurality Score:', score);
     expect(true).toBe(true);
   });
 });
