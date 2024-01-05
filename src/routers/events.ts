@@ -12,6 +12,6 @@ export function eventsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db>
   router.get('/', isLoggedIn(), getEvents(dbPool));
   router.get('/:eventId/registration-fields', isLoggedIn(), getRegistrationFields(dbPool));
   router.get('/:eventId/registration-data', isLoggedIn(), getRegistrationData(dbPool));
-  router.post('/:eventId/registration-data', isLoggedIn(), saveRegistration(dbPool));
+  router.post('/:eventId/registration', isLoggedIn(), saveRegistration(dbPool));
   return router;
 }

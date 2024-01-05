@@ -7,9 +7,7 @@ export const cyclesEnum = pgEnum('cycles_enum', ['OPEN', 'CLOSED', 'RESULTS']);
 
 export const cycles = pgTable('cycles', {
   id: uuid('id').primaryKey().defaultRandom(),
-  eventId: uuid('event_id')
-    .references(() => events.id)
-    .notNull(),
+  eventId: uuid('event_id').references(() => events.id),
   startAt: timestamp('start_at').notNull(),
   endAt: timestamp('end_at').notNull(),
   status: cyclesEnum('status').default('OPEN'),

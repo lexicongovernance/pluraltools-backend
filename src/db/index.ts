@@ -9,3 +9,5 @@ export * from './votes';
 export * from './events';
 export * from './registrationFields';
 export * from './registrationData';
+export * from './groups';
+export * from './usersToGroups';
