@@ -25,24 +25,28 @@ class PluralVoting {
 
     return memberships;
   }
-  /*
-  public commonGroup(i: number, j: number, groupMemberships: number[][]): boolean {
-    // Define an identifier indicating whether two participants share the same group or whether any
-    // other member of the group of the second agent shares a group with the first agent.
-    // :param: i: agent_i denotes a participant not equal to a participant called agent_j.
-    // :param: j: agent_j denotes a participant not equal to a participant called agent_i.
-    // :returns (bool): returns true if two participants share a common group and false otherwise.
 
-    const membershipsI = groupMemberships[i];
-    const membershipsJ = groupMemberships[j];
+  public commonGroup(
+    agent1: string,
+    agent2: string,
+    groupMemberships: Record<string, string[]>,
+  ): boolean {
+    // Define an identifier indicating whether two participants share the same group.
+    // :param: agent1: agent1 denotes a participant not equal to a participant called agent2.
+    // :param: agent2: agent2 denotes a participant not equal to a participant called agent1.
+    // :returns (bool): returns true if two participants share groups memberships according to the definition and false otherwise.
 
-    if (membershipsI && membershipsJ) {
-      return membershipsI.some((group) => membershipsJ.includes(group));
+    const memberships_agent1 = groupMemberships[agent1];
+    const memberships_agent2 = groupMemberships[agent2];
+
+    if (memberships_agent1 && memberships_agent2) {
+      return memberships_agent1.some((group) => memberships_agent2.includes(group));
     }
 
-    throw new Error(`Group memberships for agent ${i} or ${j} are undefined.`);
+    throw new Error(`Group memberships for agent ${agent1} or ${agent2} are undefined.`);
   }
 
+  /*
   public K(
     i: number,
     group: number[],

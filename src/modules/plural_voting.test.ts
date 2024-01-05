@@ -29,24 +29,34 @@ describe('createGroupMemberships', () => {
   });
 });
 
-/*
 // test common group
 describe('commonGroup', () => {
   test('should return true if participants share a common group', () => {
-    const groupMemberships: number[][] = [[0, 2], [0, 1], [1, 2], [1]];
+    const groupMemberships: Record<string, string[]> = {
+      user0: ['group0', 'group2'],
+      user1: ['group0', 'group1'],
+      user2: ['group1', 'group2'],
+      user3: ['group1'],
+    };
 
-    const result = pluralVoting.commonGroup(0, 1, groupMemberships);
+    const result = pluralVoting.commonGroup('user0', 'user1', groupMemberships);
     expect(result).toBe(true);
   });
 
   test('should return false if participants do not share a common group', () => {
-    const groupMemberships: number[][] = [[0, 2], [0, 1], [1, 2], [1]];
+    const groupMemberships: Record<string, string[]> = {
+      user0: ['group0', 'group2'],
+      user1: ['group0', 'group1'],
+      user2: ['group1', 'group2'],
+      user3: ['group1'],
+    };
 
-    const result = pluralVoting.commonGroup(0, 3, groupMemberships);
+    const result = pluralVoting.commonGroup('user0', 'user3', groupMemberships);
     expect(result).toBe(false);
   });
 });
 
+/*
 // test vote attenuation
 describe('K function', () => {
   test('should not attenuate votes of i if i is not in group and does not have any relations with members of the group', () => {
