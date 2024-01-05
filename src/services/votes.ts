@@ -3,7 +3,7 @@ import * as db from '../db';
 import type { Request, Response } from 'express';
 import { insertVotesSchema } from '../types';
 import { votes } from '../db/votes';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { quadraticVoting } from '../modules/quadratic_voting';
 
 export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
@@ -26,11 +26,18 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
       .returning();
 
     // Query num_of_votes and user_id for a specific option_id
-    const voteArray = await dbPool
-      .select({ userId: votes.userId, numOfVotes: votes.numOfVotes })
-      .from(votes)
-      .where(eq(db.votes.optionId, body.data.optionId))
-      .execute();
+    const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
+      sql.raw(`
+          SELECT user_id AS "userId", num_of_votes AS "numOfVotes" 
+          FROM (
+            SELECT user_id, num_of_votes, updated_at,
+                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY updated_at DESC) as row_num
+            FROM votes 
+            WHERE option_id = '${body.data.optionId}'
+          ) AS ranked 
+          WHERE row_num = 1
+        `),
+    );
 
     // Extract the dictionary of numOfVotes with userId as the key
     const numOfVotesDictionary = voteArray.reduce(
