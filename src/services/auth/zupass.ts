@@ -12,7 +12,7 @@ export function createNonce() {
     try {
       req.session.nonce = hexToBigInt(toHexString(getRandomValues(30))).toString();
       await req.session.save();
-      return res.json({ nonce: req.session.nonce });
+      return res.json({ data: req.session.nonce });
     } catch (error) {
       console.error(`[ERROR] ${error}`);
 
