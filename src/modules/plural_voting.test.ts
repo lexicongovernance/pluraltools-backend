@@ -56,56 +56,51 @@ describe('commonGroup', () => {
   });
 });
 
-/*
 // test vote attenuation
 describe('K function', () => {
-  test('should not attenuate votes of i if i is not in group and does not have any relations with members of the group', () => {
-    const i = 0;
-    const group = [1];
-    const groupMemberships = [[0], [1, 2]];
-    const contributions = [4, 9, 16];
+  test('should not attenuate votes of agent if agent is not in group and does not have any relations with members of the group', () => {
+    const agent = 'user0';
+    const otherGroup = ['user1'];
+    const groupMemberships = { user0: ['group0'], user1: ['group1', 'group2'] };
+    const contributions = { user0: 4, user1: 9 };
 
-    const result = pluralVoting.K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
     expect(result).toEqual(4);
   });
 
-  test('should attenuate votes of i if i has a shared group membership with another member of the group even if i is not in the group', () => {
-    const i = 0;
-    const group = [1];
-    const groupMemberships = [
-      [0, 1],
-      [1, 2],
-    ];
-    const contributions = [4, 9, 16];
+  test('should attenuate votes of agent if agent has a shared group membership with another member of the group even if agent is not in the group', () => {
+    const agent = 'user0';
+    const otherGroup = ['user1'];
+    const groupMemberships = { user0: ['group0', 'group1'], user1: ['group1', 'group2'] };
+    const contributions = { user0: 4, user1: 9 };
 
-    const result = pluralVoting.K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
     expect(result).toEqual(2);
   });
 
-  test('should attenuate votes of i solely because i is in the other group himself', () => {
-    const i = 0;
-    const group = [1];
-    const groupMemberships = [[0], [0, 1, 2]];
-    const contributions = [4, 9, 16];
+  test('should attenuate votes of agent solely because agent is in the other group himself', () => {
+    // theoretical test case, because if agent is in group h the agent
+    // automatically shares a group (i.e. group h) with all its members
+    const agent = 'user0';
+    const otherGroup = ['user0', 'user1'];
+    const groupMemberships = { user0: ['group0'], user1: ['group1', 'group2'] };
+    const contributions = { user0: 4, user1: 9 };
 
-    const result = pluralVoting.K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
     expect(result).toEqual(2);
   });
 
-  test('should attenuate votes of i if both conditions above that lead to attenuation are satisfied', () => {
-    const i = 0;
-    const group = [1];
-    const groupMemberships = [
-      [0, 1],
-      [0, 1, 2],
-    ];
-    const contributions = [4, 9, 16];
+  test('should attenuate votes of agent if both conditions above that lead to attenuation are satisfied', () => {
+    const agent = 'user0';
+    const otherGroup = ['user0', 'user1'];
+    const groupMemberships = { user0: ['group0', 'group1'], user1: ['group1', 'group2'] };
+    const contributions = { user0: 4, user1: 9 };
 
-    const result = pluralVoting.K(i, group, groupMemberships, contributions);
+    const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
     expect(result).toEqual(2);
   });
 });
-
+/*
 // Test connection oriented cluster match
 describe('clusterMatch', () => {
   test('calculates plurality score according to connection oriented cluster match', () => {

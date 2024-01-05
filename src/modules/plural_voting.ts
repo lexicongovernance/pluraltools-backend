@@ -46,30 +46,33 @@ class PluralVoting {
     throw new Error(`Group memberships for agent ${agent1} or ${agent2} are undefined.`);
   }
 
-  /*
   public K(
-    i: number,
-    group: number[],
-    groupMemberships: number[][],
-    contributions: number[],
+    agent: string,
+    otherGroup: string[],
+    groupMemberships: Record<string, string[]>,
+    contributions: Record<string, number>,
   ): number {
-    // Define the weighting function that attenuates the votes of agent i given different group memberships.
-    // :param: i: denotes a participant.
-    // :param: group: group denotes the other group.
+    // Define the weighting function that attenuates the votes of an agent given different group memberships.
+    // :param: agent: denotes a participant.
+    // :param: otherGroup: denotes a group.
     // :returns: attenuated number of votes for a given project.
 
-    const contributionsI = contributions[i];
+    const contributions_agent = contributions[agent];
 
-    if (contributionsI !== undefined) {
-      if (group.includes(i) || group.some((j) => this.commonGroup(i, j, groupMemberships))) {
-        return Math.sqrt(contributionsI);
+    if (contributions_agent !== undefined) {
+      if (
+        otherGroup.includes(agent) ||
+        otherGroup.some((otherAgent) => this.commonGroup(agent, otherAgent, groupMemberships))
+      ) {
+        return Math.sqrt(contributions_agent);
       }
-      return contributionsI;
+      return contributions_agent;
     }
 
-    throw new Error(`Contributions for agent ${i} are undefined.`);
+    throw new Error(`Contributions for agent ${agent} are undefined.`);
   }
 
+  /*
   public clusterMatch(groups: number[][], contributions: number[]): number {
     // Calculates the plurality score according to connection-oriented cluster match.
     // :param: groups (list of lists): a list denotes the group and contains its members.
