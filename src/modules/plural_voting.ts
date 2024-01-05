@@ -1,4 +1,4 @@
-class PluralVoting {
+export class PluralVoting {
   // Class that contains the functions to calculate a plural score for each project proposal.
   // :param: groups (dict): a dictionary of groups as keys where the values are arrays of group members (users).
   // :param: contributions (dict): the keys identify users and the values denote the votes for a given project proposal.
@@ -72,14 +72,16 @@ class PluralVoting {
     throw new Error(`Contributions for agent ${agent} are undefined.`);
   }
 
-  /*
-  public clusterMatch(groups: number[][], contributions: number[]): number {
+  public clusterMatch(
+    groups: Record<string, string[]>,
+    contributions: Record<string, number>,
+  ): number {
     // Calculates the plurality score according to connection-oriented cluster match.
-    // :param: groups (list of lists): a list denotes the group and contains its members.
-    // :param: contributions (list): number of participant's votes for a given project proposal.
-    // :returns: plurality score
+    // :param: groups (dict): a dictionary of groups as keys where the values are arrays of group members (users).
+    // :param: contributions (dict): the keys identify users and the values denote the votes for a given project proposal.
+    // :returns: number: plurality score
 
-    const groupMemberships: number[][] = this.createGroupMemberships(groups);
+    const groupMemberships: Record<string, string[]> = this.createGroupMemberships(groups);
 
     if (groupMemberships === undefined) {
       throw new Error('Group memberships are undefined.');
@@ -88,13 +90,13 @@ class PluralVoting {
     let result = 0;
 
     // Calculate the first term of connection-oriented cluster match
-    for (let g of groups) {
-      for (let i of g) {
-        const contributionsI = contributions[i];
-        const membershipsI = groupMemberships[i];
+    for (const [groupName, members] of Object.entries(groups)) {
+      for (const agent of members) {
+        const contributionsI = contributions[agent];
+        const membershipsI = groupMemberships[agent];
 
         if (contributionsI === undefined || membershipsI === undefined) {
-          throw new Error(`Contributions or group memberships for agent ${i} are undefined.`);
+          throw new Error(`Contributions or group memberships for agent ${agent} are undefined.`);
         }
 
         result += contributionsI / membershipsI.length;
@@ -102,33 +104,36 @@ class PluralVoting {
     }
 
     // Calculate the interaction term of connection-oriented cluster match
-    for (let g of groups) {
-      for (let h of groups) {
-        if (g === h) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
+    for (const [group1Name, group1] of Object.entries(groups)) {
+      for (const [group2Name, group2] of Object.entries(groups)) {
+        if (group1Name === group2Name) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
 
         let term1 = 0;
-        for (let i of g) {
-          const contributionsI = contributions[i];
-          const membershipsI = groupMemberships[i];
+        for (const agent of group1) {
+          const contributionsI = contributions[agent];
+          const membershipsI = groupMemberships[agent];
 
           if (contributionsI === undefined || membershipsI === undefined) {
-            throw new Error(`Contributions or group memberships for agent ${i} are undefined.`);
+            throw new Error(`Contributions or group memberships for agent ${agent} are undefined.`);
           }
 
-          term1 += this.K(i, h, groupMemberships, contributions) / membershipsI.length;
+          term1 += this.K(agent, group2, groupMemberships, contributions) / membershipsI.length;
         }
         term1 = Math.sqrt(term1);
 
         let term2 = 0;
-        for (let j of h) {
-          const contributionsJ = contributions[j];
-          const membershipsJ = groupMemberships[j];
+        for (const otherAgent of group2) {
+          const contributionsJ = contributions[otherAgent];
+          const membershipsJ = groupMemberships[otherAgent];
 
           if (contributionsJ === undefined || membershipsJ === undefined) {
-            throw new Error(`Contributions or group memberships for agent ${j} are undefined.`);
+            throw new Error(
+              `Contributions or group memberships for agent ${otherAgent} are undefined.`,
+            );
           }
 
-          term2 += this.K(j, g, groupMemberships, contributions) / membershipsJ.length;
+          term2 +=
+            this.K(otherAgent, group1, groupMemberships, contributions) / membershipsJ.length;
         }
         term2 = Math.sqrt(term2);
 
@@ -139,15 +144,14 @@ class PluralVoting {
     return Math.sqrt(result);
   }
 
-  public pluralScoreCalculation(groups: number[][], contributions: number[]): void {
+  public pluralScoreCalculation(
+    groups: Record<string, string[]>,
+    contributions: Record<string, number>,
+  ): void {
     const result: number = this.clusterMatch(groups, contributions);
     console.log('Plurality Score', result);
   }
-  */
 }
-
-// Export functions
-export { PluralVoting };
 
 // Example usage
 /*

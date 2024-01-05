@@ -100,12 +100,12 @@ describe('K function', () => {
     expect(result).toEqual(2);
   });
 });
-/*
+
 // Test connection oriented cluster match
 describe('clusterMatch', () => {
   test('calculates plurality score according to connection oriented cluster match', () => {
-    const groups: number[][] = [[0], [1]];
-    const contributions: number[] = [4, 4];
+    const groups: Record<string, string[]> = { group0: ['user0'], group1: ['user1'] };
+    const contributions: Record<string, number> = { user0: 4, user1: 4 };
 
     // Expected result
     const expectedScore = 4;
@@ -116,16 +116,21 @@ describe('clusterMatch', () => {
 
   test('noting but prints result', () => {
     // Example usage:
-    const exampleGroups: number[][] = [
-      [0, 1],
-      [1, 2, 3],
-      [0, 2],
-    ];
-    const exampleContributions: number[] = [1, 2, 3, 4];
+    const exampleGroups: Record<string, string[]> = {
+      group0: ['user0', 'user1'],
+      group1: ['user1', 'user2', 'user3'],
+      group2: ['user0', 'user2'],
+    };
+
+    const exampleContributions: Record<string, number> = {
+      user0: 1,
+      user1: 2,
+      user2: 3,
+      user3: 4,
+    };
 
     const pluralityScore = new PluralVoting(exampleGroups, exampleContributions);
     pluralityScore.pluralScoreCalculation(exampleGroups, exampleContributions);
     expect(true).toBe(true);
   });
 });
-*/
