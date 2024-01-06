@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import * as db from '../db';
 import { createDbPool } from '../utils/db/createDbPool';
 import { runMigrations } from '../utils/db/runMigrations';
-import { getVoteForOptionByUser } from './users';
+import { getVoteForOptionByUser } from './votes';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 

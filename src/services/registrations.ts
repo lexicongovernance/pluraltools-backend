@@ -30,6 +30,25 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    // parse input
+    const eventId = req.params.eventId ?? '';
+    const userId = req.session.userId;
+
+    try {
+      const out = await dbPool.query.registrations.findFirst({
+        where: and(eq(db.registrations.userId, userId), eq(db.registrations.eventId, eventId)),
+      });
+
+      return res.json({ data: out });
+    } catch (e) {
+      console.log('error getting registration ' + e);
+      return res.sendStatus(500);
+    }
+  };
+}
+
 export async function sendRegistrationData(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
