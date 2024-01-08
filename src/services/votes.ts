@@ -52,8 +52,15 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
     // Query groupId and array of user ids associated with the group
     const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
       sql.raw(`
+          WITH users AS (
+            SELECT user_id AS "userId" 
+            FROM votes 
+            WHERE option_id = '${body.data.optionId}'
+          )
+          
           SELECT group_id AS "groupId", json_agg(user_id) AS "userIds"
           FROM users_to_groups
+          WHERE user_id IN (SELECT "userId" FROM users)
           GROUP BY group_id
         `),
     );
