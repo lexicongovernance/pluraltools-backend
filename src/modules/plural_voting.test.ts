@@ -114,6 +114,17 @@ describe('clusterMatch', () => {
     expect(result).toEqual(expectedScore);
   });
 
+  test('calculates plurality score even if only one group is available', () => {
+    const groups: Record<string, string[]> = { group0: ['user0', 'user1'] };
+    const contributions: Record<string, number> = { user0: 6, user1: 3 };
+
+    // Expected result is the square root of the sum of contributions
+    const expectedScore = 3;
+
+    const result = pluralVoting.clusterMatch(groups, contributions);
+    expect(result).toEqual(expectedScore);
+  });
+
   test('noting but prints result', () => {
     const score = pluralVoting.pluralScoreCalculation();
     console.log('Plurality Score:', score);
