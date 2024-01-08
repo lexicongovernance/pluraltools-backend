@@ -49,7 +49,7 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
       {} as Record<string, number>,
     );
 
-    // Query groupId and array of user ids associated with the group
+    // Query groupId and array of user ids associated with a given optionId
     const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
       sql.raw(`
           WITH users AS (
