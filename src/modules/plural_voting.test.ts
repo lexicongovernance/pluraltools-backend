@@ -125,12 +125,40 @@ describe('clusterMatch', () => {
     expect(result).toEqual(expectedScore);
   });
 
-  test('that plural score equals quadratic score when a single particpant has different group memberships', () => {
+  test('that plural score equals quadratic score when a single participant has different group memberships', () => {
     const groups: Record<string, string[]> = { group0: ['user0'], group1: ['user0'] };
     const contributions: Record<string, number> = { user0: 9 };
 
     // Expected result is that the plural score equals the quadratic score
     const expectedScore = 3;
+
+    const result = pluralVoting.clusterMatch(groups, contributions);
+    expect(result).toEqual(expectedScore);
+  });
+
+  test('that the interaction terms get neglected when calculating the plural score if all groups contain the same members', () => {
+    const groups: Record<string, string[]> = {
+      group0: ['user0', 'user1'],
+      group1: ['user0', 'user1'],
+    };
+    const contributions: Record<string, number> = { user0: 8, user1: 8 };
+
+    // Expected result is the square root of the sum of contributions
+    const expectedScore = 4;
+
+    const result = pluralVoting.clusterMatch(groups, contributions);
+    expect(result).toEqual(expectedScore);
+  });
+
+  test('that the interaction terms get neglected if all groups contain the same members but the order is scrambled', () => {
+    const groups: Record<string, string[]> = {
+      group0: ['user0', 'user1'],
+      group1: ['user1', 'user0'],
+    };
+    const contributions: Record<string, number> = { user0: 8, user1: 8 };
+
+    // Expected result is the square root of the sum of contributions
+    const expectedScore = 4;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
     expect(result).toEqual(expectedScore);

@@ -103,10 +103,14 @@ export class PluralVoting {
       }
     }
 
+    function arraysEqual(arr1: string[], arr2: string[]) {
+      return arr1.length === arr2.length && arr1.every((value, index) => value === arr2[index]);
+    }
+
     // Calculate the interaction term of connection-oriented cluster match
     for (const [group1Name, group1] of Object.entries(groups)) {
       for (const [group2Name, group2] of Object.entries(groups)) {
-        if (group1Name === group2Name) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
+        if (arraysEqual(group1, group2)) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
 
         let term1 = 0;
         for (const agent of group1) {
