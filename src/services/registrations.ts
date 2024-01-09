@@ -20,6 +20,32 @@ export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
+    // check if all required fields are filled
+    const event = await dbPool.query.events.findFirst({
+      with: {
+        registrationFields: true,
+      },
+      where: (event, { eq }) => eq(event.id, body.data.eventId),
+    });
+    const requiredFields = event?.registrationFields.filter((field) => field.required);
+
+    // loop through required fields and check if they are filled
+    if (requiredFields) {
+      const missingFields = requiredFields.filter(
+        (field) =>
+          !body.data.registrationData.some((data) => data.registrationFieldId === field.id),
+      );
+
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          errors: missingFields.map((field) => ({
+            field: field.name,
+            message: 'missing required field',
+          })),
+        });
+      }
+    }
+
     try {
       const out = await sendRegistrationData(dbPool, body.data, userId);
       return res.json({ data: out });
@@ -61,6 +87,7 @@ export async function sendRegistrationData(
   if (!newRegistration) {
     throw new Error('failed to save registration');
   }
+
   const updatedRegistrationData = await overwriteRegistrationData({
     dbPool,
     registrationId: newRegistration.id,

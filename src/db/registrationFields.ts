@@ -18,7 +18,7 @@ export const registrationFields = pgTable('registration_fields', {
   name: varchar('name').notNull(),
   description: varchar('description'),
   type: registrationFieldEnum('type').notNull(),
-  isRequired: boolean('is_required').default(false),
+  required: boolean('required').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

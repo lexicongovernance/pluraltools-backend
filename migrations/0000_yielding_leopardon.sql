@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS "registration_fields" (
 	"name" varchar NOT NULL,
 	"description" varchar,
 	"type" "registration_field_enum" NOT NULL,
-	"is_required" boolean DEFAULT false,
+	"required" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
