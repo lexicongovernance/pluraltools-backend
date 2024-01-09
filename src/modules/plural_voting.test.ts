@@ -125,6 +125,17 @@ describe('clusterMatch', () => {
     expect(result).toEqual(expectedScore);
   });
 
+  test('that plural score equals quadratic score when a single particpant has different group memberships', () => {
+    const groups: Record<string, string[]> = { group0: ['user0'], group1: ['user0'] };
+    const contributions: Record<string, number> = { user0: 9 };
+
+    // Expected result is that the plural score equals the quadratic score
+    const expectedScore = 3;
+
+    const result = pluralVoting.clusterMatch(groups, contributions);
+    expect(result).toEqual(expectedScore);
+  });
+
   test('noting but prints result', () => {
     const score = pluralVoting.pluralScoreCalculation();
     console.log('Plurality Score:', score);
