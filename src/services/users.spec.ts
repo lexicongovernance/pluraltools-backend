@@ -24,6 +24,15 @@ describe('service: users', function () {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     user = (await dbPool.insert(db.users).values({}).returning())[0];
+    // create event
+    defaultEvent = (
+      await dbPool
+        .insert(db.events)
+        .values({
+          name: 'test event',
+        })
+        .returning()
+    )[0]!;
     otherUser = (await dbPool.insert(db.users).values({}).returning())[0];
     cycle = (
       await dbPool
