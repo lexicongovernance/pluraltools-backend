@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import * as db from '../db';
 import { createDbPool } from '../utils/db/createDbPool';
 import { runMigrations } from '../utils/db/runMigrations';
-import { getVoteForOptionByUser } from './votes';
+import { getVotesForCycleByUser } from './users';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -12,6 +12,7 @@ describe('service: users', function () {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<{}>;
   let user: db.User | undefined;
+  let otherUser: db.User | undefined;
   let cycle: db.Cycle | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
   let questionOption: db.QuestionOption | undefined;
@@ -23,15 +24,7 @@ describe('service: users', function () {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     user = (await dbPool.insert(db.users).values({}).returning())[0];
-    // create event
-    defaultEvent = (
-      await dbPool
-        .insert(db.events)
-        .values({
-          name: 'test event',
-        })
-        .returning()
-    )[0]!;
+    otherUser = (await dbPool.insert(db.users).values({}).returning())[0];
     cycle = (
       await dbPool
         .insert(db.cycles)
@@ -82,15 +75,36 @@ describe('service: users', function () {
       userId: user!.id,
     });
 
-    const vote = await getVoteForOptionByUser(dbPool, user!.id, questionOption!.id);
-
+    const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
     // expect the latest votes
-    expect(vote?.numOfVotes).toBe(10);
+    expect(votes[0]?.numOfVotes).toBe(10);
+  });
+
+  test('should not get votes for other user', async function () {
+    // create vote in db
+    await dbPool.insert(db.votes).values({
+      numOfVotes: 2,
+      optionId: questionOption!.id,
+      userId: otherUser!.id,
+    });
+    // create second interaction with option
+    await dbPool.insert(db.votes).values({
+      numOfVotes: 10,
+      optionId: questionOption!.id,
+      userId: otherUser!.id,
+    });
+
+    // user 1 gets votes but it should not include otherUser votes
+    const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
+
+    // no votes have otherUser's id in array
+    expect(votes.filter((vote) => vote.userId === otherUser?.id).length).toBe(0);
   });
 
   afterAll(async function () {
     // delete votes
     await dbPool.delete(db.votes).where(eq(db.votes.userId, user?.id ?? ''));
+    await dbPool.delete(db.votes).where(eq(db.votes.userId, otherUser?.id ?? ''));
     // delete option
     await dbPool
       .delete(db.questionOptions)
@@ -103,6 +117,7 @@ describe('service: users', function () {
     await dbPool.delete(db.events).where(eq(db.events.id, defaultEvent.id));
     // delete user
     await dbPool.delete(db.users).where(eq(db.users.id, user?.id ?? ''));
+    await dbPool.delete(db.users).where(eq(db.users.id, otherUser?.id ?? ''));
     await dbConnection.end();
   });
 });

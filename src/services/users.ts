@@ -2,7 +2,6 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
 import { and, desc, eq } from 'drizzle-orm';
-import { getVoteForOptionByUser } from './votes';
 import { insertUserSchema } from '../types/users';
 import { overwriteUsersToGroups } from './usersToGroups';
 
@@ -29,7 +28,7 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
 export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const sessionUserId = req.session.userId;
-    const optionId = req.params.optionId;
+    const cycleId = req.params.cycleId;
     const userId = req.params.userId;
     if (userId !== sessionUserId) {
       return res.status(400).json({
@@ -41,17 +40,17 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
       });
     }
 
-    if (!optionId) {
+    if (!cycleId) {
       return res.status(400).json({
         errors: [
           {
-            message: 'Expected optionId in query params',
+            message: 'Expected cycleId in query params',
           },
         ],
       });
     }
 
-    const votesRow = await getVoteForOptionByUser(dbPool, userId, optionId);
+    const votesRow = await getVotesForCycleByUser(dbPool, userId, cycleId);
 
     return res.json({ data: votesRow });
   };
@@ -82,3 +81,35 @@ export const updateUser = (dbPool: PostgresJsDatabase<typeof db>) => async () =>
     return res.json({ data: { user, updatedGroups } });
   };
 };
+
+export async function getVotesForCycleByUser(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  cycleId: string,
+) {
+  const response = await dbPool.query.cycles.findMany({
+    with: {
+      forumQuestions: {
+        with: {
+          questionOptions: {
+            with: {
+              votes: {
+                where: and(eq(db.votes.userId, userId)),
+                limit: 1,
+                orderBy: [desc(db.votes.createdAt)],
+              },
+            },
+          },
+        },
+      },
+    },
+    where: eq(db.cycles.id, cycleId),
+  });
+
+  const out = response.flatMap((cycle) =>
+    cycle.forumQuestions.flatMap((question) =>
+      question.questionOptions.flatMap((option) => option.votes),
+    ),
+  );
+  return out;
+}
