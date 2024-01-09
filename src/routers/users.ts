@@ -9,7 +9,7 @@ const router = express.Router();
 export function usersRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.get('/', isLoggedIn(), getUser(dbPool));
   router.put('/', isLoggedIn(), updateUser(dbPool));
-  router.get('/:userId/options/:optionId/votes', isLoggedIn(), getVotes(dbPool));
+  router.get('/:userId/cycles/:cycleId/votes', isLoggedIn(), getVotes(dbPool));
   router.get('/:userId/groups', isLoggedIn(), getGroupsPerUser(dbPool));
   return router;
 }
