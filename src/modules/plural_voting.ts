@@ -72,6 +72,18 @@ export class PluralVoting {
     throw new Error(`Contributions for agent ${agent} are undefined.`);
   }
 
+  public arraysEqual(arr1: string[], arr2: string[]): boolean {
+    // Checks whether two arrays have the same content.
+    // :param: arr1: array of members of a given group.
+    // :param: arr2: array of members of another group.
+    const sortedArr1 = arr1.slice().sort();
+    const sortedArr2 = arr2.slice().sort();
+    return (
+      sortedArr1.length === sortedArr2.length &&
+      sortedArr1.every((value, index) => value === sortedArr2[index])
+    );
+  }
+
   public clusterMatch(
     groups: Record<string, string[]>,
     contributions: Record<string, number>,
@@ -90,7 +102,7 @@ export class PluralVoting {
     let result = 0;
 
     // Calculate the first term of connection-oriented cluster match
-    for (const [groupName, members] of Object.entries(groups)) {
+    for (const [_, members] of Object.entries(groups)) {
       for (const agent of members) {
         const contributionsI = contributions[agent];
         const membershipsI = groupMemberships[agent];
@@ -103,19 +115,10 @@ export class PluralVoting {
       }
     }
 
-    function arraysEqual(arr1: string[], arr2: string[]) {
-      const sortedArr1 = arr1.slice().sort();
-      const sortedArr2 = arr2.slice().sort();
-      return (
-        sortedArr1.length === sortedArr2.length &&
-        sortedArr1.every((value, index) => value === sortedArr2[index])
-      );
-    }
-
     // Calculate the interaction term of connection-oriented cluster match
-    for (const [group1Name, group1] of Object.entries(groups)) {
-      for (const [group2Name, group2] of Object.entries(groups)) {
-        if (arraysEqual(group1, group2)) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
+    for (const [_, group1] of Object.entries(groups)) {
+      for (const [_, group2] of Object.entries(groups)) {
+        if (this.arraysEqual(group1, group2)) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
 
         let term1 = 0;
         for (const agent of group1) {
@@ -153,9 +156,8 @@ export class PluralVoting {
     return Math.sqrt(result);
   }
 
-  public pluralScoreCalculation() // groups: Record<string, string[]>,
-  // contributions: Record<string, number>,
-  : number {
+  public pluralScoreCalculation(): number {
+    // Calculates the plurality score.
     const result: number = this.clusterMatch(this.groups, this.contributions);
 
     return result;
