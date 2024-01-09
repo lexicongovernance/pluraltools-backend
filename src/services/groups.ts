@@ -10,7 +10,7 @@ export function getGroups(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export async function getGroupsPerUser(dbPool: PostgresJsDatabase<typeof db>) {
+export function getGroupsPerUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     try {
