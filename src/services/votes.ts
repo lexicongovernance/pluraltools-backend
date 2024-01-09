@@ -5,6 +5,7 @@ import { insertVotesSchema } from '../types';
 import { votes } from '../db/votes';
 import { eq, sql } from 'drizzle-orm';
 import { quadraticVoting } from '../modules/quadratic_voting';
+import { PluralVoting } from '../modules/plural_voting';
 
 export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -36,6 +37,7 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
             WHERE option_id = '${body.data.optionId}'
           ) AS ranked 
           WHERE row_num = 1
+          AND num_of_votes >= 1 
         `),
     );
 
@@ -48,8 +50,34 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
       {} as Record<string, number>,
     );
 
-    // Sum of quadratic votes as defined in the quadratic voting model)
-    const [, totalVotes] = quadraticVoting(numOfVotesDictionary);
+    // Query groupId and array of user ids associated with a given optionId
+    const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
+      sql.raw(`
+          SELECT group_id AS "groupId", json_agg(user_id) AS "userIds"
+          FROM users_to_groups
+          WHERE user_id IN (${Object.keys(numOfVotesDictionary)
+            .map((id) => `'${id}'`)
+            .join(', ')})
+          GROUP BY group_id
+        `),
+    );
+
+    const groupsDictionary = groupArray.reduce(
+      (acc, group) => {
+        acc[group.groupId] = group.userIds ?? [];
+        return acc;
+      },
+      {} as Record<string, string[]>,
+    );
+
+    // Quadratic Voting
+    // const [, totalVotes] = quadraticVoting(numOfVotesDictionary);
+
+    // Plural Voting
+    const totalVotes = new PluralVoting(
+      groupsDictionary,
+      numOfVotesDictionary,
+    ).pluralScoreCalculation();
 
     // Update the options table with the new vote count
     await dbPool
