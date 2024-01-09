@@ -3,7 +3,7 @@ import * as db from '../db';
 import type { Request, Response } from 'express';
 import { insertVotesSchema } from '../types';
 import { votes } from '../db/votes';
-import { eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { quadraticVoting } from '../modules/quadratic_voting';
 import { PluralVoting } from '../modules/plural_voting';
 
