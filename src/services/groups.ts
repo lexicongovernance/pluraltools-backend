@@ -12,7 +12,11 @@ export function getGroups(dbPool: PostgresJsDatabase<typeof db>) {
 
 export function getGroupsPerUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
+    const paramsUserId = req.params.userId;
     const userId = req.session.userId;
+    if (paramsUserId !== userId) {
+      return res.status(403).json({ errors: ['forbidden'] });
+    }
     try {
       const query = await dbPool.query.usersToGroups.findMany({
         with: {
