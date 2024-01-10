@@ -37,14 +37,18 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
             WHERE option_id = '${body.data.optionId}'
           ) AS ranked 
           WHERE row_num = 1
-          AND num_of_votes >= 1 
         `),
     );
+
+    // Check if there is at least one value greater than 0 in voteArray
+    const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
 
     // Extract the dictionary of numOfVotes with userId as the key
     const numOfVotesDictionary = voteArray.reduce(
       (acc, vote) => {
-        acc[vote.userId] = vote.numOfVotes;
+        if (!hasNonZeroValue || vote.numOfVotes !== 0) {
+          acc[vote.userId] = vote.numOfVotes;
+        }
         return acc;
       },
       {} as Record<string, number>,
