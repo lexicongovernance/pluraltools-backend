@@ -118,7 +118,7 @@ export class PluralVoting {
     // Calculate the interaction term of connection-oriented cluster match
     for (const [_, group1] of Object.entries(groups)) {
       for (const [_, group2] of Object.entries(groups)) {
-        if (this.arraysEqual(group1, group2)) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
+        if (this.arraysEqual(group1, group2)) continue; // skip groups if they are the same (same in terms of group members)
 
         let term1 = 0;
         for (const agent of group1) {

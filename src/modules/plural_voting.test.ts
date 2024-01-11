@@ -164,6 +164,21 @@ describe('clusterMatch', () => {
     expect(result).toEqual(expectedScore);
   });
 
+  test('score for similar groups', () => {
+    const groups: Record<string, string[]> = {
+      group0: ['user0'],
+      group1: ['user1'],
+      group2: ['user1'],
+    };
+    const contributions: Record<string, number> = { user0: 9, user1: 9 };
+
+    // Expected result is the square root of the sum of contributions
+    const expectedScore = 4;
+
+    const result = pluralVoting.clusterMatch(groups, contributions);
+    expect(result).toEqual(expectedScore);
+  });
+
   test('noting but prints result', () => {
     const score = pluralVoting.pluralScoreCalculation();
     console.log('Plurality Score:', score);
