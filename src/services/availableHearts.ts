@@ -1,6 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { sql } from 'drizzle-orm';
+import type { Request, Response } from 'express';
+import { sql, gte, lte, and } from 'drizzle-orm';
 
 export function availableHearts(
   numProposals: number,
@@ -38,14 +39,60 @@ export function availableHearts(
   return minHearts;
 }
 
-export async function getAvailableHearts(dbPool: PostgresJsDatabase<typeof db>) {
+export function getActiveQuestionHearts(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const activeCycles = await dbPool.query.cycles.findMany({
+      where: and(lte(db.cycles.startAt, new Date()), gte(db.cycles.endAt, new Date())),
+      with: {
+        forumQuestions: {
+          with: {
+            questionOptions: true,
+          },
+        },
+      },
+    });
+
+    // Fetch hearts for each active question
+    const questionHeartsPromises = activeCycles.flatMap(async (cycle) =>
+      cycle.forumQuestions.map(async (question) => {
+        const numOptions = await dbPool.execute<{ countOptions: number }>(
+          sql.raw(`
+            SELECT count("id") AS "countOptions"   
+            FROM question_options
+            WHERE question_id = '${question.id}'
+          `),
+        );
+
+        const countOptions = numOptions[0]?.countOptions;
+
+        // Calculate available hearts
+        if (countOptions !== undefined) {
+          const result = availableHearts(countOptions, 4, 5, 0.8, 100);
+          return { questionId: question.id, hearts: result };
+        } else {
+          // Return 0 in case there are no options available yet.
+          return { questionId: question.id, hearts: 0 };
+        }
+      }),
+    );
+
+    // Resolve all promises
+    const resolvedQuestionHearts = await Promise.all(questionHeartsPromises);
+
+    return res.json({ data: resolvedQuestionHearts });
+  };
+}
+
+/*
+export async function getAvailableHearts(dbPool: PostgresJsDatabase<typeof db>): Promise<number | null> {
   // The function returns the number of hearts depending on the number of options available.
 
   // Query num_of_votes and user_id for a specific option_id
   const numOptions = await dbPool.execute<{ countOptions: number }>(
     sql.raw(`
       SELECT count("id") AS "countOptions"   
-      FROM question_options 
+      FROM question_options
+      WHERE question_id = '${data.questionId}'
     `),
   );
 
@@ -60,3 +107,4 @@ export async function getAvailableHearts(dbPool: PostgresJsDatabase<typeof db>) 
     return 0;
   }
 }
+*/
