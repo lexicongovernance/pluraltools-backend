@@ -5,11 +5,9 @@ import { ironSession } from 'iron-session/express';
 import { authRouter } from './auth';
 import cors from 'cors';
 import { usersRouter } from './users';
-import { registrationsRouter } from './registrations';
-import { groupsRouter } from './groups';
-import { registrationOptionsRouter } from './registrationOptions';
 import { votesRouter } from './votes';
 import { cyclesRouter } from './cycles';
+import { eventsRouter } from './events';
 
 const router = express.Router();
 
@@ -39,11 +37,9 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
   // routes
   router.use('/auth', authRouter({ dbPool }));
   router.use('/users', usersRouter({ dbPool }));
-  router.use('/registrations', registrationsRouter({ dbPool }));
-  router.use('/groups', groupsRouter({ dbPool }));
-  router.use('/registration-options', registrationOptionsRouter({ dbPool }));
   router.use('/votes', votesRouter({ dbPool }));
   router.use('/cycles', cyclesRouter({ dbPool }));
+  router.use('/events', eventsRouter({ dbPool }));
 
   return router;
 }

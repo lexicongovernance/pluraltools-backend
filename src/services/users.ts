@@ -2,6 +2,8 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
 import { and, desc, eq } from 'drizzle-orm';
+import { insertUserSchema } from '../types/users';
+import { overwriteUsersToGroups } from './usersToGroups';
 
 export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -20,44 +22,6 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500);
     }
-  };
-}
-
-export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const sessionUserId = req.session.userId;
-    const userId = req.params.userId;
-    if (userId !== sessionUserId) {
-      return res.status(400).json({
-        errors: [
-          {
-            message: 'Not authorized to query this user',
-          },
-        ],
-      });
-    }
-
-    const registration = await dbPool.query.registrations.findFirst({
-      where: eq(db.registrations.userId, userId),
-    });
-
-    const usersToGroups = await dbPool.query.usersToGroups.findMany({
-      where: eq(db.usersToGroups.userId, userId),
-    });
-
-    const usersToRegistrationOptions = await dbPool.query.usersToRegistrationOptions.findMany({
-      where: eq(db.usersToRegistrationOptions.userId, userId),
-      with: {
-        registrationOption: true,
-      },
-    });
-
-    const out = {
-      ...registration,
-      groups: usersToGroups,
-      registrationOptions: usersToRegistrationOptions,
-    };
-    return res.json({ data: out });
   };
 }
 
@@ -91,6 +55,32 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
     return res.json({ data: votesRow });
   };
 }
+
+export const updateUser = (dbPool: PostgresJsDatabase<typeof db>) => async () => {
+  return async function (req: Request, res: Response) {
+    // parse input
+    const userId = req.session.userId;
+    const body = insertUserSchema.safeParse(req.body);
+
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.errors });
+    }
+
+    // update user
+    const user = await dbPool
+      .update(db.users)
+      .set({
+        email: body.data.email,
+        username: body.data.username,
+      })
+      .where(eq(db.users.id, userId))
+      .returning();
+
+    const updatedGroups = overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+
+    return res.json({ data: { user, updatedGroups } });
+  };
+};
 
 export async function getVotesForCycleByUser(
   dbPool: PostgresJsDatabase<typeof db>,
