@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
-import { sql, gte, lte, and } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 export function availableHearts(
   numProposals: number,
@@ -39,7 +39,7 @@ export function availableHearts(
   return minHearts;
 }
 
-export function getActiveQuestionHearts(dbPool: PostgresJsDatabase<typeof db>) {
+export function getQuestionHearts(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const forumQuestionId = req.params.forumQuestionId;
     // Fetch hearts for each active question
@@ -63,29 +63,3 @@ export function getActiveQuestionHearts(dbPool: PostgresJsDatabase<typeof db>) {
     }
   };
 }
-
-/*
-export async function getAvailableHearts(dbPool: PostgresJsDatabase<typeof db>): Promise<number | null> {
-  // The function returns the number of hearts depending on the number of options available.
-
-  // Query num_of_votes and user_id for a specific option_id
-  const numOptions = await dbPool.execute<{ countOptions: number }>(
-    sql.raw(`
-      SELECT count("id") AS "countOptions"   
-      FROM question_options
-      WHERE question_id = '${data.questionId}'
-    `),
-  );
-
-  const countOptions = numOptions[0]?.countOptions;
-
-  // calculate available hearts
-  if (countOptions !== undefined) {
-    const result = availableHearts(countOptions, 4, 5, 0.8, 100);
-    return result;
-  } else {
-    // retrun 0 in case there are no options available yet.
-    return 0;
-  }
-}
-*/

@@ -1,4 +1,4 @@
-import { availableHearts } from './availableHearts';
+import { availableHearts } from './forumQuestions';
 
 // Test availableHearts function
 describe('availableHearts function', () => {
