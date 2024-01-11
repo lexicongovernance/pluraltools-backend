@@ -174,7 +174,7 @@ describe('clusterMatch', () => {
 
     // Expected result is the square root of the sum of contributions
     const expectedScore = 4;
-    
+
     const result = pluralVoting.clusterMatch(groups, contributions);
     expect(result).toEqual(expectedScore);
   });
