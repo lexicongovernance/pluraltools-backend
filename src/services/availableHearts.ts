@@ -18,8 +18,13 @@ export function availableHearts(
   // :param: customHearts: if this parameter is set then the function will return custom hearts independent of the number of projects.
   // :returns: number of a available heart for each participant given a number of proposals.
 
-  if (customHearts !== null) {
+  if (customHearts !== null && customHearts >= 2) {
     return customHearts;
+  }
+
+  if (numProposals < 2) {
+    console.error('Number of proposals must be at least 2');
+    return 0;
   }
 
   const maxVotes = baseNumerator + (numProposals - 2) * baseNumerator;
