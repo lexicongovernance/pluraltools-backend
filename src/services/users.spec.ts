@@ -16,6 +16,7 @@ describe('service: users', function () {
   let cycle: db.Cycle | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
   let questionOption: db.QuestionOption | undefined;
+  let defaultEvent: db.Event;
 
   beforeAll(async function () {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -23,11 +24,21 @@ describe('service: users', function () {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     user = (await dbPool.insert(db.users).values({}).returning())[0];
+    // create event
+    defaultEvent = (
+      await dbPool
+        .insert(db.events)
+        .values({
+          name: 'test event',
+        })
+        .returning()
+    )[0]!;
     otherUser = (await dbPool.insert(db.users).values({}).returning())[0];
     cycle = (
       await dbPool
         .insert(db.cycles)
         .values({
+          eventId: defaultEvent.id,
           startAt: new Date(),
           endAt: new Date(),
         })
@@ -111,6 +122,8 @@ describe('service: users', function () {
     await dbPool.delete(db.forumQuestions).where(eq(db.forumQuestions.id, forumQuestion?.id ?? ''));
     // delete cycle
     await dbPool.delete(db.cycles).where(eq(db.cycles.id, cycle?.id ?? ''));
+    // Delete events
+    await dbPool.delete(db.events).where(eq(db.events.id, defaultEvent.id));
     // delete user
     await dbPool.delete(db.users).where(eq(db.users.id, user?.id ?? ''));
     await dbPool.delete(db.users).where(eq(db.users.id, otherUser?.id ?? ''));

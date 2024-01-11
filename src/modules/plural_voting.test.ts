@@ -174,6 +174,17 @@ describe('clusterMatch', () => {
 
     // Expected result is the square root of the sum of contributions
     const expectedScore = 4;
+    
+    const result = pluralVoting.clusterMatch(groups, contributions);
+    expect(result).toEqual(expectedScore);
+  });
+
+  test('that the plurality score equals zero when everyone votes 0', () => {
+    const groups: Record<string, string[]> = { group0: ['user0'], group1: ['user1'] };
+    const contributions: Record<string, number> = { user0: 0, user1: 0 };
+
+    // Expected result equals zero if everyone votes zero
+    const expectedScore = 0;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
     expect(result).toEqual(expectedScore);
