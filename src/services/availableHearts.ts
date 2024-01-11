@@ -41,45 +41,26 @@ export function availableHearts(
 
 export function getActiveQuestionHearts(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const activeCycles = await dbPool.query.cycles.findMany({
-      where: and(lte(db.cycles.startAt, new Date()), gte(db.cycles.endAt, new Date())),
-      with: {
-        forumQuestions: {
-          with: {
-            questionOptions: true,
-          },
-        },
-      },
-    });
-
+    const forumQuestionId = req.params.forumQuestionId;
     // Fetch hearts for each active question
-    const questionHeartsPromises = activeCycles.flatMap(async (cycle) =>
-      cycle.forumQuestions.map(async (question) => {
-        const numOptions = await dbPool.execute<{ countOptions: number }>(
-          sql.raw(`
+    const numOptions = await dbPool.execute<{ countOptions: number }>(
+      sql.raw(`
             SELECT count("id") AS "countOptions"   
             FROM question_options
-            WHERE question_id = '${question.id}'
+            WHERE question_id = '${forumQuestionId}'
           `),
-        );
-
-        const countOptions = numOptions[0]?.countOptions;
-
-        // Calculate available hearts
-        if (countOptions !== undefined) {
-          const result = availableHearts(countOptions, 4, 5, 0.8, 100);
-          return { questionId: question.id, hearts: result };
-        } else {
-          // Return 0 in case there are no options available yet.
-          return { questionId: question.id, hearts: 0 };
-        }
-      }),
     );
 
-    // Resolve all promises
-    const resolvedQuestionHearts = await Promise.all(questionHeartsPromises);
+    const countOptions = numOptions[0]?.countOptions;
 
-    return res.json({ data: resolvedQuestionHearts });
+    // Calculate available hearts
+    if (countOptions !== undefined) {
+      const result = availableHearts(countOptions, 4, 5, 0.8, null);
+      return res.json({ data: result });
+    } else {
+      // Return 0 in case there are no options available yet.
+      return res.json({ data: 0 });
+    }
   };
 }
 

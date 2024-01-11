@@ -41,7 +41,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
   router.use('/votes', votesRouter({ dbPool }));
   router.use('/cycles', cyclesRouter({ dbPool }));
   router.use('/events', eventsRouter({ dbPool }));
-  router.use('/events', forumQuestionsRouter({ dbPool }));
+  router.use('/forum-questions', forumQuestionsRouter({ dbPool }));
 
   return router;
 }
