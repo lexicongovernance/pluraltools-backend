@@ -12,7 +12,7 @@ export function availableHearts(
   // Calculates number of hearts that a participant has available. The underlying assumption of the calculation is
   // that a participant must assign at least one heart to each available proposal.
   // :param: numProposals: number of proposals (options) that can be votes on.
-  // :param: baseNumberator: specifies the minimum amounts of hearts a participant must allocate to a given proposal to satisfy the max ratio.
+  // :param: baseNumerator: specifies the minimum amounts of hearts a participant must allocate to a given proposal to satisfy the max ratio.
   // :param: baseDenominator: specifies the minimum amount of hearts a participant must have available to satisfy the max ratio.
   // :param: maxRatio: specifies the preference ratio a participant should be able to express over two project options.
   // :param: customHearts: if this parameter is set then the function will return custom hearts independent of the number of projects.
@@ -25,15 +25,12 @@ export function availableHearts(
   const maxVotes = baseNumerator + (numProposals - 2) * baseNumerator;
   const minHearts = baseDenominator + (numProposals - 2) * baseDenominator;
 
-  try {
-    if (maxVotes / minHearts !== maxRatio) {
-      throw new Error('baseNumerator/baseDenominator does not equal the specified max ratio');
-    }
-    return minHearts;
-  } catch (error) {
-    console.error((error as any).message);
-    return null;
+  if (maxVotes / minHearts !== maxRatio) {
+    console.error('baseNumerator/baseDenominator does not equal the specified max ratio');
+    return 0;
   }
+
+  return minHearts;
 }
 
 export async function getAvailableHearts(dbPool: PostgresJsDatabase<typeof db>) {

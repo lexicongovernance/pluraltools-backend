@@ -19,7 +19,7 @@ describe('availableHearts function', () => {
     const maxRatio = 0.9;
 
     const result = availableHearts(numProposals, baseNumerator, baseDenominator, maxRatio);
-    expect(result).toBeNull();
+    expect(result).toEqual(0);
   });
 
   test('returns custom hearts if customHearts is set', () => {
