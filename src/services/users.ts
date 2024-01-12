@@ -56,10 +56,22 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export const updateUser = (dbPool: PostgresJsDatabase<typeof db>) => async () => {
+export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input
+    const queryUserId = req.params.userId;
     const userId = req.session.userId;
+
+    if (queryUserId !== userId) {
+      return res.status(400).json({
+        errors: [
+          {
+            message: 'Not authorized to update this user',
+          },
+        ],
+      });
+    }
+
     const body = insertUserSchema.safeParse(req.body);
 
     if (!body.success) {
@@ -80,7 +92,7 @@ export const updateUser = (dbPool: PostgresJsDatabase<typeof db>) => async () =>
 
     return res.json({ data: { user, updatedGroups } });
   };
-};
+}
 
 export async function getVotesForCycleByUser(
   dbPool: PostgresJsDatabase<typeof db>,
