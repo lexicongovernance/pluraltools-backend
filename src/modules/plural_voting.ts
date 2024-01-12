@@ -84,6 +84,29 @@ export class PluralVoting {
     );
   }
 
+  public removeDuplicateGroups(inputGroups: Record<string, string[]>): Record<string, string[]> {
+    // This function removes duplicate groups from the input array of groups
+    // :param: inputGroups: array of groups (can contain duplicates)
+    const uniqueGroups: Record<string, string[]> = {};
+
+    Object.entries(inputGroups).forEach(([groupName, users]) => {
+      // Sort the user arrays to ensure order doesn't matter
+      const sortedUsers = users.slice().sort();
+
+      // Check if the sorted array is not already in uniqueGroups
+      if (
+        !Object.values(uniqueGroups).some(
+          (existingGroup) =>
+            JSON.stringify(existingGroup.slice().sort()) === JSON.stringify(sortedUsers),
+        )
+      ) {
+        uniqueGroups[groupName] = sortedUsers;
+      }
+    });
+
+    return uniqueGroups;
+  }
+
   public clusterMatch(
     groups: Record<string, string[]>,
     contributions: Record<string, number>,
@@ -93,7 +116,8 @@ export class PluralVoting {
     // :param: contributions (dict): the keys identify users and the values denote the votes for a given project proposal.
     // :returns: number: plurality score
 
-    const groupMemberships: Record<string, string[]> = this.createGroupMemberships(groups);
+    const uniqueGroups = this.removeDuplicateGroups(groups);
+    const groupMemberships: Record<string, string[]> = this.createGroupMemberships(uniqueGroups);
 
     if (groupMemberships === undefined) {
       throw new Error('Group memberships are undefined.');
@@ -102,7 +126,7 @@ export class PluralVoting {
     let result = 0;
 
     // Calculate the first term of connection-oriented cluster match
-    for (const [_, members] of Object.entries(groups)) {
+    for (const [_, members] of Object.entries(uniqueGroups)) {
       for (const agent of members) {
         const contributionsI = contributions[agent];
         const membershipsI = groupMemberships[agent];
@@ -116,8 +140,8 @@ export class PluralVoting {
     }
 
     // Calculate the interaction term of connection-oriented cluster match
-    for (const [_, group1] of Object.entries(groups)) {
-      for (const [_, group2] of Object.entries(groups)) {
+    for (const [_, group1] of Object.entries(uniqueGroups)) {
+      for (const [_, group2] of Object.entries(uniqueGroups)) {
         if (this.arraysEqual(group1, group2)) continue; // skip groups if they are the same (same in terms of group members)
 
         let term1 = 0;

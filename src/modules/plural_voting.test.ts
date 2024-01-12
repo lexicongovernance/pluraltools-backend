@@ -101,13 +101,42 @@ describe('K function', () => {
   });
 });
 
+// Test remove duplicate groups
+describe('removeDuplicateGroups', () => {
+  test('removes duplicate groups correctly', () => {
+    const groups: Record<string, string[]> = {
+      group0: ['user0'],
+      group1: ['user1'],
+      group2: ['user1'],
+      group3: ['user1', 'user2'],
+      group4: ['user2', 'user1'],
+    };
+    const result = pluralVoting.removeDuplicateGroups(groups);
+    expect(result).toEqual({
+      group0: ['user0'],
+      group1: ['user1'],
+      group3: ['user1', 'user2'],
+    });
+  });
+
+  test('removes duplicate groups also works with one group', () => {
+    const groups: Record<string, string[]> = {
+      group0: ['user0'],
+    };
+    const result = pluralVoting.removeDuplicateGroups(groups);
+    expect(result).toEqual({
+      group0: ['user0'],
+    });
+  });
+});
+
 // Test connection oriented cluster match
 describe('clusterMatch', () => {
-  test('calculates plurality score according to connection oriented cluster match', () => {
+  test('that if each user is in its own group then the result equals the result under quadratic voting', () => {
     const groups: Record<string, string[]> = { group0: ['user0'], group1: ['user1'] };
     const contributions: Record<string, number> = { user0: 4, user1: 4 };
 
-    // Expected result
+    // Expected result is that the plural score equals the quadratic score
     const expectedScore = 4;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
@@ -164,7 +193,7 @@ describe('clusterMatch', () => {
     expect(result).toEqual(expectedScore);
   });
 
-  test('score for similar groups', () => {
+  test('that duplicate groups are excluded from the score calculation', () => {
     const groups: Record<string, string[]> = {
       group0: ['user0'],
       group1: ['user1'],
@@ -172,8 +201,8 @@ describe('clusterMatch', () => {
     };
     const contributions: Record<string, number> = { user0: 9, user1: 9 };
 
-    // Expected result is the square root of the sum of contributions
-    const expectedScore = 4;
+    // Expected result should be equal to the result under quadratic voting
+    const expectedScore = 6;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
     expect(result).toEqual(expectedScore);
@@ -190,7 +219,7 @@ describe('clusterMatch', () => {
     expect(result).toEqual(expectedScore);
   });
 
-  test('noting but prints result', () => {
+  test('calculates plurality score according to connection oriented cluster match', () => {
     const score = pluralVoting.pluralScoreCalculation();
     console.log('Plurality Score:', score);
     expect(true).toBe(true);
