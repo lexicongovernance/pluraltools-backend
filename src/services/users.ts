@@ -84,6 +84,7 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
       .set({
         email: body.data.email,
         username: body.data.username,
+        updatedAt: new Date(),
       })
       .where(eq(db.users.id, userId))
       .returning();
