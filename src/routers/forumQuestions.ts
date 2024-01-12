@@ -6,7 +6,6 @@ import { isLoggedIn } from '../middleware/isLoggedIn';
 const router = express.Router();
 
 export function forumQuestionsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
-  // /api/forum-questions/:forumQuestionId/available-hearts
   router.get('/:forumQuestionId/question-hearts', isLoggedIn(), getQuestionHearts(dbPool));
   return router;
 }
