@@ -101,6 +101,16 @@ describe('K function', () => {
   });
 });
 
+// Test whether two arrays are equal
+describe('arraysEqual', () => {
+  test('whether two arrays are equal', () => {
+    const array1 = ['user0', 'user1'];
+    const array2 = ['user1', 'user0'];
+    const result = pluralVoting.arraysEqual(array1, array2);
+    expect(result).toBe(true);
+  });
+});
+
 // Test remove duplicate groups
 describe('removeDuplicateGroups', () => {
   test('removes duplicate groups correctly', () => {
