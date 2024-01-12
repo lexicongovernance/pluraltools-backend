@@ -88,7 +88,7 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
       .where(eq(db.users.id, userId))
       .returning();
 
-    const updatedGroups = overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+    const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
 
     return res.json({ data: { user, updatedGroups } });
   };
