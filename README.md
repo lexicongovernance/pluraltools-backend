@@ -18,6 +18,11 @@
 5. pnpm i
 6. pnpm dev
 
+### Seeding database on initial run
+
+1. pnpm db:seed
+2. pnpm db:seed:cleanup
+
 ### unit testing
 
 - expects a database to be available at `postgresql://postgres:secretpassword@localhost:5432`
