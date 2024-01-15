@@ -1,7 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import pgConnectionString from 'pg-connection-string';
-import { z } from 'zod';
 import * as db from '../../db';
 
 /**

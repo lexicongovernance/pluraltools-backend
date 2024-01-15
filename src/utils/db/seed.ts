@@ -1,7 +1,6 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../../db';
 import { randCompanyName, randCountry, randMovie, randUser } from '@ngneat/falso';
-import { eq } from 'drizzle-orm';
 
 async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const events = await createEvent(dbPool);
