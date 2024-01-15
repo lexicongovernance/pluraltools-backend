@@ -31,7 +31,11 @@ export function getEventCycles(dbPool: PostgresJsDatabase<typeof db>) {
     const eventCycles = await dbPool.query.cycles.findMany({
       where: eq(db.cycles.eventId, eventId),
       with: {
-        forumQuestions: true,
+        forumQuestions: {
+          with: {
+            questionOptions: true,
+          },
+        },
       },
     });
 
