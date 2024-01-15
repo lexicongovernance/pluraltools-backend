@@ -3,7 +3,7 @@ import * as db from '../db';
 import type { Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
 
-export function getAggResultsStatistics(dbPool: PostgresJsDatabase<typeof db>) {
+export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
   // Returns the aggregate statistics for the results page
   return async function (req: Request, res: Response) {
     const forumQuestionId = req.params.forumQuestionId;
