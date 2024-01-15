@@ -9,6 +9,7 @@ import { votesRouter } from './votes';
 import { cyclesRouter } from './cycles';
 import { eventsRouter } from './events';
 import { forumQuestionsRouter } from './forumQuestions';
+import { resultsPageRouter } from './resultsPage';
 import { groupsRouter } from './groups';
 
 const router = express.Router();
@@ -43,6 +44,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
   router.use('/cycles', cyclesRouter({ dbPool }));
   router.use('/events', eventsRouter({ dbPool }));
   router.use('/forum-questions', forumQuestionsRouter({ dbPool }));
+  router.use('/results-page', resultsPageRouter({ dbPool }));
   router.use('/groups', groupsRouter({ dbPool }));
 
   return router;
