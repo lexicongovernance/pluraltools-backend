@@ -53,6 +53,13 @@ export function getCycleById(dbPool: PostgresJsDatabase<typeof db>) {
 
     const cycle = await dbPool.query.cycles.findFirst({
       where: eq(db.cycles.id, cycleId),
+      with: {
+        forumQuestions: {
+          with: {
+            questionOptions: true,
+          },
+        },
+      },
     });
 
     return res.json({ data: cycle });
