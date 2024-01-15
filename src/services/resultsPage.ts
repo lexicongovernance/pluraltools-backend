@@ -165,7 +165,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
       sumNumOfHearts: sumNumOfHearts !== undefined ? sumNumOfHearts : 0,
       numOfParticipants: numOfParticipants !== undefined ? numOfParticipants : 0,
       numOfGroups: numOfGroups !== undefined ? numOfGroups : 0,
-      indiv_stats: indivStats,
+      optionStats: indivStats,
     };
 
     return res.json({ data: responseData });
