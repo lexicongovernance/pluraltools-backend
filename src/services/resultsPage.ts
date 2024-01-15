@@ -50,15 +50,35 @@ export function getAggResultsStatistics(dbPool: PostgresJsDatabase<typeof db>) {
             `),
     );
 
+    const queryNumOfGroups = await dbPool.execute<{ numOfGroups: number }>(
+      sql.raw(`
+            WITH votes_question_id AS (
+                SELECT DISTINCT user_id
+                FROM votes 
+                WHERE option_id IN (
+                    SELECT "id" AS "optionId"
+                    FROM question_options
+                    WHERE question_id = '${forumQuestionId}'
+                )
+            )
+   
+            SELECT count(DISTINCT group_id) AS "numOfGroups"
+            FROM users_to_groups
+            WHERE user_id IN (SELECT user_id FROM votes_question_id)
+              `),
+    );
+
     const numProposals = queryResultNumProposals[0]?.numProposals;
     const sumNumOfHearts = queryResultAllocatedHearts[0]?.sumNumOfHearts;
     const numOfParticipants = queryNumOfParticipants[0]?.numOfParticipants;
+    const numOfGroups = queryNumOfGroups[0]?.numOfGroups;
 
     // Check if values are undefined and provide default values if necessary
     const responseData = {
       numProposals: numProposals !== undefined ? numProposals : 0,
       sumNumOfHearts: sumNumOfHearts !== undefined ? sumNumOfHearts : 0,
       numOfParticipants: numOfParticipants !== undefined ? numOfParticipants : 0,
+      numOfGroups: numOfParticipants !== undefined ? numOfGroups : 0,
     };
 
     return res.json({ data: responseData });
