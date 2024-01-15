@@ -42,3 +42,19 @@ export function getEventCycles(dbPool: PostgresJsDatabase<typeof db>) {
     return res.json({ data: eventCycles });
   };
 }
+
+export function getCycleById(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const { cycleId } = req.params;
+
+    if (!cycleId) {
+      return res.status(400).json({ error: 'Missing cycleId' });
+    }
+
+    const cycle = await dbPool.query.cycles.findFirst({
+      where: eq(db.cycles.id, cycleId),
+    });
+
+    return res.json({ data: cycle });
+  };
+}
