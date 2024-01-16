@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import * as db from '../db';
 import { createDbPool } from '../utils/db/createDbPool';
 import { runMigrations } from '../utils/db/runMigrations';
-import { getVotesForCycleByUser } from './users';
+import { getVotesForQuestionByUser } from './users';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -84,7 +84,8 @@ describe('service: users', function () {
       userId: user!.id,
     });
 
-    const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
+    const votes = await getVotesForQuestionByUser(dbPool, user!.id, forumQuestion!.id);
+    console.log({ votes });
     // expect the latest votes
     expect(votes[0]?.numOfVotes).toBe(10);
   });
@@ -104,7 +105,7 @@ describe('service: users', function () {
     });
 
     // user 1 gets votes but it should not include otherUser votes
-    const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
+    const votes = await getVotesForQuestionByUser(dbPool, user!.id, forumQuestion!.id);
 
     // no votes have otherUser's id in array
     expect(votes.filter((vote) => vote.userId === otherUser?.id).length).toBe(0);
