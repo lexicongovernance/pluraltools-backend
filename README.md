@@ -12,16 +12,26 @@
 ## For developers
 
 1. install [nodejs v20](https://nodejs.org/en/download)
-2. install [pnpm](https://pnpm.io/installation#using-npm)
+    - On WSL (Windows Subsystems for Linux) install `node.js v20` as follows:
+    ```
+    1. curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    2. sudo apt install -y nodejs
+    ```
+2. install [pnpm](https://pnpm.io/installation#using-npm) 
 3. start a postgres `docker run --name postgres  -e POSTGRES_PASSWORD=secretpassword -e POSTGRES_USER=postgres -p 5432:5432 -d postgres`
 4. update .env with connection string `postgresql://postgres:secretpassword@localhost:5432`
 5. pnpm i
 6. pnpm dev
 
-### Seeding database on initial run
+### Seeding database on initial run (optional)
 
-1. pnpm db:seed
-2. pnpm db:seed:cleanup
+It is possible to fill the database with random data. Run:
+```pnpm db:seed```
+
+### Deleting the seed from the database (optional)
+
+It is possible to delete all entries from the database. Run:
+```pnpm db:seed:cleanup```
 
 ### unit testing
 
