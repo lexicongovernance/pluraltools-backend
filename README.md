@@ -1,6 +1,6 @@
 # Forum backend
 
-## Project structure
+## Project structur
 
 1. [db](./src/db/) contains all the db models.
 2. [routers](./src/routers/) contains all the api routers which map urls to the service.
