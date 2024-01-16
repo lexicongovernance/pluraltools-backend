@@ -85,7 +85,6 @@ describe('service: users', function () {
     });
 
     const votes = await getVotesForQuestionByUser(dbPool, user!.id, forumQuestion!.id);
-    console.log({ votes });
     // expect the latest votes
     expect(votes[0]?.numOfVotes).toBe(10);
   });
