@@ -1,4 +1,4 @@
-import { and, gte, lte } from 'drizzle-orm';
+import { and, eq, gte, lte } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
@@ -17,5 +17,51 @@ export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
     });
 
     return res.json({ data: activeCycles });
+  };
+}
+
+export function getEventCycles(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const { eventId } = req.params;
+
+    if (!eventId) {
+      return res.status(400).json({ error: 'Missing eventId' });
+    }
+
+    const eventCycles = await dbPool.query.cycles.findMany({
+      where: eq(db.cycles.eventId, eventId),
+      with: {
+        forumQuestions: {
+          with: {
+            questionOptions: true,
+          },
+        },
+      },
+    });
+
+    return res.json({ data: eventCycles });
+  };
+}
+
+export function getCycleById(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const { cycleId } = req.params;
+
+    if (!cycleId) {
+      return res.status(400).json({ error: 'Missing cycleId' });
+    }
+
+    const cycle = await dbPool.query.cycles.findFirst({
+      where: eq(db.cycles.id, cycleId),
+      with: {
+        forumQuestions: {
+          with: {
+            questionOptions: true,
+          },
+        },
+      },
+    });
+
+    return res.json({ data: cycle });
   };
 }
