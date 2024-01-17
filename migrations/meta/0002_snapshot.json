@@ -1,5 +1,5 @@
 {
-  "id": "e4e5af61-d035-407b-8348-0bf8fffba971",
+  "id": "a3fd1aab-7e23-4a78-8582-2c5345f5e497",
   "prevId": "b0e46d22-5743-4db5-80bf-9854c84738fa",
   "version": "5",
   "dialect": "pg",
@@ -505,7 +505,7 @@
           "name": "description",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "vote_count": {
           "name": "vote_count",
