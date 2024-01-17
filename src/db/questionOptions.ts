@@ -9,6 +9,7 @@ export const questionOptions = pgTable('question_options', {
     .references(() => forumQuestions.id)
     .notNull(),
   text: varchar('text', { length: 256 }).notNull(),
+  description: varchar('description').notNull(),
   voteCount: numeric('vote_count').notNull().default('0.0'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
