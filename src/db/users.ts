@@ -9,6 +9,8 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   username: varchar('username', { length: 256 }).unique(),
   email: varchar('email', { length: 256 }).unique(),
+  institution: varchar('institution', { length: 256 }),
+  publications: varchar('publications'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
