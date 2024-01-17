@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import { and, desc, eq } from 'drizzle-orm';
 import { insertUserSchema } from '../types/users';
 import { overwriteUsersToGroups } from './usersToGroups';
+import { upsertUserAttributes } from './userAttributes';
 
 export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -18,6 +19,34 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
       }
 
       return res.json({ data: user });
+    } catch (error: any) {
+      console.error(`[ERROR] ${JSON.stringify(error)}`);
+      return res.sendStatus(500);
+    }
+  };
+}
+
+export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    try {
+      const userId = req.session.userId;
+      const paramsUserId = req.params.userId;
+
+      if (userId !== paramsUserId) {
+        return res.status(400).json({
+          errors: [
+            {
+              message: 'Not authorized to query this user',
+            },
+          ],
+        });
+      }
+
+      const userAttributes = await dbPool.query.userAttributes.findMany({
+        where: eq(db.userAttributes.userId, userId),
+      });
+
+      return res.json({ data: userAttributes });
     } catch (error: any) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500);
@@ -91,7 +120,13 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
 
     const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
 
-    return res.json({ data: { user, updatedGroups } });
+    const updatedUserAttributes = await upsertUserAttributes(
+      dbPool,
+      userId,
+      body.data.userAttributes,
+    );
+
+    return res.json({ data: { user, updatedGroups, updatedUserAttributes } });
   };
 }
 
