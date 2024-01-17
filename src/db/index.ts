@@ -11,3 +11,4 @@ export * from './registrationFields';
 export * from './registrationData';
 export * from './groups';
 export * from './usersToGroups';
+export * from './userAttributes';
