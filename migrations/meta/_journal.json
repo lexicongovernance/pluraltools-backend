@@ -15,6 +15,13 @@
       "when": 1705500267154,
       "tag": "0001_many_captain_britain",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1705506699315,
+      "tag": "0002_swift_norman_osborn",
+      "breakpoints": true
     }
   ]
 }
