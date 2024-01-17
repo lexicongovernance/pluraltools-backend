@@ -25,5 +25,5 @@
 ### db migrations
 
 1. create a file in the [db](./src/db/) with the new table schema
-2. run `pnpm generate`
+2. generate tables: `pnpm run db:generate`
 3. restart server and migrations should auto run
