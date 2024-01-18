@@ -2,7 +2,7 @@
 
 ## Project structure
 
-1. [db](./src/db/) contains all the db modl.
+1. [db](./src/db/) contains all the db model.
 2. [routers](./src/routers/) contains all the api routers which map urls to the service.
 3. [services](./src/services/) contains all business logic for the routes.
 4. [middleware](./src/middleware/) contains all the middleware that is used in the routers before the code reaches the service.
