@@ -37,6 +37,9 @@ dependencies:
     version: 3.22.4
 
 devDependencies:
+  '@ngneat/falso':
+    specifier: ^7.1.1
+    version: 7.1.1
   '@types/cors':
     specifier: ^2.8.17
     version: 2.8.17
@@ -49,6 +52,9 @@ devDependencies:
   '@types/node':
     specifier: ^20.10.3
     version: 20.10.3
+  bun:
+    specifier: ^1.0.22
+    version: 1.0.23
   drizzle-kit:
     specifier: ^0.20.13
     version: 0.20.13
@@ -1131,6 +1137,61 @@ packages:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
 
+  /@ngneat/falso@7.1.1:
+    resolution: {integrity: sha512-/5HuJDaZHXl3WVdgvYBAM52OSYbSKfiNazVOZOw/3KjeZ6dQW9F0QCG+W6z52lUu5MZvp/TkPGaVRtoz6h9T1w==}
+    dependencies:
+      seedrandom: 3.0.5
+      uuid: 8.3.2
+    dev: true
+
+  /@oven/bun-darwin-aarch64@1.0.23:
+    resolution: {integrity: sha512-dkGEABH1Vkjgss9c81AeD5UVEjth+r9LgDZuIooJ+3SqGaHW2fv+9Ywrg5FB50hxb/E3UtxdOTCEsMAQsHNm6w==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-darwin-x64-baseline@1.0.23:
+    resolution: {integrity: sha512-Y0l3qxJcma1qxDhe4nCUc04CTAHEQQ28HXtNdzrrgKfX/TTBLBmTQxTqb0VeAosLoVF+sgjfUjVFFEFMrYnFgg==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-darwin-x64@1.0.23:
+    resolution: {integrity: sha512-7ZlivtMlb8s07NW9yoUIzEIEY6HsXGAofudIR5THbwsLZGLj5ffg0aCqpfV4Oud3KGuF2lkHGlnFs9iGDouj6A==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-linux-aarch64@1.0.23:
+    resolution: {integrity: sha512-07BWe6Myzksgzph3rlvGe05OE0IsjX06nIs5lU85GIqHj4/WvFw/efKPGWc+miQTGpTacc9hDBhov+dEnb7iSA==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-linux-x64-baseline@1.0.23:
+    resolution: {integrity: sha512-hTPxAe1NTFuCJvvwOpptr25BB4nsr/169rVhID2ZZBFbaZAVFQEV+QJsptI2xXq8pc2Gln0+hndli7/9ZYvo9w==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-linux-x64@1.0.23:
+    resolution: {integrity: sha512-qywnmRQlQeo1Y1DNJKogtuSyUsw1CnRWOBWOrKoJC5a4L9V+/Ek9qgpccakY4lZb75i4Fb2zBK2RYiB8LSimng==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /@pcd/passport-ui@0.9.0(@babel/core@7.23.5)(react-dom@18.2.0)(react-is@18.2.0):
     resolution: {integrity: sha512-w456K+LEqTDAHhExxAIue3+Q82xu5kw+BV2pva/LUbqGGMBRoMTUwbrzP1J1p6txnSUAFD+ZF24DDZ3lCOEheA==}
     dependencies:
@@ -1756,6 +1817,21 @@ packages:
       base64-js: 1.5.1
       ieee754: 1.2.1
     dev: false
+
+  /bun@1.0.23:
+    resolution: {integrity: sha512-quznVjIV3yHMkfx4k1vS4z10hL3c6wGb11eKmtQJ1GrKj3tumXEGHTakb+YFTX8+SLw7IUNzlnpur1UJWtY2gw==}
+    cpu: [arm64, x64]
+    os: [darwin, linux]
+    hasBin: true
+    requiresBuild: true
+    optionalDependencies:
+      '@oven/bun-darwin-aarch64': 1.0.23
+      '@oven/bun-darwin-x64': 1.0.23
+      '@oven/bun-darwin-x64-baseline': 1.0.23
+      '@oven/bun-linux-aarch64': 1.0.23
+      '@oven/bun-linux-x64': 1.0.23
+      '@oven/bun-linux-x64-baseline': 1.0.23
+    dev: true
 
   /bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
@@ -4200,6 +4276,10 @@ packages:
       loose-envify: 1.4.0
     dev: false
 
+  /seedrandom@3.0.5:
+    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
+    dev: true
+
   /semver@5.7.2:
     resolution: {integrity: sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==}
     hasBin: true
@@ -4695,6 +4775,11 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
     dev: false
+
+  /uuid@8.3.2:
+    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+    dev: true
 
   /uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
