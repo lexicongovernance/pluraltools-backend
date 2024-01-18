@@ -23,14 +23,14 @@
 5. pnpm i
 6. pnpm dev
 
-### Seeding database on initial run (optional)
+### Database (optional)
 
-It is possible to fill the database with random data. Run:
+1. It is possible to visualize the database. Run: ```pnpm drizzle-kit studio```
+
+2. It is possible to fill the database with random data. Run:
 ```pnpm db:seed```
 
-### Deleting the seed from the database (optional)
-
-It is possible to delete all entries from the database. Run:
+3. It is possible to delete all entries from the database. Run:
 ```pnpm db:seed:cleanup```
 
 ### unit testing
