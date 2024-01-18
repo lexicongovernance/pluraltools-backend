@@ -65,6 +65,7 @@ describe('service: users', function () {
         .values({
           questionId: forumQuestion.id,
           text: 'test option',
+          description: 'test description',
         })
         .returning()
     )[0];
