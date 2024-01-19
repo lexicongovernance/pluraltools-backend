@@ -1,4 +1,4 @@
-import { PostgresJsDatabase, drizzle } from 'drizzle-orm/postgres-js';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { overwriteUsersToGroups } from './usersToGroups';
 import { eq, inArray } from 'drizzle-orm';
@@ -10,7 +10,7 @@ const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
 describe('service: usersToGroups', function () {
   let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<{}>;
+  let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let user: db.User | undefined;
   let defaultGroups: db.Group[];
   beforeAll(async function () {

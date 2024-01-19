@@ -90,7 +90,7 @@ export class PluralVoting {
     let result = 0;
 
     // Calculate the first term of connection-oriented cluster match
-    for (const [groupName, members] of Object.entries(groups)) {
+    for (const [, members] of Object.entries(groups)) {
       for (const agent of members) {
         const contributionsI = contributions[agent];
         const membershipsI = groupMemberships[agent];

@@ -10,7 +10,7 @@ const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
 describe('service: users', function () {
   let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<{}>;
+  let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let user: db.User | undefined;
   let otherUser: db.User | undefined;
   let cycle: db.Cycle | undefined;
