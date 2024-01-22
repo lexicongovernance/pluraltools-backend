@@ -9,7 +9,7 @@ module.exports = {
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-unused-vars': [
             'warn',
-            { argsIgnorePattern: '^_', varsIgnorePattern: '^_ignored' },
+            { argsIgnorePattern: '^_', varsIgnorePattern: '^_ignored', ignoreRestSiblings: true },
         ],
     },
 };

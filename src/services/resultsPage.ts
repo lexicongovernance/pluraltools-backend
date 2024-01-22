@@ -154,17 +154,17 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
 
       indivStats[indivOptionId] = {
         optionTitle: indivOptionTitle || 'No Title Provided',
-        pluralityScore: !!indivPluralityScore ? indivPluralityScore : 0,
-        distinctUsers: !!indivDistinctUsers ? indivDistinctUsers : 0,
-        allocatedHearts: !!indivAllocatedHearts ? indivAllocatedHearts : 0,
+        pluralityScore: indivPluralityScore || 0,
+        distinctUsers: indivDistinctUsers || 0,
+        allocatedHearts: indivAllocatedHearts || 0,
       };
     });
 
     const responseData = {
-      numProposals: !!numProposals ? numProposals : 0,
-      sumNumOfHearts: !!sumNumOfHearts ? sumNumOfHearts : 0,
-      numOfParticipants: !!numOfParticipants ? numOfParticipants : 0,
-      numOfGroups: !!numOfGroups ? numOfGroups : 0,
+      numProposals: numProposals || 0,
+      sumNumOfHearts: sumNumOfHearts || 0,
+      numOfParticipants: numOfParticipants || 0,
+      numOfGroups: numOfGroups || 0,
       optionStats: indivStats,
     };
 

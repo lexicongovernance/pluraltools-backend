@@ -1,6 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { eq } from 'drizzle-orm';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
 import { runMigrations } from '../utils/db/runMigrations';
@@ -13,7 +12,7 @@ const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
 describe('sendRegistrationData  function', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<{}>;
+  let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let testData: z.infer<typeof insertRegistrationSchema>;
 
   beforeAll(async () => {

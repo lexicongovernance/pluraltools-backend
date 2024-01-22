@@ -81,7 +81,7 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
         await req.session.save();
         return res.status(200).json({ data: user });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500).send();
     }
