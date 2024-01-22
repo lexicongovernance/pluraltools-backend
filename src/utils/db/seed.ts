@@ -4,10 +4,10 @@ import { randCompanyName, randCountry, randMovie, randUser } from '@ngneat/falso
 
 async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const events = await createEvent(dbPool);
-  const cycles = await createCycle(dbPool, events[0]?.id!);
-  const registrationFields = await createRegistrationFields(dbPool, events[0]?.id!);
-  const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id!);
-  const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id!);
+  const cycles = await createCycle(dbPool, events[0]?.id);
+  const registrationFields = await createRegistrationFields(dbPool, events[0]?.id);
+  const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id);
+  const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
   const groups = await createGroups(dbPool);
   const users = await createUsers(dbPool);
   const usersToGroups = await createUsersToGroups(
@@ -52,7 +52,11 @@ async function createEvent(dbPool: PostgresJsDatabase<typeof db>) {
     .returning();
 }
 
-async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, eventId: string) {
+async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
+  if (eventId === undefined) {
+    throw new Error('Event ID is undefined.');
+  }
+
   return dbPool
     .insert(db.registrationFields)
     .values({
@@ -64,7 +68,11 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
     .returning();
 }
 
-async function createCycle(dbPool: PostgresJsDatabase<typeof db>, eventId: string) {
+async function createCycle(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
+  if (eventId === undefined) {
+    throw new Error('Event ID is undefined.');
+  }
+
   const endInADay = new Date();
   endInADay.setDate(endInADay.getDate() + 1);
   return dbPool
@@ -77,7 +85,11 @@ async function createCycle(dbPool: PostgresJsDatabase<typeof db>, eventId: strin
     .returning();
 }
 
-async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycleId: string) {
+async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycleId?: string) {
+  if (cycleId === undefined) {
+    throw new Error('Cycle ID is undefined.');
+  }
+
   return dbPool
     .insert(db.forumQuestions)
     .values({
@@ -87,7 +99,11 @@ async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycle
     .returning();
 }
 
-async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, questionId: string) {
+async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, questionId?: string) {
+  if (questionId === undefined) {
+    throw new Error('Question ID is undefined.');
+  }
+
   return dbPool
     .insert(db.questionOptions)
     .values([

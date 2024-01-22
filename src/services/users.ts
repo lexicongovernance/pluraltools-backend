@@ -19,7 +19,7 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
       }
 
       return res.json({ data: user });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500);
     }
@@ -47,7 +47,7 @@ export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
       });
 
       return res.json({ data: userAttributes });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500);
     }
