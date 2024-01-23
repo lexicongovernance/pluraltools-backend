@@ -3,7 +3,7 @@ import { pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { forumQuestions } from './forumQuestions';
 import { events } from './events';
 
-export const cyclesEnum = pgEnum('cycles_enum', ['OPEN', 'CLOSED', 'RESULTS']);
+export const cyclesEnum = pgEnum('cycles_enum', ['OPEN', 'CLOSED', 'UPCOMING']);
 
 export const cycles = pgTable('cycles', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -1,0 +1,1 @@
+ALTER TYPE "cycles_enum" ADD VALUE 'UPCOMING';
