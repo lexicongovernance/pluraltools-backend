@@ -1,6 +1,6 @@
 {
   "name": "forum",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "db:seed:cleanup": "bun ./scripts/seed.ts --cleanup",
     "test": "jest",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
-    "format:fix": "prettier --write \"src/**/*.{ts,md}\""
+    "format:fix": "prettier --write \"src/**/*.{ts,md}\"",
   },
   "keywords": [],
   "author": "",
