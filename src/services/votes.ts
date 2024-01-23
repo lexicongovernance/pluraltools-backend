@@ -22,6 +22,7 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
         userId: body.data.userId,
         numOfVotes: body.data.numOfVotes,
         optionId: body.data.optionId,
+        questionId: body.data.questionId,
       })
       .returning();
 
