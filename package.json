@@ -20,7 +20,7 @@
     "db:seed:cleanup": "bun ./scripts/seed.ts --cleanup",
     "test": "jest",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
-    "format:fix": "prettier --write \"src/**/*.{ts,md}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,md}\""
   },
   "keywords": [],
   "author": "",
