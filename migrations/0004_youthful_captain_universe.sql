@@ -1,1 +1,0 @@
-ALTER TABLE "cycles" ALTER COLUMN "status" SET DATA TYPE varchar(20);
