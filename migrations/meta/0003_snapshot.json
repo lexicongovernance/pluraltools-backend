@@ -1,5 +1,5 @@
 {
-  "id": "bdd65f2c-bb90-4890-9d2e-7f3f6c8d9313",
+  "id": "e031b444-98aa-44bc-86cb-4cfe52e153da",
   "prevId": "a3fd1aab-7e23-4a78-8582-2c5345f5e497",
   "version": "5",
   "dialect": "pg",
@@ -38,7 +38,7 @@
           "type": "cycles_enum",
           "primaryKey": false,
           "notNull": false,
-          "default": "'OPEN'"
+          "default": "'UPCOMING'"
         },
         "created_at": {
           "name": "created_at",

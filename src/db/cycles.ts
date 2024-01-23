@@ -10,7 +10,7 @@ export const cycles = pgTable('cycles', {
   eventId: uuid('event_id').references(() => events.id),
   startAt: timestamp('start_at').notNull(),
   endAt: timestamp('end_at').notNull(),
-  status: cyclesEnum('status').default('OPEN'),
+  status: cyclesEnum('status').default('UPCOMING'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
