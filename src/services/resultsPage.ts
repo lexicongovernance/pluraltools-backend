@@ -17,60 +17,51 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
           `),
     );
 
+    console.log(queryResultNumProposals);
+
     // Get total allocated hearts
     const queryResultAllocatedHearts = await dbPool.execute<{ sumNumOfHearts: number }>(
       sql.raw(`
-            WITH votes_question_id AS (
-                SELECT * 
-                FROM votes 
-                WHERE option_id IN (
-                    SELECT "id" AS "optionId"
-                    FROM question_options
-                    WHERE question_id = '${forumQuestionId}'
-                )
-            )
-            
             SELECT sum(num_of_votes) AS "sumNumOfHearts"
             FROM (
                 SELECT user_id, num_of_votes, updated_at,
                     ROW_NUMBER() OVER (PARTITION BY user_id, option_id ORDER BY updated_at DESC) as row_num
-                FROM votes_question_id 
+                FROM votes
+                WHERE question_id = '${forumQuestionId}'
                 ) AS ranked 
             WHERE row_num = 1
             `),
     );
+
+    console.log(queryResultAllocatedHearts);
 
     // Get number of Participants
     const queryNumOfParticipants = await dbPool.execute<{ numOfParticipants: number }>(
       sql.raw(`
             SELECT count(DISTINCT user_id) AS "numOfParticipants"
             FROM votes 
-            WHERE option_id IN (
-                SELECT "id" AS "optionId"
-                FROM question_options
-                WHERE question_id = '${forumQuestionId}'
-                )
+            WHERE question_id = '${forumQuestionId}'
             `),
     );
+
+    console.log(queryNumOfParticipants);
 
     // Get number of Groups
     const queryNumOfGroups = await dbPool.execute<{ numOfGroups: number }>(
       sql.raw(`
-            WITH votes_question_id AS (
+            WITH votes_users AS (
                 SELECT DISTINCT user_id
                 FROM votes 
-                WHERE option_id IN (
-                    SELECT "id" AS "optionId"
-                    FROM question_options
-                    WHERE question_id = '${forumQuestionId}'
-                )
+                WHERE question_id = '${forumQuestionId}'
             )
    
             SELECT count(DISTINCT group_id) AS "numOfGroups"
             FROM users_to_groups
-            WHERE user_id IN (SELECT user_id FROM votes_question_id)
-              `),
+            WHERE user_id IN (SELECT user_id FROM votes_users)
+            `),
     );
+
+    console.log(queryNumOfGroups);
 
     // Get individual results
     const queryIndivStatistics = await dbPool.execute<{
@@ -81,23 +72,17 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
       allocatedHearts: number;
     }>(
       sql.raw(`
-            WITH question_option_ids AS (
-                SELECT "id" AS "optionId"
-                FROM question_options
-                WHERE question_id = '${forumQuestionId}'
-            ),
-            
-            distinct_voters_by_option AS (
+            WITH distinct_voters_by_option AS (
                 SELECT option_id AS "optionId", count(DISTINCT user_id) AS "distinctUsers" 
                 FROM votes
-                WHERE option_id IN (SELECT "optionId" FROM question_option_ids)
+                WHERE question_id = '${forumQuestionId}'
                 GROUP BY option_id
             ),
             
             plural_score_and_title AS (
                 SELECT "id" AS "optionId", "text" AS "optionTitle", vote_count AS "pluralityScore"
                 FROM question_options
-                WHERE "id" IN (SELECT "optionId" FROM question_option_ids)
+                WHERE question_id = '${forumQuestionId}'
             ),
             
             allocated_hearts AS (
@@ -106,9 +91,9 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
                     SELECT user_id, option_id, num_of_votes, updated_at,
                     ROW_NUMBER() OVER (PARTITION BY user_id, option_id ORDER BY updated_at DESC) as row_num
                     FROM votes
+                    WHERE question_id = '${forumQuestionId}'
                     ) AS ranked 
                 WHERE row_num = 1
-                AND option_id IN (SELECT "optionId" FROM question_option_ids)
                 GROUP BY option_id
             ),
             
