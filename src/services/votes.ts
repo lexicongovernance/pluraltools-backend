@@ -12,16 +12,12 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
     req.body.userId = userId;
 
     // Query num_of_votes and user_id for a specific option_id
-    const queryQuestionId = await dbPool.execute<{ questionId: string }>(
-      sql.raw(`
-          SELECT question_id AS "questionId" 
-          FROM question_options 
-          WHERE id = '${req.body.optionId}'
-        `),
-    );
-    console.log(queryQuestionId);
+ // Query num_of_votes and user_id for a specific option_id
+    const queryQuestion = await dbPool.query.questionOptions.findFirst({
+      where: eq(db.questionOptions.id, req.body.optionId),
+    })
 
-    req.body.questionId = queryQuestionId[0]?.questionId;
+    req.body.questionId = queryQuestion?.questionId;
     const body = insertVotesSchema.safeParse(req.body);
 
     if (!body.success) {
