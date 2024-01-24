@@ -76,12 +76,14 @@ describe('service: users', function () {
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,
       optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
       userId: user!.id,
     });
     // create second interaction with option
     await dbPool.insert(db.votes).values({
       numOfVotes: 10,
       optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
       userId: user!.id,
     });
 
@@ -95,12 +97,14 @@ describe('service: users', function () {
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,
       optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
       userId: otherUser!.id,
     });
     // create second interaction with option
     await dbPool.insert(db.votes).values({
       numOfVotes: 10,
       optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
       userId: otherUser!.id,
     });
 
