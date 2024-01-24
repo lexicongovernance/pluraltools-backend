@@ -8,6 +8,13 @@
       "when": 1706112591326,
       "tag": "0000_conscious_hitman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1706115425748,
+      "tag": "0001_stiff_paibok",
+      "breakpoints": true
     }
   ]
 }
