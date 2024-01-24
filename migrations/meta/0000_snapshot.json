@@ -1,5 +1,5 @@
 {
-  "id": "11916cf4-50ad-4709-86ac-5cc1c2d967c6",
+  "id": "09b4dd8d-28b9-4e78-aeb7-a942a3688923",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -35,10 +35,10 @@
         },
         "status": {
           "name": "status",
-          "type": "cycles_enum",
+          "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false,
-          "default": "'OPEN'"
+          "default": "'UPCOMING'"
         },
         "created_at": {
           "name": "created_at",
@@ -930,14 +930,6 @@
     }
   },
   "enums": {
-    "cycles_enum": {
-      "name": "cycles_enum",
-      "values": {
-        "OPEN": "OPEN",
-        "CLOSED": "CLOSED",
-        "RESULTS": "RESULTS"
-      }
-    },
     "registration_enum": {
       "name": "registration_enum",
       "values": {
