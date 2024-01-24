@@ -1,10 +1,4 @@
 DO $$ BEGIN
- CREATE TYPE "cycles_enum" AS ENUM('OPEN', 'CLOSED', 'RESULTS');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  CREATE TYPE "registration_enum" AS ENUM('DRAFT', 'PUBLISHED', 'APPROVED');
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -21,7 +15,7 @@ CREATE TABLE IF NOT EXISTS "cycles" (
 	"event_id" uuid,
 	"start_at" timestamp NOT NULL,
 	"end_at" timestamp NOT NULL,
-	"status" "cycles_enum" DEFAULT 'OPEN',
+	"status" varchar(20) DEFAULT 'UPCOMING',
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
