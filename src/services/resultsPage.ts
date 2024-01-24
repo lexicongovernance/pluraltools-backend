@@ -4,7 +4,10 @@ import type { Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
 
 export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
-  // Returns the aggregate statistics for the results page
+  // Retrieves aggregate statistics for the results page, including total number of proposals,
+  // total allocated hearts, number of participants, number of groups, and individual results.
+  // @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+  // @returns {Promise<void>} - A promise that resolves with the aggregated statistics JSON response.
   return async function (req: Request, res: Response) {
     try {
       const forumQuestionId = req.params.forumQuestionId;
