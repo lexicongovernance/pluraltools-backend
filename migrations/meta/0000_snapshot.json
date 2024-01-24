@@ -1,5 +1,5 @@
 {
-  "id": "7ecac96d-087f-46b7-800e-aec89ac6201f",
+  "id": "11916cf4-50ad-4709-86ac-5cc1c2d967c6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -501,6 +501,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "vote_count": {
           "name": "vote_count",
           "type": "numeric",
@@ -565,6 +571,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "question_id": {
+          "name": "question_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "num_of_votes": {
           "name": "num_of_votes",
           "type": "integer",
@@ -607,6 +619,19 @@
           "tableTo": "question_options",
           "columnsFrom": [
             "option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "votes_question_id_forum_questions_id_fk": {
+          "name": "votes_question_id_forum_questions_id_fk",
+          "tableFrom": "votes",
+          "tableTo": "forum_questions",
+          "columnsFrom": [
+            "question_id"
           ],
           "columnsTo": [
             "id"
@@ -839,6 +864,69 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
+    },
+    "user_attributes": {
+      "name": "user_attributes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attribute_key": {
+          "name": "attribute_key",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attribute_value": {
+          "name": "attribute_value",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_attributes_user_id_users_id_fk": {
+          "name": "user_attributes_user_id_users_id_fk",
+          "tableFrom": "user_attributes",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
     }
   },
   "enums": {
@@ -871,8 +959,8 @@
   },
   "schemas": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
+    "tables": {}
   }
 }
