@@ -6,22 +6,29 @@ import { sql } from 'drizzle-orm';
 export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
   // Returns the aggregate statistics for the results page
   return async function (req: Request, res: Response) {
-    const forumQuestionId = req.params.forumQuestionId;
+    try {
+      const forumQuestionId = req.params.forumQuestionId;
 
-    // Get total number of proposals
-    const queryResultNumProposals = await dbPool.execute<{ numProposals: number }>(
-      sql.raw(`
+      // Execute all queries concurrently
+      const [
+        queryResultNumProposals,
+        queryResultAllocatedHearts,
+        queryNumOfParticipants,
+        queryNumOfGroups,
+        queryIndivStatistics,
+      ] = await Promise.all([
+        // Get total number of proposals
+        dbPool.execute<{ numProposals: number }>(
+          sql.raw(`
             SELECT count("id") AS "numProposals" 
             FROM question_options
             WHERE question_id = '${forumQuestionId}'
           `),
-    );
+        ),
 
-    console.log(queryResultNumProposals);
-
-    // Get total allocated hearts
-    const queryResultAllocatedHearts = await dbPool.execute<{ sumNumOfHearts: number }>(
-      sql.raw(`
+        // Get total allocated hearts
+        dbPool.execute<{ sumNumOfHearts: number }>(
+          sql.raw(`
             SELECT sum(num_of_votes) AS "sumNumOfHearts"
             FROM (
                 SELECT user_id, num_of_votes, updated_at,
@@ -31,24 +38,20 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
                 ) AS ranked 
             WHERE row_num = 1
             `),
-    );
+        ),
 
-    console.log(queryResultAllocatedHearts);
-
-    // Get number of Participants
-    const queryNumOfParticipants = await dbPool.execute<{ numOfParticipants: number }>(
-      sql.raw(`
+        // Get number of Participants
+        dbPool.execute<{ numOfParticipants: number }>(
+          sql.raw(`
             SELECT count(DISTINCT user_id) AS "numOfParticipants"
             FROM votes 
             WHERE question_id = '${forumQuestionId}'
             `),
-    );
+        ),
 
-    console.log(queryNumOfParticipants);
-
-    // Get number of Groups
-    const queryNumOfGroups = await dbPool.execute<{ numOfGroups: number }>(
-      sql.raw(`
+        // Get number of Groups
+        dbPool.execute<{ numOfGroups: number }>(
+          sql.raw(`
             WITH votes_users AS (
                 SELECT DISTINCT user_id
                 FROM votes 
@@ -59,19 +62,17 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
             FROM users_to_groups
             WHERE user_id IN (SELECT user_id FROM votes_users)
             `),
-    );
+        ),
 
-    console.log(queryNumOfGroups);
-
-    // Get individual results
-    const queryIndivStatistics = await dbPool.execute<{
-      optionId: string;
-      optionTitle: string;
-      pluralityScore: number;
-      distinctUsers: number;
-      allocatedHearts: number;
-    }>(
-      sql.raw(`
+        // Get individual results
+        dbPool.execute<{
+          optionId: string;
+          optionTitle: string;
+          pluralityScore: number;
+          distinctUsers: number;
+          allocatedHearts: number;
+        }>(
+          sql.raw(`
             WITH distinct_voters_by_option AS (
                 SELECT option_id AS "optionId", count(DISTINCT user_id) AS "distinctUsers" 
                 FROM votes
@@ -111,48 +112,53 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
             SELECT *
             FROM merged_result
                 `),
-    );
+        ),
+      ]);
 
-    const numProposals = queryResultNumProposals[0]?.numProposals;
-    const sumNumOfHearts = queryResultAllocatedHearts[0]?.sumNumOfHearts;
-    const numOfParticipants = queryNumOfParticipants[0]?.numOfParticipants;
-    const numOfGroups = queryNumOfGroups[0]?.numOfGroups;
-    const indivStats: Record<
-      string,
-      {
-        optionTitle: string;
-        pluralityScore: number;
-        distinctUsers: number;
-        allocatedHearts: number;
-      }
-    > = {};
+      const numProposals = queryResultNumProposals[0]?.numProposals;
+      const sumNumOfHearts = queryResultAllocatedHearts[0]?.sumNumOfHearts;
+      const numOfParticipants = queryNumOfParticipants[0]?.numOfParticipants;
+      const numOfGroups = queryNumOfGroups[0]?.numOfGroups;
+      const indivStats: Record<
+        string,
+        {
+          optionTitle: string;
+          pluralityScore: number;
+          distinctUsers: number;
+          allocatedHearts: number;
+        }
+      > = {};
 
-    // Loop through each row in queryIndivStatistics
-    queryIndivStatistics.forEach((row) => {
-      const {
-        optionId: indivOptionId,
-        optionTitle: indivOptionTitle,
-        pluralityScore: indivPluralityScore,
-        distinctUsers: indivDistinctUsers,
-        allocatedHearts: indivAllocatedHearts,
-      } = row;
+      // Loop through each row in queryIndivStatistics
+      queryIndivStatistics.forEach((row) => {
+        const {
+          optionId: indivOptionId,
+          optionTitle: indivOptionTitle,
+          pluralityScore: indivPluralityScore,
+          distinctUsers: indivDistinctUsers,
+          allocatedHearts: indivAllocatedHearts,
+        } = row;
 
-      indivStats[indivOptionId] = {
-        optionTitle: indivOptionTitle || 'No Title Provided',
-        pluralityScore: indivPluralityScore || 0,
-        distinctUsers: indivDistinctUsers || 0,
-        allocatedHearts: indivAllocatedHearts || 0,
+        indivStats[indivOptionId] = {
+          optionTitle: indivOptionTitle || 'No Title Provided',
+          pluralityScore: indivPluralityScore || 0,
+          distinctUsers: indivDistinctUsers || 0,
+          allocatedHearts: indivAllocatedHearts || 0,
+        };
+      });
+
+      const responseData = {
+        numProposals: numProposals || 0,
+        sumNumOfHearts: sumNumOfHearts || 0,
+        numOfParticipants: numOfParticipants || 0,
+        numOfGroups: numOfGroups || 0,
+        optionStats: indivStats,
       };
-    });
 
-    const responseData = {
-      numProposals: numProposals || 0,
-      sumNumOfHearts: sumNumOfHearts || 0,
-      numOfParticipants: numOfParticipants || 0,
-      numOfGroups: numOfGroups || 0,
-      optionStats: indivStats,
-    };
-
-    return res.json({ data: responseData });
+      return res.json({ data: responseData });
+    } catch (error) {
+      console.error('Error in getResultStatistics:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
   };
 }
