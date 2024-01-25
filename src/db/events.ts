@@ -7,6 +7,7 @@ export const events = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name').notNull(),
   description: varchar('description'),
+  image_url: varchar('image_url'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
