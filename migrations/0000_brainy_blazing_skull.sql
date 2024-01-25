@@ -83,9 +83,11 @@ CREATE TABLE IF NOT EXISTS "registration_options" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "question_options" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"registration_data_id" uuid,
 	"question_id" uuid NOT NULL,
 	"text" varchar(256) NOT NULL,
 	"description" varchar,
+	"accepted" boolean DEFAULT false,
 	"vote_count" numeric DEFAULT '0.0' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -108,6 +110,8 @@ CREATE TABLE IF NOT EXISTS "registration_fields" (
 	"description" varchar,
 	"type" "registration_field_enum" NOT NULL,
 	"required" boolean DEFAULT false,
+	"question_id" uuid DEFAULT gen_random_uuid(),
+	"option_question_id" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -170,6 +174,12 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "registration_options" ADD CONSTRAINT "registration_options_registration_field_id_registration_fields_id_fk" FOREIGN KEY ("registration_field_id") REFERENCES "registration_fields"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "question_options" ADD CONSTRAINT "question_options_registration_data_id_registration_data_id_fk" FOREIGN KEY ("registration_data_id") REFERENCES "registration_data"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

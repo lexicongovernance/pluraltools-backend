@@ -20,6 +20,7 @@ export const registrationFields = pgTable('registration_fields', {
   type: registrationFieldEnum('type').notNull(),
   required: boolean('required').default(false),
   questionId: uuid('question_id').defaultRandom(),
+  optionQuestionId: boolean('option_question_id').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

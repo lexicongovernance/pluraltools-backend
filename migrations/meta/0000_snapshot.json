@@ -1,5 +1,5 @@
 {
-  "id": "09b4dd8d-28b9-4e78-aeb7-a942a3688923",
+  "id": "c86ec46e-4311-4e7c-86da-98bd8532ffe3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -489,6 +489,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "registration_data_id": {
+          "name": "registration_data_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "question_id": {
           "name": "question_id",
           "type": "uuid",
@@ -506,6 +512,13 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
+        },
+        "accepted": {
+          "name": "accepted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         },
         "vote_count": {
           "name": "vote_count",
@@ -531,6 +544,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "question_options_registration_data_id_registration_data_id_fk": {
+          "name": "question_options_registration_data_id_registration_data_id_fk",
+          "tableFrom": "question_options",
+          "tableTo": "registration_data",
+          "columnsFrom": [
+            "registration_data_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "question_options_question_id_forum_questions_id_fk": {
           "name": "question_options_question_id_forum_questions_id_fk",
           "tableFrom": "question_options",
@@ -680,6 +706,20 @@
         },
         "required": {
           "name": "required",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "gen_random_uuid()"
+        },
+        "option_question_id": {
+          "name": "option_question_id",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
