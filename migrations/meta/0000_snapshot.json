@@ -1,5 +1,5 @@
 {
-  "id": "c86ec46e-4311-4e7c-86da-98bd8532ffe3",
+  "id": "b0cd3288-6b24-4224-aac6-467f78aaf9f9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -715,15 +715,7 @@
           "name": "question_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false,
-          "default": "gen_random_uuid()"
-        },
-        "option_question_id": {
-          "name": "option_question_id",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

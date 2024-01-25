@@ -110,8 +110,7 @@ CREATE TABLE IF NOT EXISTS "registration_fields" (
 	"description" varchar,
 	"type" "registration_field_enum" NOT NULL,
 	"required" boolean DEFAULT false,
-	"question_id" uuid DEFAULT gen_random_uuid(),
-	"option_question_id" boolean DEFAULT false,
+	"question_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
