@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS "federated_credentials" (
 CREATE TABLE IF NOT EXISTS "forum_questions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"cycle_id" uuid NOT NULL,
-	"title" varchar(256) NOT NULL,
-	"description" varchar(256),
+	"question_title" varchar(256) NOT NULL,
+	"question_sub_title" varchar(256),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

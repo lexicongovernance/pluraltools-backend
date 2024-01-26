@@ -1,5 +1,5 @@
 {
-  "id": "bc883063-3bd3-4585-8886-b62e58dc4c2b",
+  "id": "e5816c3d-8211-4e82-b449-a63fe14a74f9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -197,14 +197,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "title": {
-          "name": "title",
+        "question_title": {
+          "name": "question_title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
+        "question_sub_title": {
+          "name": "question_sub_title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false

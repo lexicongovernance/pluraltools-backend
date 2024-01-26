@@ -8,8 +8,8 @@ export const forumQuestions = pgTable('forum_questions', {
   cycleId: uuid('cycle_id')
     .references(() => cycles.id)
     .notNull(),
-  questionTitle: varchar('title', { length: 256 }).notNull(),
-  description: varchar('description', { length: 256 }),
+  questionTitle: varchar('question_title', { length: 256 }).notNull(),
+  questionSubTitle: varchar('question_sub_title', { length: 256 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
