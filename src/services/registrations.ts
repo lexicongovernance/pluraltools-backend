@@ -5,7 +5,7 @@ import { and } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
-import { overwriteRegistrationData } from './registrationData';
+import { overwriteRegistrationData, updateQuestionOptions } from './registrationData';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -93,6 +93,8 @@ export async function sendRegistrationData(
     registrationId: newRegistration.id,
     registrationData: data.registrationData,
   });
+
+  await updateQuestionOptions(dbPool, updatedRegistrationData);
 
   const out = {
     ...newRegistration,
