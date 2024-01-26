@@ -137,7 +137,7 @@ export async function updateQuestionOptions(
           .values({
             registrationDataId: registrationDataForField?.id || '',
             questionId: registrationField.questionId,
-            text: 'Default Text',
+            text: registrationDataForField?.value || '',
             createdAt: new Date(),
             updatedAt: new Date(),
           })
