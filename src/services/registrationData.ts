@@ -129,7 +129,7 @@ export async function updateQuestionOptions(
             registrationDataId:
               registrationDataForField?.id || existingQuestionOption.registrationDataId,
             questionId: existingQuestionOption.questionId,
-            text: registrationDataForField?.value || existingQuestionOption.text,
+            optionTitle: registrationDataForField?.value || existingQuestionOption.optionTitle,
             updatedAt: new Date(),
           })
           .where(eq(db.questionOptions.id, existingQuestionOption.id))
@@ -142,7 +142,7 @@ export async function updateQuestionOptions(
           .values({
             registrationDataId: registrationDataForField?.id || '',
             questionId: registrationField.questionId,
-            text: registrationDataForField?.value || '',
+            optionTitle: registrationDataForField?.value || '',
             createdAt: new Date(),
             updatedAt: new Date(),
           })

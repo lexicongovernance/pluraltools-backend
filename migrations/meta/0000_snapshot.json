@@ -1,5 +1,5 @@
 {
-  "id": "b0cd3288-6b24-4224-aac6-467f78aaf9f9",
+  "id": "bc883063-3bd3-4585-8886-b62e58dc4c2b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -501,14 +501,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "text": {
-          "name": "text",
+        "option_title": {
+          "name": "option_title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
+        "option_sub_title": {
+          "name": "option_sub_title",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
