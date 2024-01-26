@@ -105,9 +105,14 @@ export async function updateQuestionOptions(
     );
     console.log('registrationFields', registrationFields);
 
+    // Pre-filter registrationData to include only relevant entries (avoids looping thorough the entire set of registration data)
+    const filteredRegistrationData = registrationData.filter((data) =>
+      registrationFields.some((field) => field.registrationFieldId === data.registrationFieldId),
+    );
+
     // for each registrationFieldId update or insert question options
     for (const registrationField of registrationFields) {
-      const registrationDataForField = registrationData.find(
+      const registrationDataForField = filteredRegistrationData.find(
         (data) => data.registrationFieldId === registrationField.registrationFieldId,
       );
 
