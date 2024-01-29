@@ -7,6 +7,7 @@ on:
       - completed
     branches:
       - main
+      - develop
 
 env:
   # Github Container registry
@@ -32,6 +33,11 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_SA_KEY }}
 
+      - name: Extract version from package.json
+        id: pkg
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+        shell: bash
+
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
@@ -40,9 +46,18 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_PATH }}/${{ env.SERVICE_NAME }}
 
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        id: build-and-push
+      - name: Build and push Docker image with version and commit tags
+        id: build-and-push-version-commit
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_PATH }}/${{ env.SERVICE_NAME }}:${{ steps.pkg.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_PATH }}/${{ env.SERVICE_NAME }}:commit-${{ github.sha }}
+
+      - name: Build and push Docker image with latest tag
+        if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v2
         with:
           context: .
