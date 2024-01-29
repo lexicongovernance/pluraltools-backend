@@ -20,7 +20,8 @@
     "db:seed:cleanup": "bun ./scripts/seed.ts --cleanup",
     "test": "jest",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
-    "format:fix": "prettier --write \"src/**/*.{ts,md}\""
+    "format:fix": "prettier --write \"src/**/*.{ts,md}\"",
+    "commit": "cz"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +38,8 @@
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
     "bun": "^1.0.22",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
     "drizzle-kit": "^0.20.13",
     "esbuild": "^0.19.8",
     "eslint": "^8.56.0",
@@ -59,5 +62,10 @@
     "pg-connection-string": "^2.6.2",
     "postgres": "^3.4.3",
     "zod": "^3.22.4"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
