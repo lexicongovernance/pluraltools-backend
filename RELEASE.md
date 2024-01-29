@@ -6,6 +6,10 @@
 - develop: has the next features
 - next: has the next breaking change
 
+## PRs
+
+For a pr to bump a version up it, the title should follow the commit convention. The description is not taken into account
+
 ## Angular Commit Message Convention
 
 The Angular Commit Message Convention is a set of rules for structuring git commit messages. It's used by the Angular team and is the default convention for `semantic-release`.
