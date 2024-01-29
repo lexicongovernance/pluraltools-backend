@@ -18,7 +18,7 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "bun ./scripts/seed.ts",
     "db:seed:cleanup": "bun ./scripts/seed.ts --cleanup",
-    "test": "jest",
+    "test": "jest --runInBand",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
     "format:fix": "prettier --write \"src/**/*.{ts,md}\"",
     "commit": "cz"
@@ -30,6 +30,7 @@
     "node": "^20"
   },
   "devDependencies": {
+    "@jest/types": "^29.6.3",
     "@ngneat/falso": "^7.1.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
