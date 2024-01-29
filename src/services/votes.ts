@@ -5,6 +5,8 @@ import * as db from '../db';
 import { votes } from '../db/votes';
 import { PluralVoting } from '../modules/plural_voting';
 import { insertVotesSchema } from '../types';
+import { CycleStatusType } from '../types/cycles';
+import { z } from 'zod';
 
 export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -12,26 +14,23 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
     req.body.userId = userId;
 
     // Query num_of_votes and user_id for a specific option_id
-    const queryQuestion = await dbPool.query.questionOptions.findFirst({
+    const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
       where: eq(db.questionOptions.id, req.body.optionId),
     });
 
-    req.body.questionId = queryQuestion?.questionId;
+    req.body.questionId = queryQuestionOption?.questionId;
     const body = insertVotesSchema.safeParse(req.body);
 
     if (!body.success) {
       return res.status(400).json({ errors: body.error.issues });
     }
-    // save the votes
-    const newVote = await dbPool
-      .insert(votes)
-      .values({
-        userId: body.data.userId,
-        numOfVotes: body.data.numOfVotes,
-        optionId: body.data.optionId,
-        questionId: body.data.questionId,
-      })
-      .returning();
+
+    const newVote = await insertVote(dbPool, body.data);
+
+    // check for errors
+    if (newVote.errors) {
+      return res.status(400).json({ errors: newVote.errors });
+    }
 
     // Query num_of_votes and user_id for a specific option_id
     const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
@@ -100,6 +99,36 @@ export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
       .where(eq(db.questionOptions.id, body.data.optionId));
 
     // Return new vote object and list of numOfVotes for the optionId
-    return res.json({ data: { ...newVote[0], totalVotes } });
+    return res.json({ data: { ...newVote.data, totalVotes } });
   };
+}
+
+export async function insertVote(
+  dbPool: PostgresJsDatabase<typeof db>,
+  vote: z.infer<typeof insertVotesSchema>,
+) {
+  // check if cycle is open
+  const queryQuestion = await dbPool.query.forumQuestions.findFirst({
+    where: eq(db.forumQuestions.id, vote?.questionId ?? ''),
+    with: {
+      cycle: true,
+    },
+  });
+
+  if ((queryQuestion?.cycle?.status as CycleStatusType) !== 'OPEN') {
+    return { errors: [{ message: 'Cycle is not open' }] };
+  }
+
+  // save the votes
+  const newVote = await dbPool
+    .insert(votes)
+    .values({
+      userId: vote.userId,
+      numOfVotes: vote.numOfVotes,
+      optionId: vote.optionId,
+      questionId: vote.questionId,
+    })
+    .returning();
+
+  return { data: newVote[0] };
 }
