@@ -1,7 +1,7 @@
 /**
  * @type {import('semantic-release').GlobalConfig}
  */
-module.exports = {
+export default {
   branches: ['main', 'next', '+([0-9])?(.{+([0-9]),x}).x'],
   repositoryUrl: 'https://github.com/lexicongovernance/forum-backend',
   plugins: [
