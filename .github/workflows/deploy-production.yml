@@ -1,4 +1,4 @@
-name: [PRODUCTION] Build and Push Docker Image
+name: (PRODUCTION) Build and Push Docker Image
 
 on:
   workflow_run:
