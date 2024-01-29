@@ -1,5 +1,5 @@
 {
-  "id": "e5816c3d-8211-4e82-b449-a63fe14a74f9",
+  "id": "1a68b350-b0fd-4292-b2ba-061fc5dabc6d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -93,6 +93,12 @@
         },
         "description": {
           "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
