@@ -1,4 +1,4 @@
-name: (DEVELOPMENT) Build and Push Docker Image
+name: Deploy to development
 
 on:
   workflow_run:
