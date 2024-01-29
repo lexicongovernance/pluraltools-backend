@@ -103,7 +103,6 @@ export async function updateQuestionOptions(
           WHERE question_id IS NOT NULL
           `),
     );
-    console.log('registrationFields', registrationFields);
 
     // Pre-filter registrationData to include only relevant entries (avoids looping thorough the entire set of registration data)
     const filteredRegistrationData = registrationData.filter((data) =>
@@ -123,7 +122,7 @@ export async function updateQuestionOptions(
 
       if (existingQuestionOption) {
         // Update question option
-        const updatedQuestionOption = await dbPool
+        await dbPool
           .update(db.questionOptions)
           .set({
             registrationDataId:
@@ -134,10 +133,9 @@ export async function updateQuestionOptions(
           })
           .where(eq(db.questionOptions.id, existingQuestionOption.id))
           .returning();
-        console.log('Updated question option:', updatedQuestionOption[0]);
       } else {
         // Insert new question option
-        const newQuestionOption = await dbPool
+        await dbPool
           .insert(db.questionOptions)
           .values({
             registrationDataId: registrationDataForField?.id || '',
@@ -147,7 +145,6 @@ export async function updateQuestionOptions(
             updatedAt: new Date(),
           })
           .returning();
-        console.log('Inserted new question option:', newQuestionOption[0]);
       }
     }
   } catch (e) {
