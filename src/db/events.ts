@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, uuid, varchar, integer } from 'drizzle-orm/pg-core';
 import { registrations } from './registrations';
 import { cycles, registrationFields } from '.';
 
@@ -7,7 +7,8 @@ export const events = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name').notNull(),
   description: varchar('description'),
-  image_url: varchar('image_url'),
+  imageUrl: varchar('image_url'),
+  eventDisplayRank: integer('event_display_rank'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
