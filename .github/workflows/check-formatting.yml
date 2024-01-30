@@ -1,10 +1,12 @@
 name: Check Formatting
 
 on:
-  push:
-    branches: [main, develop, next]
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+    branches:
+      - next
+      - develop
+      - main
 
 concurrency:
   # group runs by <name of the workflow>-<name of job>-<branch name>
