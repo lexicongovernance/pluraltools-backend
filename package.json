@@ -18,7 +18,7 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "bun ./scripts/seed.ts",
     "db:seed:cleanup": "bun ./scripts/seed.ts --cleanup",
-    "test": "jest",
+    "test": "jest --runInBand",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
     "format:fix": "prettier --write \"src/**/*.{ts,md}\"",
     "commit": "cz"
@@ -30,9 +30,9 @@
     "node": "^20"
   },
   "devDependencies": {
+    "@jest/types": "^29.6.3",
     "@ngneat/falso": "^7.1.1",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
+    "@types/bun": "^1.0.4",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.11",
@@ -40,8 +40,6 @@
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
     "bun": "^1.0.22",
-    "commitizen": "^4.3.0",
-    "cz-conventional-changelog": "^3.3.0",
     "drizzle-kit": "^0.20.13",
     "esbuild": "^0.19.8",
     "eslint": "^8.56.0",
@@ -63,7 +61,6 @@
     "iron-session": "^6.3.1",
     "pg-connection-string": "^2.6.2",
     "postgres": "^3.4.3",
-    "semantic-release": "^23.0.0",
     "zod": "^3.22.4"
   },
   "config": {
