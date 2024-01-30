@@ -43,6 +43,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Bump version to ${{ steps.pkg.outputs.version }} [skip ci]
+          branch: ${{ github.base_ref }}
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v1
