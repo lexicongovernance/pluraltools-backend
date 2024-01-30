@@ -15,7 +15,6 @@ logs
 out
 dist
 
-
 # misc
 .DS_Store
 *.pem
@@ -34,5 +33,7 @@ yarn-error.log*
 .env.production.local
 .direnv
 
+# input files
+groups.csv
 
 tmp

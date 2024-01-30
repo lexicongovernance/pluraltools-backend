@@ -52,6 +52,7 @@
     "@pcd/semaphore-signature-pcd": "^0.9.0",
     "@pcd/util": "^0.3.0",
     "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
     "drizzle-orm": "^0.29.1",
     "drizzle-zod": "^0.5.1",
     "express": "^4.18.2",
