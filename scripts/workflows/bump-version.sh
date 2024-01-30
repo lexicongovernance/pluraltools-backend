@@ -27,7 +27,7 @@ if [ -z "$VERSION_BUMP" ]; then
 fi
 
 # Bump version using npm
-pnpm version $VERSION_BUMP
+pnpm version $VERSION_BUMP --no-git-tag-version
 
 # Commit and push the changes
 git config --local user.email "action@github.com"
