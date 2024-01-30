@@ -34,4 +34,5 @@ git config --local user.email "action@github.com"
 git config --local user.name "GitHub Action"
 git add package.json
 git commit -m "Bump version: $VERSION_BUMP [skip ci]"
-git push https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD:$(git rev-parse --abbrev-ref HEAD)
+git config --global credential.helper '!echo password=$GITHUB_TOKEN; echo'
+git push https://github.com/${GITHUB_REPOSITORY}.git HEAD:$(git rev-parse --abbrev-ref HEAD)
