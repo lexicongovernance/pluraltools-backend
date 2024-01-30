@@ -36,6 +36,9 @@ jobs:
 
       - name: Run Version Bump Script
         run: scripts/workflows/bump-version.sh "${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v1
