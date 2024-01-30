@@ -28,11 +28,3 @@ fi
 
 # Bump version using npm
 pnpm version $VERSION_BUMP --no-git-tag-version
-
-# Commit and push the changes
-git config --local user.email "action@github.com"
-git config --local user.name "GitHub Action"
-git add package.json
-git commit -m "Bump version: $VERSION_BUMP [skip ci]"
-git config --global credential.helper '!echo password=$GITHUB_TOKEN; echo'
-git push https://github.com/${GITHUB_REPOSITORY}.git HEAD:$(git rev-parse --abbrev-ref HEAD)
