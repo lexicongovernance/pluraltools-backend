@@ -75,6 +75,17 @@ export async function overwriteRegistrationData({
   return newRegistrationData;
 }
 
+/**
+ * Function: updateQuestionOptions
+ * Updates or inserts registration data into the question options table.
+ * @param dbPool - The database pool instance of type `PostgresJsDatabase<typeof db>`.
+ * @param registrationData - An array of objects representing registration data.
+ *   Each object should have the properties:
+ *   - id: The unique identifier for the registration data.
+ *   - registrationFieldId: The identifier for the registration field associated with the data.
+ *   - value: The value of the registration data.
+ * @returns A Promise that resolves once the update/insert operation is completed.
+ */
 export async function updateQuestionOptions(
   dbPool: PostgresJsDatabase<typeof db>,
   registrationData:
@@ -85,14 +96,6 @@ export async function updateQuestionOptions(
       }[]
     | null,
 ): Promise<void> {
-  // Updates or inserts registration data into the question options table.
-  // :param: {PostgresJsDatabase<typeof db>} dbPool - The database pool instance.
-  // :param: An array of objects representing registration data.
-  //   Each object should have the properties:
-  //   - id: The unique identifier for the registration data.
-  //   - registrationFieldId: The identifier for the registration field associated with the data.
-  //   - value: The value of the registration data.
-  // :returns: A Promise that resolves once the update/insert operation is completed.
   try {
     if (!registrationData) {
       return;
