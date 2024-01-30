@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { events, forumQuestions, registrationData, registrationFieldOptions } from '.';
 
 export const registrationFieldEnum = pgEnum('registration_field_enum', [
@@ -20,6 +20,7 @@ export const registrationFields = pgTable('registration_fields', {
   type: registrationFieldEnum('type').notNull(),
   required: boolean('required').default(false),
   questionId: uuid('question_id').references(() => forumQuestions.id),
+  fieldDisplayRank: integer('fields_display_rank'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
