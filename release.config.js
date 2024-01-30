@@ -3,7 +3,7 @@
  */
 // eslint-disable-next-line no-undef
 module.exports = {
-  branches: ['main', 'develop', 'next'],
+  branches: ['main', { name: 'develop', channel: 'next', prerelease: true }, 'next'],
   repositoryUrl: 'https://github.com/lexicongovernance/forum-backend',
   plugins: [
     '@semantic-release/commit-analyzer',
@@ -14,7 +14,13 @@ module.exports = {
         npmPublish: false,
       },
     ],
-    '@semantic-release/github',
+    [
+      '@semantic-release/github',
+      {
+        assets: ['package.json'],
+        releaseNotes: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+      },
+    ],
     [
       '@semantic-release/git',
       {
