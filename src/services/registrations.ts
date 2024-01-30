@@ -94,14 +94,19 @@ export async function sendRegistrationData(
     registrationData: data.registrationData,
   });
 
-  await updateQuestionOptions(dbPool, updatedRegistrationData);
+  try {
+    await updateQuestionOptions(dbPool, updatedRegistrationData);
 
-  const out = {
-    ...newRegistration,
-    registrationData: updatedRegistrationData,
-  };
+    const out = {
+      ...newRegistration,
+      registrationData: updatedRegistrationData,
+    };
 
-  return out;
+    return out;
+  } catch (error) {
+    console.error('Error in updateQuestionOptions: ', error);
+    throw new Error('Failed to update question options');
+  }
 }
 
 async function upsertRegistration(
