@@ -7,7 +7,7 @@ LABELS=$1
 
 if [ -z "$LABELS" ]; then
   echo "Error: No labels provided"
-  exit 1
+  exit 0
 fi
 
 # Determine version bump type
