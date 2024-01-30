@@ -5,7 +5,7 @@ import { and } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
-import { overwriteRegistrationData } from './registrationData';
+import { overwriteRegistrationData, updateQuestionOptions } from './registrationData';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -94,12 +94,19 @@ export async function sendRegistrationData(
     registrationData: data.registrationData,
   });
 
-  const out = {
-    ...newRegistration,
-    registrationData: updatedRegistrationData,
-  };
+  try {
+    await updateQuestionOptions(dbPool, updatedRegistrationData);
 
-  return out;
+    const out = {
+      ...newRegistration,
+      registrationData: updatedRegistrationData,
+    };
+
+    return out;
+  } catch (error) {
+    console.error('Error in updateQuestionOptions: ', error);
+    throw new Error('Failed to update question options');
+  }
 }
 
 async function upsertRegistration(
