@@ -107,6 +107,7 @@ export async function updateQuestionOptions(
           SELECT id AS "registrationFieldId", question_id AS "questionId"
           FROM registration_fields
           WHERE question_id IS NOT NULL
+          AND id IN (${registrationData.map((data) => `'${data.registrationFieldId}'`).join(', ')})
           `),
     );
 
