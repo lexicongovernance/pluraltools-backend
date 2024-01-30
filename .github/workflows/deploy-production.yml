@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 env:
   # Github Container registry
   REGISTRY: us-east1-docker.pkg.dev
