@@ -1,9 +1,8 @@
-import { createDbPool } from '../src/utils/db/createDbPool';
-import { insertGroupsFromCsv } from '../src/utils/db/insertCustomGroups';
-import * as path from 'path';
+import { createDbPool } from '../../src/utils/db/createDbPool';
+import { insertGroupsFromCsv } from '../../src/utils/db/insertCustomGroups';
 
 const DEFAULT_DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
-const CSV_FILE_PATH = path.join(__dirname, '../assets/groups.csv');
+const CSV_FILE_PATH = new URL('../assets/groups.csv', import.meta.url).pathname;
 
 async function updateDbGroups() {
   const dbConnectionUrl = process.env.DB_CONNECTION_URL ?? DEFAULT_DB_CONNECTION_URL;
