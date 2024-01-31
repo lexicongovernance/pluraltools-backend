@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS "events" (
 	"name" varchar NOT NULL,
 	"description" varchar,
 	"image_url" varchar,
+	"event_display_rank" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -35,7 +36,8 @@ CREATE TABLE IF NOT EXISTS "federated_credentials" (
 	"provider" varchar(256),
 	"subject" varchar(256),
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "provider_subject_idx" UNIQUE("provider","subject")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "forum_questions" (
@@ -112,6 +114,7 @@ CREATE TABLE IF NOT EXISTS "registration_fields" (
 	"type" "registration_field_enum" NOT NULL,
 	"required" boolean DEFAULT false,
 	"question_id" uuid,
+	"fields_display_rank" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -210,6 +213,12 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "registration_fields" ADD CONSTRAINT "registration_fields_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "registration_fields" ADD CONSTRAINT "registration_fields_question_id_forum_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "forum_questions"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

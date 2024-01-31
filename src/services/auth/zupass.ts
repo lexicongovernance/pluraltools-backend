@@ -55,21 +55,27 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
 
       if (federatedCredential.length === 0) {
         // create user
-        const user: db.User[] = await dbPool.insert(users).values({}).returning();
+        try {
+          const user: db.User[] = await dbPool.insert(users).values({}).returning();
 
-        if (!user[0]) {
-          throw new Error('Failed to create user');
+          if (!user[0]) {
+            throw new Error('Failed to create user');
+          }
+
+          await dbPool.insert(federatedCredentials).values({
+            userId: user[0]?.id,
+            provider: 'zupass',
+            subject: pcd.claim.identityCommitment,
+          });
+
+          req.session.userId = user[0].id;
+          await req.session.save();
+          return res.status(200).json({ data: user[0] });
+        } catch (error: unknown) {
+          // repeated subject_provider unique key
+          console.error(`[ERROR] ${error}`);
+          return res.status(401).json({ data: 'User already exists' });
         }
-
-        await dbPool.insert(federatedCredentials).values({
-          userId: user[0]?.id,
-          provider: 'zupass',
-          subject: pcd.claim.identityCommitment,
-        });
-
-        req.session.userId = user[0].id;
-        await req.session.save();
-        return res.status(200).json({ data: user[0] });
       } else {
         if (!federatedCredential[0]) {
           throw new Error('expected federated credential to exist');
