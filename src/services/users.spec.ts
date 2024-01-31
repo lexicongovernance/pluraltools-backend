@@ -52,7 +52,7 @@ describe('service: users', function () {
         .insert(db.forumQuestions)
         .values({
           cycleId: cycle.id,
-          title: 'test question',
+          questionTitle: 'test question',
         })
         .returning()
     )[0];
@@ -64,8 +64,8 @@ describe('service: users', function () {
         .insert(db.questionOptions)
         .values({
           questionId: forumQuestion.id,
-          text: 'test option',
-          description: 'test description',
+          optionTitle: 'test option',
+          optionSubTitle: 'test description',
         })
         .returning()
     )[0];

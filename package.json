@@ -16,12 +16,13 @@
     "db:drop": "drizzle-kit drop",
     "db:check": "drizzle-kit check:pg",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "bun ./scripts/seed.ts",
-    "db:seed:cleanup": "bun ./scripts/seed.ts --cleanup",
+    "db:seed": "bun ./scripts/db/seed.ts",
+    "db:seed:cleanup": "bun ./scripts/db/seed.ts --cleanup",
     "db:insert:groups": "bun ./scripts/insertCustomGroups.ts",
-    "test": "jest",
+    "test": "jest --runInBand",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
-    "format:fix": "prettier --write \"src/**/*.{ts,md}\""
+    "format:fix": "prettier --write \"src/**/*.{ts,md}\"",
+    "commit": "cz"
   },
   "keywords": [],
   "author": "",
@@ -30,7 +31,9 @@
     "node": "^20"
   },
   "devDependencies": {
+    "@jest/types": "^29.6.3",
     "@ngneat/falso": "^7.1.1",
+    "@types/bun": "^1.0.4",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.11",
@@ -61,5 +64,10 @@
     "pg-connection-string": "^2.6.2",
     "postgres": "^3.4.3",
     "zod": "^3.22.4"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }

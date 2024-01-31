@@ -29,8 +29,8 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
-  await dbPool.delete(db.federatedCredentials);
   await dbPool.delete(db.votes);
+  await dbPool.delete(db.federatedCredentials);
   await dbPool.delete(db.registrationData);
   await dbPool.delete(db.registrationFields);
   await dbPool.delete(db.registrations);
@@ -94,7 +94,7 @@ async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycle
     .insert(db.forumQuestions)
     .values({
       cycleId,
-      title: "What's your favorite movie?",
+      questionTitle: "What's your favorite movie?",
     })
     .returning();
 }
@@ -109,9 +109,9 @@ async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, ques
     .values([
       {
         questionId,
-        text: randMovie(),
+        optionTitle: randMovie(),
       },
-      { questionId, text: randMovie() },
+      { questionId, optionTitle: randMovie() },
     ])
     .returning();
 }

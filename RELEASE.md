@@ -1,67 +1,41 @@
-# Manually run a release
+# Release Process
 
-To manually run a release on the `main` branch, you can use the following command:
-`pnpx semantic-release --force`
+## Overview
 
-# Angular Commit Message Convention
+Our release process is automated through GitHub Actions and involves the following steps:
 
-The Angular Commit Message Convention is a set of rules for structuring git commit messages. It's used by the Angular team and is the default convention for `semantic-release`.
+1. **Testing**: All tests are run to ensure the codebase is stable.
+2. **Version Bumping**: The version of the application is automatically bumped based on the labels added to the merged pull request.
+3. **Deployment**: The application is deployed to the production environment.
 
-## format
+## Detailed Steps
 
-Each commit message consists of a **header**, a **body**, and a **footer**. The header is mandatory and must conform to the following format:
+### 1. Testing
 
-```
-<type>(<scope>): <subject>
-```
+Whenever a pull request is opened or updated, our test workflow is triggered. This workflow runs all unit tests and integration tests to ensure the stability of the codebase.
 
-### type
+### 2. Version Bumping
 
-The type must be one of the following:
+When a pull request is merged, a version bump is triggered based on the labels added to the pull request. The labels that can be used are:
 
-- `build`: Changes that affect the build system or external dependencies
-- `ci`: Changes to CI configuration files and scripts
-- `docs`: Documentation-only changes
-- `feat`: A new feature
-- `fix`: A bug fix
-- `perf`: A code change that improves performance
-- `refactor`: A code change that neither fixes a bug nor adds a feature
-- `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-- `test`: Adding missing tests or correcting existing tests
+- `major`: This will trigger a major version bump (e.g., 1.0.0 to 2.0.0).
+- `minor`: This will trigger a minor version bump (e.g., 1.0.0 to 1.1.0).
+- `patch`: This will trigger a patch version bump (e.g., 1.0.0 to 1.0.1).
 
-### scope
+If none of these labels are present, no version bump will occur.
 
-The scope is optional and can be anything specifying the place of the commit change.
+The version bump is performed by a script that updates the version in the `package.json` file and commits the change to the repository.
 
-### subject
+### 3. Deployment
 
-The subject contains a succinct description of the change. It should:
+After the version bump, the application is automatically deployed to the production environment.
 
-- be capitalized
-- not end with a period
-- use an imperative, present tense: "change" not "changed" nor "changes"
+## Important Notes
 
-## body
+- The version bump and deployment only occur when a pull request is merged. If a pull request is closed without being merged, these steps will not run.
+- The version bump is skipped if the pull request does not have a `major`, `minor`, or `patch` label.
+- The commit created by the version bump script includes `[skip ci]` in the commit message to prevent triggering a new workflow run.
 
-The body is optional. When present, it should include a more detailed explanation of the commit changes.
+## Conclusion
 
-## footer
-
-The footer is also optional. When present, it should contain any information about **Breaking Changes** and is also the place to reference GitHub issues that this commit closes.
-
-Breaking Changes should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
-
-## example
-
-Here's an example of an Angular commit message:
-
-```
-feat(user-service): add new method to fetch user data
-
-This commit adds a new method to the UserService that allows fetching user data by ID. This is useful for scenarios where only the user ID is known.
-
-Closes #123
-BREAKING CHANGE: The old method getUser has been removed. Use getUserById instead.
-```
-
-This commit message includes a `type` of `feat`, a `scope` of `user-service`, and a `subject` describing the change. The `body` provides more detail about the change, and the `footer` includes a `Closes` keyword to reference a related GitHub issue and a `BREAKING CHANGE` note.
+This automated release process ensures that our application is always tested, versioned, and deployed in a consistent manner. It reduces the risk of human error and ensures that our production environment is always up-to-date with the latest stable version of our application.
