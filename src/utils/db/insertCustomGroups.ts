@@ -4,10 +4,11 @@ import * as fs from 'fs';
 import csvParser from 'csv-parser';
 
 async function insertGroupsFromCsv(dbPool: PostgresJsDatabase<typeof db>, csvFilePath: string) {
-  // Read CSV file using csv-parser
   const names: string[] = [];
 
   return new Promise<void>((resolve, reject) => {
+    console.log('Reading CSV file:', csvFilePath);
+
     fs.createReadStream(csvFilePath)
       .pipe(csvParser())
       .on('data', (row) => {
@@ -16,7 +17,9 @@ async function insertGroupsFromCsv(dbPool: PostgresJsDatabase<typeof db>, csvFil
         }
       })
       .on('end', async () => {
-        // Create a new row in the groups table for each name
+        console.log('Number of names:', names.length);
+        console.log('Names:', names);
+
         const groupPromises = names.map(async (name: string) => {
           await dbPool
             .insert(db.groups)
@@ -29,7 +32,9 @@ async function insertGroupsFromCsv(dbPool: PostgresJsDatabase<typeof db>, csvFil
         await Promise.all(groupPromises);
         resolve();
       })
-      .on('error', (error) => reject(error));
+      .on('error', (error) => {
+        reject(error);
+      });
   });
 }
 
