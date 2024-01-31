@@ -21,8 +21,7 @@
     "db:insert:groups": "bun ./scripts/insertCustomGroups.ts",
     "test": "jest --runInBand",
     "format": "prettier --check \"src/**/*.{ts,md}\"",
-    "format:fix": "prettier --write \"src/**/*.{ts,md}\"",
-    "commit": "cz"
+    "format:fix": "prettier --write \"src/**/*.{ts,md}\""
   },
   "keywords": [],
   "author": "",
@@ -64,10 +63,5 @@
     "pg-connection-string": "^2.6.2",
     "postgres": "^3.4.3",
     "zod": "^3.22.4"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
   }
 }
