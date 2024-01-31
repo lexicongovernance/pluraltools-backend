@@ -15,6 +15,13 @@
       "when": 1706712082932,
       "tag": "0001_dusty_corsair",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1706712849401,
+      "tag": "0002_tiny_trish_tilby",
+      "breakpoints": true
     }
   ]
 }

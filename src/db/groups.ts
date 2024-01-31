@@ -14,4 +14,4 @@ export const groupsRelations = relations(groups, ({ many }) => ({
   usersToGroups: many(usersToGroups),
 }));
 
-export type Group = typeof groups.$inferSelect; // return type when queried
+export type Group = typeof groups.$inferSelect;
