@@ -20,4 +20,4 @@ export const userAttributeRelations = relations(userAttributes, ({ one }) => ({
   }),
 }));
 
-export type UserAttribute = typeof userAttributes.$inferSelect; // return type when queried
+export type UserAttribute = typeof userAttributes.$inferSelect;
