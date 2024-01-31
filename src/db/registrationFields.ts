@@ -1,14 +1,6 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { events, forumQuestions, registrationData, registrationFieldOptions } from '.';
-
-export const registrationFieldEnum = pgEnum('registration_field_enum', [
-  'SELECT',
-  'TEXT',
-  'NUMBER',
-  'DATE',
-  'BOOLEAN',
-]);
 
 export const registrationFields = pgTable('registration_fields', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -17,7 +9,8 @@ export const registrationFields = pgTable('registration_fields', {
     .notNull(),
   name: varchar('name').notNull(),
   description: varchar('description'),
-  type: registrationFieldEnum('type').notNull(),
+  // CAN BE: TEXT, NUMBER, SELECT, RADIO, CHECKBOX, TEXTAREA AND MORE
+  type: varchar('type').notNull().default('TEXT'),
   required: boolean('required').default(false),
   questionId: uuid('question_id').references(() => forumQuestions.id),
   fieldDisplayRank: integer('fields_display_rank'),
