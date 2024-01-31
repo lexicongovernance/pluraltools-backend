@@ -1,0 +1,83 @@
+name: Deploy to development
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  # Github Container registry
+  REGISTRY: us-east1-docker.pkg.dev
+  REGISTRY_PATH: ${{ secrets.GCP_PROJECT_ID }}/lexicon
+  SERVICE_NAME: forum-backend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Run Version Bump Script
+        run: scripts/workflows/bump-version.sh "${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+
+      - name: Extract version from package.json
+        id: pkg
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+        shell: bash
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Bump to version ${{ steps.pkg.outputs.version }} prerelease'
+          base: ${{ github.head_ref }}
+          title: 'Prerelease ${{ steps.pkg.outputs.version }}'
+          body: 'The scope of this PR is to create the contents of the new release ${{ steps.pkg.outputs.version }} prerelease'
+          branch: bot/open-${{ steps.pkg.outputs.version }}-prerelease
+          delete-branch: true
+          assignees: ${{ github.actor }}
+          labels: 'bot'
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Login against a Docker registry
+      - name: Log into registry Google Artifact Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_KEY }}
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_PATH }}/${{ env.SERVICE_NAME }}
+
+      - name: Build and push Docker image with version and commit tags
+        id: build-and-push-version-commit
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_PATH }}/${{ env.SERVICE_NAME }}:${{ steps.pkg.outputs.version }}-prerelease
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_PATH }}/${{ env.SERVICE_NAME }}:commit-${{ github.sha }}

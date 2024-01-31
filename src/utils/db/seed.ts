@@ -29,8 +29,8 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
-  await dbPool.delete(db.federatedCredentials);
   await dbPool.delete(db.votes);
+  await dbPool.delete(db.federatedCredentials);
   await dbPool.delete(db.registrationData);
   await dbPool.delete(db.registrationFields);
   await dbPool.delete(db.registrations);
