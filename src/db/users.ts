@@ -4,6 +4,7 @@ import { registrations } from './registrations';
 import { votes } from './votes';
 import { usersToGroups } from './usersToGroups';
 import { userAttributes } from './userAttributes';
+import { federatedCredentials } from '.';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -13,11 +14,12 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   registrations: many(registrations),
   votes: many(votes),
   usersToGroups: many(usersToGroups),
   userAttributes: many(userAttributes),
+  federatedCredential: one(federatedCredentials),
 }));
 
 export type User = typeof users.$inferSelect; // return type when queried
