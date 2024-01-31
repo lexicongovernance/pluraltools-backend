@@ -50,6 +50,7 @@ jobs:
           branch: bot/open-${{ steps.pkg.outputs.version }}-release
           delete-branch: true
           assignees: ${{ github.actor }}
+          labels: 'bot'
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v1
