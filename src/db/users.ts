@@ -22,4 +22,4 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   federatedCredential: one(federatedCredentials),
 }));
 
-export type User = typeof users.$inferSelect; // return type when queried
+export type User = typeof users.$inferSelect;

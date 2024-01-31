@@ -26,4 +26,4 @@ export const federatedCredentialsRelations = relations(federatedCredentials, ({ 
   }),
 }));
 
-export type FederatedCredential = typeof federatedCredentials.$inferSelect; // return type when queried
+export type FederatedCredential = typeof federatedCredentials.$inferSelect;

@@ -30,4 +30,4 @@ export const registrationsRelations = relations(registrations, ({ one, many }) =
   registrationData: many(registrationData),
 }));
 
-export type Registration = typeof registrations.$inferSelect; // return type when queried
+export type Registration = typeof registrations.$inferSelect;
