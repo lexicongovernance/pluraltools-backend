@@ -39,11 +39,18 @@ jobs:
         run: echo "::set-output name=version::$(jq -r .version package.json)"
         shell: bash
 
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
         with:
-          commit_message: Bump version to ${{ steps.pkg.outputs.version }} [skip ci]
-          branch: ${{ github.base_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Bump to version ${{ steps.pkg.outputs.version }}'
+          base: ${{ github.head_ref }}
+          title: 'Prerelease ${{ steps.pkg.outputs.version }}'
+          body: 'The scope of this PR is to create the contents of the new release ${{ steps.pkg.outputs.version }}'
+          branch: bot/open-${{ steps.pkg.outputs.version }}-release
+          delete-branch: true
+          assignees: ${{ github.actor }}
+          labels: 'bot'
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v1
