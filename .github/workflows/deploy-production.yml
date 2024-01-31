@@ -45,7 +45,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'Bump to version ${{ steps.pkg.outputs.version }}'
-          base: ${{ github.head_ref }}
+          base: ${{ github.event.pull_request.base.ref }}
           title: 'Prerelease ${{ steps.pkg.outputs.version }}'
           body: 'The scope of this PR is to create the contents of the new release ${{ steps.pkg.outputs.version }}'
           branch: bot/open-${{ steps.pkg.outputs.version }}-release
@@ -63,11 +63,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: _json_key
           password: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Extract version from package.json
-        id: pkg
-        run: echo "::set-output name=version::$(jq -r .version package.json)"
-        shell: bash
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
