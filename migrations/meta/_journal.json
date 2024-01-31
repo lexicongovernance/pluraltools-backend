@@ -8,6 +8,13 @@
       "when": 1706710480426,
       "tag": "0000_rich_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1706712082932,
+      "tag": "0001_dusty_corsair",
+      "breakpoints": true
     }
   ]
 }
