@@ -14,6 +14,7 @@ export const registrationFields = pgTable('registration_fields', {
   required: boolean('required').default(false),
   questionId: uuid('question_id').references(() => forumQuestions.id),
   fieldDisplayRank: integer('fields_display_rank'),
+  characterLimit: integer('character_limit').default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
