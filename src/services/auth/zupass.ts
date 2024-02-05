@@ -1,24 +1,9 @@
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
-import { getRandomValues, hexToBigInt, toHexString } from '@pcd/util';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../../db';
 import { eq } from 'drizzle-orm';
 import { verifyUserSchema } from '../../types';
-
-export function createNonce() {
-  return async function (req: Request, res: Response) {
-    try {
-      req.session.nonce = hexToBigInt(toHexString(getRandomValues(30))).toString();
-      await req.session.save();
-      return res.json({ data: req.session.nonce });
-    } catch (error) {
-      console.error(`[ERROR] ${error}`);
-
-      res.send(500);
-    }
-  };
-}
 
 export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
