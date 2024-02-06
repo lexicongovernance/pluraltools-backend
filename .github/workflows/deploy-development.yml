@@ -32,6 +32,9 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Run Version Bump Script
         run: scripts/workflows/bump-version.sh "${{ join(github.event.pull_request.labels.*.name, ' ') }}"
 
