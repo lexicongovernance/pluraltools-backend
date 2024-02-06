@@ -5,7 +5,7 @@ import * as db from '../../db';
 import { eq } from 'drizzle-orm';
 import { verifyUserSchema } from '../../types';
 
-export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
+export function verifyPCD(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const body = verifyUserSchema.safeParse(req.body);
@@ -27,31 +27,22 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
         res.status(401).send();
         return;
       }
-      console.log('verified');
-      // create federated credential
-      const federatedCredential: db.FederatedCredential[] = await dbPool
-        .select()
-        .from(db.federatedCredentials)
-        .where(eq(db.federatedCredentials.subject, body.data.uuid));
 
-      if (federatedCredential.length === 0) {
+      // check if user with email exists
+      const user = await dbPool.query.users.findFirst({
+        where: eq(db.users.email, body.data.email),
+      });
+
+      if (!user) {
         // create user
         try {
-          console.log(
-            await dbPool
-              .insert(db.users)
-              .values({
-                email: body.data.email,
-              })
-              .toSQL(),
-          );
           const user: db.User[] = await dbPool
             .insert(db.users)
             .values({
               email: body.data.email,
             })
             .returning();
-          console.log(user);
+
           if (!user[0]?.id) {
             throw new Error('Failed to create user');
           }
@@ -72,13 +63,7 @@ export function verifyNonce(dbPool: PostgresJsDatabase<typeof db>) {
           return res.status(401).json({ data: 'User already exists' });
         }
       } else {
-        if (!federatedCredential[0]) {
-          throw new Error('expected federated credential to exist');
-        }
-        const user = await dbPool.query.users.findFirst({
-          where: eq(db.users.id, federatedCredential[0].userId),
-        });
-        req.session.userId = federatedCredential[0]?.userId ?? '';
+        req.session.userId = user.id;
         await req.session.save();
         return res.status(200).json({ data: user });
       }
