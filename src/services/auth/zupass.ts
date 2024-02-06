@@ -28,12 +28,24 @@ export function verifyPCD(dbPool: PostgresJsDatabase<typeof db>) {
         return;
       }
 
-      // check if user with email exists
-      const user = await dbPool.query.users.findFirst({
-        where: eq(db.users.email, body.data.email),
-      });
+      const pcdUUID = JSON.parse(pcd.claim.signedMessage) as {
+        uuid: string;
+        referrer: string;
+      };
 
-      if (!user) {
+      if (pcdUUID.uuid !== body.data.uuid) {
+        console.error(`[ERROR] UUID does not match`);
+        res.status(401).send();
+        return;
+      }
+
+      // check if there is a federated credential with the same subject
+      const federatedCredential: db.FederatedCredential[] = await dbPool
+        .select()
+        .from(db.federatedCredentials)
+        .where(eq(db.federatedCredentials.subject, body.data.uuid));
+
+      if (federatedCredential.length === 0) {
         // create user
         try {
           const user: db.User[] = await dbPool
@@ -63,7 +75,13 @@ export function verifyPCD(dbPool: PostgresJsDatabase<typeof db>) {
           return res.status(401).json({ data: 'User already exists' });
         }
       } else {
-        req.session.userId = user.id;
+        if (!federatedCredential[0]) {
+          throw new Error('expected federated credential to exist');
+        }
+        const user = await dbPool.query.users.findFirst({
+          where: eq(db.users.id, federatedCredential[0].userId),
+        });
+        req.session.userId = federatedCredential[0]?.userId ?? '';
         await req.session.save();
         return res.status(200).json({ data: user });
       }
