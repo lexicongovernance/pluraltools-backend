@@ -20,7 +20,13 @@ declare module 'iron-session' {
   }
 }
 
-export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
+export function apiRouter({
+  dbPool,
+  cookiePassword,
+}: {
+  dbPool: PostgresJsDatabase<typeof db>;
+  cookiePassword: string;
+}) {
   // setup
   router.use(express.json());
   router.use(express.urlencoded({ extended: true }));
@@ -29,7 +35,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
     ironSession({
       ttl: 1209600, // Expiry: 14 days.
       cookieName: 'forum_app_cookie',
-      password: '0001020304050607080900010203040506070809000102030405060708090001',
+      password: cookiePassword,
       cookieOptions: {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
