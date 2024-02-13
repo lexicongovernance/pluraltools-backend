@@ -58,7 +58,7 @@ export async function overwriteRegistrationData({
   }[];
 }): Promise<db.RegistrationData[] | null> {
   try {
-    const updatesPromises = registrationData.map(async (data) => {
+    for (const data of registrationData) {
       // Find the existing record
       const existingRecord = await dbPool.query.registrationData.findFirst({
         where: and(
@@ -81,10 +81,7 @@ export async function overwriteRegistrationData({
           value: data.value,
         });
       }
-    });
-
-    // Wait for all updates/inserts to complete
-    await Promise.all(updatesPromises);
+    }
 
     // Fetch all registration data associated with the registrationId
     const updatedRegistrationData = await dbPool.query.registrationData.findMany({
