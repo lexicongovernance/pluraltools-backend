@@ -1,7 +1,5 @@
 #!/bin/bash
 
-## Github Actions CI
-
 # Expect the PR labels as the first argument
 LABELS=$1
 

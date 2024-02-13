@@ -94,7 +94,7 @@ async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycle
     .insert(db.forumQuestions)
     .values({
       cycleId,
-      title: "What's your favorite movie?",
+      questionTitle: "What's your favorite movie?",
     })
     .returning();
 }
@@ -109,9 +109,9 @@ async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, ques
     .values([
       {
         questionId,
-        text: randMovie(),
+        optionTitle: randMovie(),
       },
-      { questionId, text: randMovie() },
+      { questionId, optionTitle: randMovie() },
     ])
     .returning();
 }

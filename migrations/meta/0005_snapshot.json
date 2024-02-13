@@ -1,6 +1,6 @@
 {
-  "id": "03edbcce-80d9-44a6-9b21-4f05060b870e",
-  "prevId": "654e77a4-62b2-4034-826b-85f24a843035",
+  "id": "2a60b9ce-b8d9-49f7-96e5-626397f18f22",
+  "prevId": "a57b1df3-e38a-4eec-8ef6-99be91f7db41",
   "version": "5",
   "dialect": "pg",
   "tables": {
@@ -93,6 +93,12 @@
         },
         "description": {
           "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "registration_description": {
+          "name": "registration_description",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -324,11 +330,24 @@
           "primaryKey": false,
           "notNull": false
         },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "email": {
           "name": "email",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false
+        },
+        "email_notification": {
+          "name": "email_notification",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -442,8 +461,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "registration_options": {
-      "name": "registration_options",
+    "registration_field_options": {
+      "name": "registration_field_options",
       "schema": "",
       "columns": {
         "id": {
@@ -482,9 +501,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "registration_options_registration_field_id_registration_fields_id_fk": {
-          "name": "registration_options_registration_field_id_registration_fields_id_fk",
-          "tableFrom": "registration_options",
+        "registration_field_options_registration_field_id_registration_fields_id_fk": {
+          "name": "registration_field_options_registration_field_id_registration_fields_id_fk",
+          "tableFrom": "registration_field_options",
           "tableTo": "registration_fields",
           "columnsFrom": [
             "registration_field_id"
@@ -744,6 +763,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "character_limit": {
+          "name": "character_limit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",

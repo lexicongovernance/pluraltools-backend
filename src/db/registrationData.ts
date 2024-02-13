@@ -27,4 +27,4 @@ export const registrationDataRelations = relations(registrationData, ({ one }) =
   }),
 }));
 
-export type RegistrationData = typeof registrationData.$inferSelect; // return type when queried
+export type RegistrationData = typeof registrationData.$inferSelect;

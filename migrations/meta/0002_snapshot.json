@@ -1,6 +1,6 @@
 {
-  "id": "103cd47c-fd1b-4828-8ee7-2ec6bac8114c",
-  "prevId": "c9809a4a-806e-4606-aecc-2fa7a3b156dc",
+  "id": "416dd229-ebe3-4d50-ada1-dea82d2a6b6e",
+  "prevId": "03edbcce-80d9-44a6-9b21-4f05060b870e",
   "version": "5",
   "dialect": "pg",
   "tables": {
@@ -97,15 +97,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "registration_description": {
-          "name": "registration_description",
+        "image_url": {
+          "name": "image_url",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },
-        "image_url": {
-          "name": "image_url",
-          "type": "varchar",
+        "event_display_rank": {
+          "name": "event_display_rank",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -190,7 +190,16 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "provider_subject_idx": {
+          "name": "provider_subject_idx",
+          "nullsNotDistinct": false,
+          "columns": [
+            "provider",
+            "subject"
+          ]
+        }
+      }
     },
     "forum_questions": {
       "name": "forum_questions",
@@ -209,14 +218,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "title": {
-          "name": "title",
+        "question_title": {
+          "name": "question_title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
+        "question_sub_title": {
+          "name": "question_sub_title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false
@@ -381,7 +390,7 @@
         },
         "status": {
           "name": "status",
-          "type": "registration_enum",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false,
           "default": "'DRAFT'"
@@ -433,8 +442,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "registration_options": {
-      "name": "registration_options",
+    "registration_field_options": {
+      "name": "registration_field_options",
       "schema": "",
       "columns": {
         "id": {
@@ -473,9 +482,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "registration_options_registration_field_id_registration_fields_id_fk": {
-          "name": "registration_options_registration_field_id_registration_fields_id_fk",
-          "tableFrom": "registration_options",
+        "registration_field_options_registration_field_id_registration_fields_id_fk": {
+          "name": "registration_field_options_registration_field_id_registration_fields_id_fk",
+          "tableFrom": "registration_field_options",
           "tableTo": "registration_fields",
           "columnsFrom": [
             "registration_field_id"
@@ -501,23 +510,36 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "registration_data_id": {
+          "name": "registration_data_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "question_id": {
           "name": "question_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "text": {
-          "name": "text",
+        "option_title": {
+          "name": "option_title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
+        "option_sub_title": {
+          "name": "option_sub_title",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
+        },
+        "accepted": {
+          "name": "accepted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         },
         "vote_count": {
           "name": "vote_count",
@@ -543,6 +565,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "question_options_registration_data_id_registration_data_id_fk": {
+          "name": "question_options_registration_data_id_registration_data_id_fk",
+          "tableFrom": "question_options",
+          "tableTo": "registration_data",
+          "columnsFrom": [
+            "registration_data_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "question_options_question_id_forum_questions_id_fk": {
           "name": "question_options_question_id_forum_questions_id_fk",
           "tableFrom": "question_options",
@@ -686,9 +721,10 @@
         },
         "type": {
           "name": "type",
-          "type": "registration_field_enum",
+          "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'TEXT'"
         },
         "required": {
           "name": "required",
@@ -696,6 +732,18 @@
           "primaryKey": false,
           "notNull": false,
           "default": false
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fields_display_rank": {
+          "name": "fields_display_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -720,6 +768,19 @@
           "tableTo": "events",
           "columnsFrom": [
             "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "registration_fields_question_id_forum_questions_id_fk": {
+          "name": "registration_fields_question_id_forum_questions_id_fk",
+          "tableFrom": "registration_fields",
+          "tableTo": "forum_questions",
+          "columnsFrom": [
+            "question_id"
           ],
           "columnsTo": [
             "id"
@@ -941,26 +1002,7 @@
       "uniqueConstraints": {}
     }
   },
-  "enums": {
-    "registration_enum": {
-      "name": "registration_enum",
-      "values": {
-        "DRAFT": "DRAFT",
-        "PUBLISHED": "PUBLISHED",
-        "APPROVED": "APPROVED"
-      }
-    },
-    "registration_field_enum": {
-      "name": "registration_field_enum",
-      "values": {
-        "SELECT": "SELECT",
-        "TEXT": "TEXT",
-        "NUMBER": "NUMBER",
-        "DATE": "DATE",
-        "BOOLEAN": "BOOLEAN"
-      }
-    }
-  },
+  "enums": {},
   "schemas": {},
   "_meta": {
     "columns": {},
