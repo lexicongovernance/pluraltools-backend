@@ -58,6 +58,8 @@ export async function overwriteRegistrationData({
   }[];
 }): Promise<db.RegistrationData[] | null> {
   try {
+    const updatedRegistrationData: db.RegistrationData[] = []; // Initialize empty array
+
     for (const data of registrationData) {
       // Find the existing record
       const existingRecord = await dbPool.query.registrationData.findFirst({
@@ -73,6 +75,9 @@ export async function overwriteRegistrationData({
           .update(db.registrationData)
           .set({ value: data.value, updatedAt: new Date() })
           .where(and(eq(db.registrationData.id, existingRecord.id)));
+
+        // Push the updated record into the array
+        updatedRegistrationData.push({ ...existingRecord, value: data.value });
       } else {
         // If the record doesn't exist, insert a new one
         await dbPool.insert(db.registrationData).values({
@@ -80,15 +85,21 @@ export async function overwriteRegistrationData({
           registrationFieldId: data.registrationFieldId,
           value: data.value,
         });
+
+        // Fetch the inserted record and push it into the array
+        const insertedRecord = await dbPool.query.registrationData.findFirst({
+          where: and(
+            eq(db.registrationData.registrationId, registrationId),
+            eq(db.registrationData.registrationFieldId, data.registrationFieldId),
+          ),
+        });
+
+        if (insertedRecord) {
+          updatedRegistrationData.push(insertedRecord);
+        }
       }
     }
 
-    // Fetch all registration data associated with the registrationId
-    const updatedRegistrationData = await dbPool.query.registrationData.findMany({
-      where: and(eq(db.registrationData.registrationId, registrationId)),
-    });
-
-    // Return the updated registration data
     return updatedRegistrationData;
   } catch (e) {
     console.log('Error updating/inserting registration data ' + JSON.stringify(e));
