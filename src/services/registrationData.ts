@@ -45,7 +45,7 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
  *   - value: The value of the registration data.
  * @returns A Promise that resolves to the updated registration data or null if an error occurs.
  */
-export async function upsertResourceName({
+export async function upsertRegistrationData({
   dbPool,
   registrationData,
   registrationId,
@@ -80,22 +80,17 @@ export async function upsertResourceName({
         updatedRegistrationData.push({ ...existingRecord, value: data.value });
       } else {
         // If the record doesn't exist, insert a new one
-        await dbPool.insert(db.registrationData).values({
-          registrationId,
-          registrationFieldId: data.registrationFieldId,
-          value: data.value,
-        });
+        const insertedRecord = await dbPool
+          .insert(db.registrationData)
+          .values({
+            registrationId,
+            registrationFieldId: data.registrationFieldId,
+            value: data.value,
+          })
+          .returning();
 
-        // Fetch the inserted record and push it into the array
-        const insertedRecord = await dbPool.query.registrationData.findFirst({
-          where: and(
-            eq(db.registrationData.registrationId, registrationId),
-            eq(db.registrationData.registrationFieldId, data.registrationFieldId),
-          ),
-        });
-
-        if (insertedRecord) {
-          updatedRegistrationData.push(insertedRecord);
+        if (insertedRecord?.[0]) {
+          updatedRegistrationData.push(insertedRecord?.[0]);
         }
       }
     }
