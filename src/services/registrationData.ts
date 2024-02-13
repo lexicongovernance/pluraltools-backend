@@ -35,7 +35,7 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 /**
- * Overwrites the registration data for a given registrationId.
+ * Upserts the registration data for a given registrationId.
  * Updates existing records and inserts new ones if necessary.
  * @param dbPool - The database pool instance of type `PostgresJsDatabase<typeof db>`.
  * @param registrationId - The ID of the registration to overwrite data for.
@@ -45,7 +45,7 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
  *   - value: The value of the registration data.
  * @returns A Promise that resolves to the updated registration data or null if an error occurs.
  */
-export async function overwriteRegistrationData({
+export async function upsertResourceName({
   dbPool,
   registrationData,
   registrationId,
@@ -58,7 +58,7 @@ export async function overwriteRegistrationData({
   }[];
 }): Promise<db.RegistrationData[] | null> {
   try {
-    const updatedRegistrationData: db.RegistrationData[] = []; // Initialize empty array
+    const updatedRegistrationData: db.RegistrationData[] = [];
 
     for (const data of registrationData) {
       // Find the existing record
