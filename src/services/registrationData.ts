@@ -1,6 +1,6 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 
 export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
@@ -34,7 +34,18 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export async function overwriteRegistrationData({
+/**
+ * Upserts the registration data for a given registrationId.
+ * Updates existing records and inserts new ones if necessary.
+ * @param dbPool - The database pool instance of type `PostgresJsDatabase<typeof db>`.
+ * @param registrationId - The ID of the registration to overwrite data for.
+ * @param registrationData - An array of objects representing registration data.
+ *   Each object should have the properties:
+ *   - registrationFieldId: The identifier for the registration field associated with the data.
+ *   - value: The value of the registration data.
+ * @returns A Promise that resolves to the updated registration data or null if an error occurs.
+ */
+export async function upsertRegistrationData({
   dbPool,
   registrationData,
   registrationId,
@@ -46,33 +57,49 @@ export async function overwriteRegistrationData({
     value: string;
   }[];
 }): Promise<db.RegistrationData[] | null> {
-  // delete all groups that previously existed
   try {
-    await dbPool
-      .delete(db.registrationData)
-      .where(eq(db.registrationData.registrationId, registrationId));
+    const updatedRegistrationData: db.RegistrationData[] = [];
+
+    for (const data of registrationData) {
+      // Find the existing record
+      const existingRecord = await dbPool.query.registrationData.findFirst({
+        where: and(
+          eq(db.registrationData.registrationId, registrationId),
+          eq(db.registrationData.registrationFieldId, data.registrationFieldId),
+        ),
+      });
+
+      if (existingRecord) {
+        // If the record exists, update it
+        await dbPool
+          .update(db.registrationData)
+          .set({ value: data.value, updatedAt: new Date() })
+          .where(and(eq(db.registrationData.id, existingRecord.id)));
+
+        // Push the updated record into the array
+        updatedRegistrationData.push({ ...existingRecord, value: data.value });
+      } else {
+        // If the record doesn't exist, insert a new one
+        const insertedRecord = await dbPool
+          .insert(db.registrationData)
+          .values({
+            registrationId,
+            registrationFieldId: data.registrationFieldId,
+            value: data.value,
+          })
+          .returning();
+
+        if (insertedRecord?.[0]) {
+          updatedRegistrationData.push(insertedRecord?.[0]);
+        }
+      }
+    }
+
+    return updatedRegistrationData;
   } catch (e) {
-    console.log('error deleting registration data ' + JSON.stringify(e));
+    console.log('Error updating/inserting registration data ' + JSON.stringify(e));
     return null;
   }
-
-  if (!registrationData.length) {
-    return [];
-  }
-
-  // save the new ones
-  const newRegistrationData = await dbPool
-    .insert(db.registrationData)
-    .values(
-      registrationData.map((data) => ({
-        registrationId,
-        registrationFieldId: data.registrationFieldId,
-        value: data.value,
-      })),
-    )
-    .returning();
-  // return new registration data
-  return newRegistrationData;
 }
 
 /**
