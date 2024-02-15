@@ -143,7 +143,7 @@ Stores information about groups within the system.
 
 ---
 
-### Table Name: question_options
+### Table: question_options
 
 Stores options for forum questions.
 
@@ -166,7 +166,7 @@ Stores options for forum questions.
 
 ---
 
-### Table Name: registration_data
+### Table: registration_data
 
 Stores data collected during event registrations.
 
@@ -183,7 +183,7 @@ Stores data collected during event registrations.
 - `registration`: One-to-one relation with `registrations`.
 - `registrationField`: One-to-one relation with `registrationFields`.
 
-### Table Name: registration_field_options
+### Table: registration_field_options
 
 Stores options for registration fields.
 
@@ -200,7 +200,7 @@ Stores options for registration fields.
 
 ---
 
-### Table Name: registration_fields
+### Table: registration_fields
 
 Stores fields for event registrations.
 
@@ -226,7 +226,7 @@ Stores fields for event registrations.
 
 ---
 
-### Table Name: registrations
+### Table: registrations
 
 Stores registrations for events.
 
@@ -246,7 +246,7 @@ Stores registrations for events.
 
 ---
 
-### Table Name: user_attributes
+### Table: user_attributes
 
 Stores custom attributes for users.
 
@@ -264,7 +264,7 @@ Stores custom attributes for users.
 
 ---
 
-### Table Name: users
+### Table: users
 
 Stores user information.
 
@@ -287,7 +287,7 @@ Stores user information.
 
 ---
 
-### Table Name: users_to_groups
+### Table: users_to_groups
 
 Associates users with groups.
 
@@ -305,7 +305,7 @@ Associates users with groups.
 
 ---
 
-### Table Name: votes
+### Table: votes
 
 Stores votes cast by users.
 
