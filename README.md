@@ -19,7 +19,7 @@
     ```
 2. install [pnpm](https://pnpm.io/installation#using-npm) 
 3. start a postgres `docker run --name postgres  -e POSTGRES_PASSWORD=secretpassword -e POSTGRES_USER=postgres -p 5432:5432 -d postgres`
-4. update .env with connection string `postgresql://postgres:secretpassword@localhost:5432`
+4. update .env with connection string `postgresql://postgres:secretpassword@localhost:5432` & cookie password.
 5. pnpm i
 6. pnpm dev
 
