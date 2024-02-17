@@ -40,7 +40,7 @@
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
     "csv-parser": "^3.0.0",
-    "drizzle-kit": "0.20.8",
+    "drizzle-kit": "^0.20.14",
     "esbuild": "^0.19.8",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
