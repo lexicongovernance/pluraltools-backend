@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
@@ -7,6 +7,59 @@ import { PluralVoting } from '../modules/plural_voting';
 import { insertVotesSchema } from '../types';
 import { CycleStatusType } from '../types/cycles';
 import { z } from 'zod';
+
+export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const userId = req.session.userId;
+    const cycleId = req.params.cycleId;
+
+    if (!cycleId) {
+      return res.status(400).json({
+        errors: [
+          {
+            message: 'Expected cycleId in query params',
+          },
+        ],
+      });
+    }
+
+    const votesRow = await getVotesForCycleByUser(dbPool, userId, cycleId);
+
+    return res.json({ data: votesRow });
+  };
+}
+
+export async function getVotesForCycleByUser(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  cycleId: string,
+) {
+  const response = await dbPool.query.cycles.findMany({
+    with: {
+      forumQuestions: {
+        with: {
+          questionOptions: {
+            with: {
+              votes: {
+                where: and(eq(db.votes.userId, userId)),
+                limit: 1,
+                orderBy: [desc(db.votes.createdAt)],
+              },
+            },
+          },
+        },
+      },
+    },
+    where: eq(db.cycles.id, cycleId),
+  });
+
+  const out = response.flatMap((cycle) =>
+    cycle.forumQuestions.flatMap((question) =>
+      question.questionOptions.flatMap((option) => option.votes),
+    ),
+  );
+  return out;
+}
 
 export function saveVote(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
