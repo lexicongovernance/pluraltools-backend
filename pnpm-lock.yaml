@@ -68,7 +68,7 @@ devDependencies:
     specifier: ^3.0.0
     version: 3.0.0
   drizzle-kit:
-    specifier: 0.20.14
+    specifier: ^0.20.14
     version: 0.20.14
   esbuild:
     specifier: ^0.19.8
