@@ -14,7 +14,7 @@ const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 describe('service: votes', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
-  let testData: z.infer<typeof insertVotesSchema>[number];
+  let testData: z.infer<typeof insertVotesSchema>;
   let cycle: db.Cycle | undefined;
   let questionOption: db.QuestionOption | undefined;
   let forumQuestion: db.ForumQuestion | undefined;

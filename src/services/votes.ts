@@ -64,111 +64,139 @@ export async function getVotesForCycleByUser(
 export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
-    req.body.userId = userId;
+    const out: db.Vote[] = [];
+    const errors = [];
 
-    // Query num_of_votes and user_id for a specific option_id
-    const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
-      where: eq(db.questionOptions.id, req.body.optionId),
-    });
+    const reqBody = z.array(z.object({})).safeParse(req.body);
 
-    req.body.questionId = queryQuestionOption?.questionId;
-    const body = insertVotesSchema.safeParse(req.body);
-
-    if (!body.success) {
-      return res.status(400).json({ errors: body.error.issues });
+    if (!reqBody.success) {
+      return res.status(400).json({ errors: reqBody.error.errors });
     }
-
-    const out = [];
 
     // Insert votes
-    for (const vote of body.data) {
-      const newVote = await insertVote(dbPool, vote);
+    try {
+      for (const vote of req.body) {
+        if (!vote.optionId) {
+          errors.push({ message: 'optionId is required' });
+          continue;
+        }
 
-      if (newVote.errors) {
-        return res.status(400).json({ errors: newVote.errors });
+        const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
+          where: eq(db.questionOptions.id, vote.optionId),
+        });
+
+        if (!queryQuestionOption) {
+          errors.push({ message: 'Option not found' });
+          continue;
+        }
+
+        vote.userId = userId;
+        vote.questionId = queryQuestionOption.questionId;
+
+        const body = insertVotesSchema.safeParse(vote);
+
+        if (!body.success) {
+          errors.push({ message: body.error.errors[0]?.message });
+          continue;
+        }
+
+        const newVote = await insertVote(dbPool, vote);
+
+        if (newVote.errors) {
+          errors.push(newVote.errors);
+          continue;
+        }
+
+        if (!newVote.data) {
+          errors.push({ message: 'Error saving new vote' });
+          continue;
+        }
+
+        out.push(newVote.data);
       }
 
-      out.push(newVote.data);
+      const uniqueOptionIds = new Set(out.map((vote) => vote.optionId));
+
+      // Update the vote count for each option
+      for (const optionId of uniqueOptionIds) {
+        // Query num_of_votes and user_id for a specific option_id
+        const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
+          sql.raw(`
+            SELECT user_id AS "userId", num_of_votes AS "numOfVotes" 
+            FROM (
+              SELECT user_id, num_of_votes, updated_at,
+                     ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY updated_at DESC) as row_num
+              FROM votes 
+              WHERE option_id = '${optionId}'
+            ) AS ranked 
+            WHERE row_num = 1
+          `),
+        );
+
+        // Check if there is at least one value greater than 0 in voteArray
+        const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
+
+        // Extract the dictionary of numOfVotes with userId as the key
+        const numOfVotesDictionary = voteArray.reduce(
+          (acc, vote) => {
+            if (!hasNonZeroValue || vote.numOfVotes !== 0) {
+              acc[vote.userId] = vote.numOfVotes;
+            }
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
+
+        // Query groupId and array of user ids associated with a given optionId
+        const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
+          sql.raw(`
+            SELECT group_id AS "groupId", json_agg(user_id) AS "userIds"
+            FROM users_to_groups
+            WHERE user_id IN (${Object.keys(numOfVotesDictionary)
+              .map((id) => `'${id}'`)
+              .join(', ')})
+            GROUP BY group_id
+          `),
+        );
+
+        const groupsDictionary = groupArray.reduce(
+          (acc, group) => {
+            acc[group.groupId] = group.userIds ?? [];
+            return acc;
+          },
+          {} as Record<string, string[]>,
+        );
+
+        // Quadratic Voting
+        // const [, totalVotes] = quadraticVoting(numOfVotesDictionary);
+
+        // Plural Voting
+        const totalVotes = new PluralVoting(
+          groupsDictionary,
+          numOfVotesDictionary,
+        ).pluralScoreCalculation();
+
+        // Update the options table with the new vote count
+        await dbPool
+          .update(db.questionOptions)
+          .set({
+            voteCount: totalVotes.toString(),
+            updatedAt: new Date(),
+          })
+          .where(eq(db.questionOptions.id, optionId));
+      }
+
+      return res.json({ data: out, errors });
+    } catch (e) {
+      console.error(`[ERROR] ${e}`);
+      return res.status(500).json({ errors: e });
     }
-
-    const uniqueOptionIds = new Set(body.data.map((vote) => vote.optionId));
-
-    // Update the vote count for each option
-    for (const optionId of uniqueOptionIds) {
-      // Query num_of_votes and user_id for a specific option_id
-      const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
-        sql.raw(`
-          SELECT user_id AS "userId", num_of_votes AS "numOfVotes" 
-          FROM (
-            SELECT user_id, num_of_votes, updated_at,
-                   ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY updated_at DESC) as row_num
-            FROM votes 
-            WHERE option_id = '${optionId}'
-          ) AS ranked 
-          WHERE row_num = 1
-        `),
-      );
-
-      // Check if there is at least one value greater than 0 in voteArray
-      const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
-
-      // Extract the dictionary of numOfVotes with userId as the key
-      const numOfVotesDictionary = voteArray.reduce(
-        (acc, vote) => {
-          if (!hasNonZeroValue || vote.numOfVotes !== 0) {
-            acc[vote.userId] = vote.numOfVotes;
-          }
-          return acc;
-        },
-        {} as Record<string, number>,
-      );
-
-      // Query groupId and array of user ids associated with a given optionId
-      const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
-        sql.raw(`
-          SELECT group_id AS "groupId", json_agg(user_id) AS "userIds"
-          FROM users_to_groups
-          WHERE user_id IN (${Object.keys(numOfVotesDictionary)
-            .map((id) => `'${id}'`)
-            .join(', ')})
-          GROUP BY group_id
-        `),
-      );
-
-      const groupsDictionary = groupArray.reduce(
-        (acc, group) => {
-          acc[group.groupId] = group.userIds ?? [];
-          return acc;
-        },
-        {} as Record<string, string[]>,
-      );
-
-      // Quadratic Voting
-      // const [, totalVotes] = quadraticVoting(numOfVotesDictionary);
-
-      // Plural Voting
-      const totalVotes = new PluralVoting(
-        groupsDictionary,
-        numOfVotesDictionary,
-      ).pluralScoreCalculation();
-
-      // Update the options table with the new vote count
-      await dbPool
-        .update(db.questionOptions)
-        .set({
-          voteCount: totalVotes.toString(),
-          updatedAt: new Date(),
-        })
-        .where(eq(db.questionOptions.id, optionId));
-    }
-
-    return res.json({ data: out });
   };
 }
 
 export async function insertVote(
   dbPool: PostgresJsDatabase<typeof db>,
-  vote: z.infer<typeof insertVotesSchema>[number],
+  vote: z.infer<typeof insertVotesSchema>,
 ) {
   // check if cycle is open
   const queryQuestion = await dbPool.query.forumQuestions.findFirst({
