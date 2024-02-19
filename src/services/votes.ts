@@ -83,7 +83,7 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
     // Insert votes
     try {
       for (const vote of req.body) {
-        const { data, error } = await validateAndInsertVote(dbPool, vote, userId);
+        const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
         if (data) {
           out.push(data);
         }
@@ -171,7 +171,7 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-async function validateAndInsertVote(
+async function validateAndSaveVote(
   dbPool: PostgresJsDatabase<typeof db>,
   vote: { optionId: string; numOfVotes: number },
   userId: string,
@@ -201,7 +201,7 @@ async function validateAndInsertVote(
     return { data: null, error: body.error.errors[0]?.message };
   }
 
-  const newVote = await insertVote(dbPool, insertVoteBody);
+  const newVote = await saveVote(dbPool, insertVoteBody);
 
   if (newVote.errors) {
     return { data: null, error: newVote.errors[0]?.message };
@@ -214,7 +214,7 @@ async function validateAndInsertVote(
   return { data: newVote.data, error: null };
 }
 
-export async function insertVote(
+export async function saveVote(
   dbPool: PostgresJsDatabase<typeof db>,
   vote: z.infer<typeof insertVotesSchema>,
 ) {
