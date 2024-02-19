@@ -1,5 +1,5 @@
 {
-  "id": "b659d9e6-26d5-4e41-88d7-235c0d3ea2d7",
+  "id": "42753659-744c-4283-9ddd-c15bdf1b49aa",
   "prevId": "2a60b9ce-b8d9-49f7-96e5-626397f18f22",
   "version": "5",
   "dialect": "pg",
@@ -27,8 +27,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "comment": {
-          "name": "comment",
+        "value": {
+          "name": "value",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true

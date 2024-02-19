@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS "comments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid,
 	"question_option_id" uuid,
-	"comment" varchar NOT NULL,
+	"value" varchar NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

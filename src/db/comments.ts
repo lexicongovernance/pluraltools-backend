@@ -7,7 +7,7 @@ export const comments = pgTable('comments', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id),
   questionOptionId: uuid('question_option_id').references(() => questionOptions.id),
-  comment: varchar('comment').notNull(),
+  value: varchar('value').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
