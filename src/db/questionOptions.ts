@@ -3,6 +3,7 @@ import { forumQuestions } from './forumQuestions';
 import { relations } from 'drizzle-orm';
 import { votes } from './votes';
 import { registrationData } from './registrationData';
+import { comments } from './comments';
 
 export const questionOptions = pgTable('question_options', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -27,6 +28,7 @@ export const questionOptionsRelations = relations(questionOptions, ({ one, many 
     fields: [questionOptions.registrationDataId],
     references: [registrationData.id],
   }),
+  comment: many(comments),
   votes: many(votes),
 }));
 
