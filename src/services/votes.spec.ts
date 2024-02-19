@@ -6,7 +6,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { insertVote, getVotesForCycleByUser } from './votes';
+import { saveVote, getVotesForCycleByUser } from './votes';
 import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -44,7 +44,7 @@ describe('service: votes', () => {
   it('should save vote', async () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     // Call the saveVote function
-    const { data: response } = await insertVote(dbPool, testData);
+    const { data: response } = await saveVote(dbPool, testData);
     // Check if response is defined
     expect(response).toBeDefined();
     // Check property existence and types
@@ -61,7 +61,7 @@ describe('service: votes', () => {
     // update cycle to closed state
     await dbPool.update(db.cycles).set({ status: 'CLOSED' }).where(eq(db.cycles.id, cycle!.id));
     // Call the saveVote function
-    const { data: response, errors } = await insertVote(dbPool, testData);
+    const { data: response, errors } = await saveVote(dbPool, testData);
 
     // expect response to be undefined
     expect(response).toBeUndefined();
@@ -74,7 +74,7 @@ describe('service: votes', () => {
     // update cycle to closed state
     await dbPool.update(db.cycles).set({ status: 'UPCOMING' }).where(eq(db.cycles.id, cycle!.id));
     // Call the saveVote function
-    const { data: response, errors } = await insertVote(dbPool, testData);
+    const { data: response, errors } = await saveVote(dbPool, testData);
 
     // expect response to be undefined
     expect(response).toBeUndefined();
