@@ -67,7 +67,14 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
     const out: db.Vote[] = [];
     const errors = [];
 
-    const reqBody = z.array(z.object({})).safeParse(req.body);
+    const reqBody = z
+      .array(
+        z.object({
+          optionId: z.string(),
+          numOfVotes: z.number(),
+        }),
+      )
+      .safeParse(req.body);
 
     if (!reqBody.success) {
       return res.status(400).json({ errors: reqBody.error.errors });
@@ -76,43 +83,13 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
     // Insert votes
     try {
       for (const vote of req.body) {
-        if (!vote.optionId) {
-          errors.push({ message: 'optionId is required' });
-          continue;
+        const { data, error } = await validateAndInsertVote(dbPool, vote, userId);
+        if (data) {
+          out.push(data);
         }
-
-        const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
-          where: eq(db.questionOptions.id, vote.optionId),
-        });
-
-        if (!queryQuestionOption) {
-          errors.push({ message: 'Option not found' });
-          continue;
+        if (error) {
+          errors.push({ message: error });
         }
-
-        vote.userId = userId;
-        vote.questionId = queryQuestionOption.questionId;
-
-        const body = insertVotesSchema.safeParse(vote);
-
-        if (!body.success) {
-          errors.push({ message: body.error.errors[0]?.message });
-          continue;
-        }
-
-        const newVote = await insertVote(dbPool, vote);
-
-        if (newVote.errors) {
-          errors.push(newVote.errors);
-          continue;
-        }
-
-        if (!newVote.data) {
-          errors.push({ message: 'Error saving new vote' });
-          continue;
-        }
-
-        out.push(newVote.data);
       }
 
       const uniqueOptionIds = new Set(out.map((vote) => vote.optionId));
@@ -192,6 +169,49 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(500).json({ errors: e });
     }
   };
+}
+
+async function validateAndInsertVote(
+  dbPool: PostgresJsDatabase<typeof db>,
+  vote: { optionId: string; numOfVotes: number },
+  userId: string,
+): Promise<{ data: db.Vote | null | undefined; error: string | null | undefined }> {
+  if (!vote.optionId) {
+    return { data: null, error: 'optionId is required' };
+  }
+
+  const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
+    where: eq(db.questionOptions.id, vote.optionId),
+  });
+
+  if (!queryQuestionOption) {
+    return { data: null, error: 'Option not found' };
+  }
+
+  const insertVoteBody: z.infer<typeof insertVotesSchema> = {
+    optionId: vote.optionId,
+    numOfVotes: vote.numOfVotes,
+    userId: userId,
+    questionId: queryQuestionOption.questionId,
+  };
+
+  const body = insertVotesSchema.safeParse(insertVoteBody);
+
+  if (!body.success) {
+    return { data: null, error: body.error.errors[0]?.message };
+  }
+
+  const newVote = await insertVote(dbPool, insertVoteBody);
+
+  if (newVote.errors) {
+    return { data: null, error: newVote.errors[0]?.message };
+  }
+
+  if (!newVote.data) {
+    return { data: null, error: 'Failed to insert vote' };
+  }
+
+  return { data: newVote.data, error: null };
 }
 
 export async function insertVote(
