@@ -43,6 +43,13 @@
       "when": 1707401588978,
       "tag": "0005_goofy_northstar",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1708350255136,
+      "tag": "0006_far_vapor",
+      "breakpoints": true
     }
   ]
 }
