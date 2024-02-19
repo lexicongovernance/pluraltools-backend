@@ -6,6 +6,7 @@ import { usersToGroups } from './usersToGroups';
 import { userAttributes } from './userAttributes';
 import { federatedCredentials } from '.';
 import { comments } from './comments';
+import { likes } from './likes';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -24,6 +25,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   userAttributes: many(userAttributes),
   federatedCredential: one(federatedCredentials),
   comments: many(comments),
+  likes: many(likes),
 }));
 
 export type User = typeof users.$inferSelect;
