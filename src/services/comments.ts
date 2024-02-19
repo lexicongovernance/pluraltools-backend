@@ -5,6 +5,11 @@ import { insertCommentSchema } from '../types';
 import { z } from 'zod';
 import * as db from '../db';
 
+/**
+ * Saves a comment to the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @returns {Promise<void>} - A promise that resolves once the comment is saved.
+ */
 export function saveComment(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
@@ -24,6 +29,14 @@ export function saveComment(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+/**
+ * Upserts a comment into the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @param {z.infer<typeof insertCommentSchema>} data - The comment data to upsert.
+ * @param {string} userId - The ID of the user making the comment.
+ * @returns {Promise<Comment>} - A promise that resolves with the upserted comment.
+ * @throws {Error} - Throws an error if the upsert fails.
+ */
 export async function upsertComment(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertCommentSchema>,
@@ -45,6 +58,11 @@ export async function upsertComment(
   }
 }
 
+/**
+ * Retrieves comments related to a specific question option from the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @returns {Promise<void>} - A promise that resolves with the retrieved comments.
+ */
 export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const questionOptionId = req.params.questionOptionId ?? '';
