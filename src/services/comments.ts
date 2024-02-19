@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import { insertCommentSchema } from '../types';
@@ -42,4 +43,22 @@ export async function upsertComment(
     console.error('Error in upsertComment: ', error);
     throw new Error('Failed to upsert comment');
   }
+}
+
+export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const questionOptionId = req.params.questionOptionId ?? '';
+
+    try {
+      // Query the database for comments related to the specified questionOptionId
+      const comments = await dbPool.query.comments.findMany({
+        where: eq(db.comments.questionOptionId, questionOptionId),
+      });
+
+      return res.json({ data: comments });
+    } catch (error) {
+      console.error('Error getting comments: ', error);
+      return res.sendStatus(500);
+    }
+  };
 }
