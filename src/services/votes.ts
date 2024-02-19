@@ -71,7 +71,7 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
       .array(
         z.object({
           optionId: z.string(),
-          numOfVotes: z.number(),
+          numOfVotes: z.number().positive(),
         }),
       )
       .safeParse(req.body);
