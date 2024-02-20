@@ -46,7 +46,7 @@ export async function getVotesForCycleByUser(
                     SELECT MAX(created_at) FROM (
                         SELECT created_at, user_id FROM votes 
                         WHERE user_id = ${userId} AND option_id = ${optionId}
-                    )
+                    ) as ranked
                   )`,
               },
             },
