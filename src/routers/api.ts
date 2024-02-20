@@ -10,6 +10,7 @@ import { cyclesRouter } from './cycles';
 import { eventsRouter } from './events';
 import { forumQuestionsRouter } from './forumQuestions';
 import { groupsRouter } from './groups';
+import { commentsRouter } from './comments';
 import { optionsRouter } from './options';
 
 const router = express.Router();
@@ -51,6 +52,7 @@ export function apiRouter({
   router.use('/events', eventsRouter({ dbPool }));
   router.use('/forum-questions', forumQuestionsRouter({ dbPool }));
   router.use('/groups', groupsRouter({ dbPool }));
+  router.use('/comments', commentsRouter({ dbPool }));
   router.use('/options', optionsRouter({ dbPool }));
 
   return router;
