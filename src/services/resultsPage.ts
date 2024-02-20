@@ -84,7 +84,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
             ),
             
             plural_score_and_title AS (
-                SELECT "id" AS "optionId", "option_title" AS "optionTitle", vote_count AS "pluralityScore"
+                SELECT "id" AS "optionId", "option_title" AS "optionTitle", vote_score AS "pluralityScore"
                 FROM question_options
                 WHERE question_id = '${forumQuestionId}'
             ),
