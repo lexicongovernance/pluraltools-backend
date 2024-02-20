@@ -9,7 +9,7 @@ const router = express.Router();
 
 export function optionsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.get('/:optionId', isLoggedIn(), getOption(dbPool));
-  router.get('/:optionId/comment-data', isLoggedIn(), getCommentsForOption(dbPool));
-  router.post('/:optionId/comment', isLoggedIn(), saveComment(dbPool));
+  router.get('/:optionId/comments', isLoggedIn(), getCommentsForOption(dbPool));
+  router.post('/:optionId/comments', isLoggedIn(), saveComment(dbPool));
   return router;
 }
