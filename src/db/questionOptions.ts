@@ -14,7 +14,7 @@ export const questionOptions = pgTable('question_options', {
   optionTitle: varchar('option_title', { length: 256 }).notNull(),
   optionSubTitle: varchar('option_sub_title'),
   accepted: boolean('accepted').default(false),
-  voteCount: numeric('vote_count').notNull().default('0.0'),
+  voteScore: numeric('vote_score').notNull().default('0.0'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
