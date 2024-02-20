@@ -65,12 +65,12 @@ export async function upsertComment(
  */
 export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const questionOptionId = req.params.questionOptionId ?? '';
+    const optionId = req.params.optionId ?? '';
 
     try {
       // Query the database for comments related to the specified questionOptionId
       const comments = await dbPool.query.comments.findMany({
-        where: eq(db.comments.questionOptionId, questionOptionId),
+        where: eq(db.comments.questionOptionId, optionId),
       });
 
       return res.json({ data: comments });
