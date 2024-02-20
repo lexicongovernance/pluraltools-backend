@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
@@ -41,9 +41,13 @@ export async function getVotesForCycleByUser(
           questionOptions: {
             with: {
               votes: {
-                where: and(eq(db.votes.userId, userId)),
-                limit: 1,
-                orderBy: [desc(db.votes.createdAt)],
+                where: ({ optionId }) =>
+                  sql`${db.votes.createdAt} = (
+                    SELECT MAX(created_at) FROM (
+                        SELECT created_at, user_id FROM votes 
+                        WHERE user_id = ${userId} AND option_id = ${optionId}
+                    )
+                  )`,
               },
             },
           },
@@ -58,6 +62,7 @@ export async function getVotesForCycleByUser(
       question.questionOptions.flatMap((option) => option.votes),
     ),
   );
+
   return out;
 }
 
@@ -96,7 +101,7 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
 
       // Update the vote count for each option
       for (const optionId of uniqueOptionIds) {
-        await updateVoteCount(dbPool, optionId);
+        await updateVoteScore(dbPool, optionId);
       }
 
       return res.json({ data: out, errors });
@@ -107,7 +112,7 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-async function updateVoteCount(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
+async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
   // Query num_of_votes and user_id for a specific option_id
   const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
     sql.raw(`
@@ -160,16 +165,13 @@ async function updateVoteCount(dbPool: PostgresJsDatabase<typeof db>, optionId: 
   // const [, totalVotes] = quadraticVoting(numOfVotesDictionary);
 
   // Plural Voting
-  const totalVotes = new PluralVoting(
-    groupsDictionary,
-    numOfVotesDictionary,
-  ).pluralScoreCalculation();
+  const score = new PluralVoting(groupsDictionary, numOfVotesDictionary).pluralScoreCalculation();
 
   // Update the options table with the new vote count
   await dbPool
     .update(db.questionOptions)
     .set({
-      voteCount: totalVotes.toString(),
+      voteScore: score.toString(),
       updatedAt: new Date(),
     })
     .where(eq(db.questionOptions.id, optionId));
