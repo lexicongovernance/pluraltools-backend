@@ -10,19 +10,12 @@ export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
       with: {
         forumQuestions: {
           with: {
-            questionOptions: true,
+            questionOptions: {
+              where: eq(db.questionOptions.accepted, true),
+            },
           },
         },
       },
-    });
-
-    // Filter out the accepted question options from each forum question
-    activeCycles.forEach((cycle) => {
-      cycle.forumQuestions.forEach((forumQuestion) => {
-        forumQuestion.questionOptions = forumQuestion.questionOptions.filter(
-          (option) => option.accepted,
-        );
-      });
     });
 
     return res.json({ data: activeCycles });
@@ -42,18 +35,12 @@ export function getEventCycles(dbPool: PostgresJsDatabase<typeof db>) {
       with: {
         forumQuestions: {
           with: {
-            questionOptions: true,
+            questionOptions: {
+              where: eq(db.questionOptions.accepted, true),
+            },
           },
         },
       },
-    });
-
-    eventCycles.forEach((cycle) => {
-      cycle.forumQuestions.forEach((forumQuestion) => {
-        forumQuestion.questionOptions = forumQuestion.questionOptions.filter(
-          (option) => option.accepted,
-        );
-      });
     });
 
     return res.json({ data: eventCycles });
@@ -73,19 +60,13 @@ export function getCycleById(dbPool: PostgresJsDatabase<typeof db>) {
       with: {
         forumQuestions: {
           with: {
-            questionOptions: true,
+            questionOptions: {
+              where: eq(db.questionOptions.accepted, true),
+            },
           },
         },
       },
     });
-
-    if (cycle) {
-      cycle.forumQuestions.forEach((forumQuestion) => {
-        forumQuestion.questionOptions = forumQuestion.questionOptions.filter(
-          (option) => option.accepted,
-        );
-      });
-    }
 
     return res.json({ data: cycle });
   };
