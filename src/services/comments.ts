@@ -20,7 +20,7 @@ export function saveComment(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     try {
-      const out = await upsertComment(dbPool, body.data, userId);
+      const out = await insertComment(dbPool, body.data, userId);
       return res.json({ data: out });
     } catch (e) {
       console.log('error saving comment ' + e);
@@ -30,14 +30,14 @@ export function saveComment(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 /**
- * Upserts a comment into the database.
+ * Inserts a new comment into the database.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
- * @param {z.infer<typeof insertCommentSchema>} data - The comment data to upsert.
+ * @param {z.infer<typeof insertCommentSchema>} data - The comment data to insert.
  * @param {string} userId - The ID of the user making the comment.
- * @returns {Promise<Comment>} - A promise that resolves with the upserted comment.
- * @throws {Error} - Throws an error if the upsert fails.
+ * @returns {Promise<Comment>} - A promise that resolves with the inserted comment.
+ * @throws {Error} - Throws an error if the insertion fails.
  */
-export async function upsertComment(
+export async function insertComment(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertCommentSchema>,
   userId: string,
@@ -53,8 +53,8 @@ export async function upsertComment(
       .returning();
     return newComment[0];
   } catch (error) {
-    console.error('Error in upsertComment: ', error);
-    throw new Error('Failed to upsert comment');
+    console.error('Error in insertComment: ', error);
+    throw new Error('Failed to insert comment');
   }
 }
 
