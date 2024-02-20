@@ -7,7 +7,7 @@ const router = express.Router();
 
 export function commentsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.get('/:commentId/likes', isLoggedIn(), getLikes(dbPool));
-  router.post('/:commentId/like', isLoggedIn(), saveLike(dbPool));
-  router.delete('/:commentId/like', isLoggedIn(), deleteLike(dbPool));
+  router.post('/:commentId/likes', isLoggedIn(), saveLike(dbPool));
+  router.delete('/:commentId/likes', isLoggedIn(), deleteLike(dbPool));
   return router;
 }
