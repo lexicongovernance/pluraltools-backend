@@ -3,24 +3,19 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { and, eq } from 'drizzle-orm';
 
-export function getLike(dbPool: PostgresJsDatabase<typeof db>) {
+export function getLikes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
-    const userId = req.session.userId;
 
     if (!commentId) {
       return res.status(400).json({ errors: ['commentId is required'] });
     }
 
-    const like = await dbPool.query.likes.findFirst({
-      where: and(eq(db.comments.id, commentId), eq(db.comments.userId, userId)),
+    const likes = await dbPool.query.likes.findMany({
+      where: and(eq(db.comments.id, commentId)),
     });
 
-    if (!like) {
-      return res.status(404).json({ errors: ['like not found'] });
-    }
-
-    return res.json({ data: like });
+    return res.json({ data: likes });
   };
 }
 
