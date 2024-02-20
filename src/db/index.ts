@@ -13,3 +13,4 @@ export * from './groups';
 export * from './usersToGroups';
 export * from './userAttributes';
 export * from './comments';
+export * from './likes';
