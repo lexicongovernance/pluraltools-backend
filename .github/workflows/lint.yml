@@ -1,10 +1,12 @@
 name: Linting
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+    branches:
+      - next
+      - develop
+      - main
 
 concurrency:
   # group runs by <name of the workflow>-<name of job>-<branch name>

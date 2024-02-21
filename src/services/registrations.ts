@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
-import { and, ne } from 'drizzle-orm';
+import { and } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
-import { overwriteRegistrationData } from './registrationData';
+import { upsertRegistrationData, updateQuestionOptions } from './registrationData';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -88,18 +88,25 @@ export async function sendRegistrationData(
     throw new Error('failed to save registration');
   }
 
-  const updatedRegistrationData = await overwriteRegistrationData({
+  const updatedRegistrationData = await upsertRegistrationData({
     dbPool,
     registrationId: newRegistration.id,
     registrationData: data.registrationData,
   });
 
-  const out = {
-    ...newRegistration,
-    registrationData: updatedRegistrationData,
-  };
+  try {
+    await updateQuestionOptions(dbPool, updatedRegistrationData);
 
-  return out;
+    const out = {
+      ...newRegistration,
+      registrationData: updatedRegistrationData,
+    };
+
+    return out;
+  } catch (error) {
+    console.error('Error in updateQuestionOptions: ', error);
+    throw new Error('Failed to update question options');
+  }
 }
 
 async function upsertRegistration(

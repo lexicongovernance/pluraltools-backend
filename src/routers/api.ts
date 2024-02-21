@@ -5,9 +5,12 @@ import { ironSession } from 'iron-session/express';
 import { authRouter } from './auth';
 import cors from 'cors';
 import { usersRouter } from './users';
-import { votesRouter } from './votes';
 import { cyclesRouter } from './cycles';
 import { eventsRouter } from './events';
+import { forumQuestionsRouter } from './forumQuestions';
+import { groupsRouter } from './groups';
+import { commentsRouter } from './comments';
+import { optionsRouter } from './options';
 
 const router = express.Router();
 
@@ -18,7 +21,13 @@ declare module 'iron-session' {
   }
 }
 
-export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
+export function apiRouter({
+  dbPool,
+  cookiePassword,
+}: {
+  dbPool: PostgresJsDatabase<typeof db>;
+  cookiePassword: string;
+}) {
   // setup
   router.use(express.json());
   router.use(express.urlencoded({ extended: true }));
@@ -27,7 +36,7 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
     ironSession({
       ttl: 1209600, // Expiry: 14 days.
       cookieName: 'forum_app_cookie',
-      password: '0001020304050607080900010203040506070809000102030405060708090001',
+      password: cookiePassword,
       cookieOptions: {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
@@ -37,9 +46,12 @@ export function apiRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> })
   // routes
   router.use('/auth', authRouter({ dbPool }));
   router.use('/users', usersRouter({ dbPool }));
-  router.use('/votes', votesRouter({ dbPool }));
   router.use('/cycles', cyclesRouter({ dbPool }));
   router.use('/events', eventsRouter({ dbPool }));
+  router.use('/forum-questions', forumQuestionsRouter({ dbPool }));
+  router.use('/groups', groupsRouter({ dbPool }));
+  router.use('/comments', commentsRouter({ dbPool }));
+  router.use('/options', optionsRouter({ dbPool }));
 
   return router;
 }

@@ -9,7 +9,7 @@ async function main() {
   const envVariables = environmentVariables.parse(process.env);
   const { dbPool } = createDbPool(envVariables.DB_CONNECTION_URL, {});
   await runMigrations(envVariables.DB_CONNECTION_URL);
-  app.use('/api', apiRouter({ dbPool }));
+  app.use('/api', apiRouter({ dbPool, cookiePassword: envVariables.COOKIE_PASSWORD }));
   app.listen(
     !isNaN(Number(envVariables.PORT)) ? Number(envVariables.PORT) : 8080,
     '0.0.0.0',

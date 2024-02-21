@@ -19,6 +19,7 @@ export async function overwriteUsersToGroups(
     .insert(db.usersToGroups)
     .values(newGroupIds.map((groupId) => ({ groupId, userId })))
     .returning();
+
   // return new user groups
   return newUsersToGroups;
 }

@@ -1,7 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import pgConnectionString from 'pg-connection-string';
-import { z } from 'zod';
 import * as db from '../../db';
 
 /**
@@ -9,10 +8,10 @@ import * as db from '../../db';
  */
 export function createDbPool(
   dbConnectionUrl: string,
-  overwriteOptions: postgres.Options<{}> | undefined,
+  overwriteOptions: postgres.Options<NonNullable<unknown>> | undefined,
 ) {
   const connectionConfig = pgConnectionString.parse(dbConnectionUrl);
-  const defaultOptions: postgres.Options<{}> | undefined = {
+  const defaultOptions: postgres.Options<NonNullable<unknown>> | undefined = {
     host: connectionConfig.host ?? undefined,
     port: connectionConfig.port ? parseInt(connectionConfig.port) : undefined,
     user: connectionConfig.user,

@@ -1,16 +1,17 @@
 import { relations } from 'drizzle-orm';
-import { pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { forumQuestions } from './forumQuestions';
 import { events } from './events';
-
-export const cyclesEnum = pgEnum('cycles_enum', ['OPEN', 'CLOSED', 'RESULTS']);
 
 export const cycles = pgTable('cycles', {
   id: uuid('id').primaryKey().defaultRandom(),
   eventId: uuid('event_id').references(() => events.id),
   startAt: timestamp('start_at').notNull(),
   endAt: timestamp('end_at').notNull(),
-  status: cyclesEnum('status').default('OPEN'),
+  // OPEN / CLOSED / UPCOMING
+  status: varchar('status', {
+    length: 20,
+  }).default('UPCOMING'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

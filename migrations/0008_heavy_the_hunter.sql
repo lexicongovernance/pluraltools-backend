@@ -1,0 +1,1 @@
+ALTER TABLE "question_options" RENAME COLUMN "vote_count" TO "vote_score";

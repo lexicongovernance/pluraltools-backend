@@ -1,0 +1,1 @@
+ALTER TABLE "registration_fields" ADD COLUMN "character_limit" integer DEFAULT 0;
