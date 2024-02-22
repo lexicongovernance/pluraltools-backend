@@ -28,6 +28,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
             SELECT count("id") AS "numProposals" 
             FROM question_options
             WHERE question_id = '${forumQuestionId}'
+            AND accepted = TRUE
           `),
         ),
 
