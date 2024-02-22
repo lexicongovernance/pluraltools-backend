@@ -71,6 +71,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
         dbPool.execute<{
           optionId: string;
           optionTitle: string;
+          optionSubTitle: string;
           pluralityScore: number;
           distinctUsers: number;
           allocatedHearts: number;
@@ -84,7 +85,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
             ),
             
             plural_score_and_title AS (
-                SELECT "id" AS "optionId", "option_title" AS "optionTitle", vote_score AS "pluralityScore"
+                SELECT "id" AS "optionId", "option_title" AS "optionTitle", "option_sub_title" AS "optionSubTitle", vote_score AS "pluralityScore"
                 FROM question_options
                 WHERE question_id = '${forumQuestionId}'
             ),
@@ -102,7 +103,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
             ),
             
             merged_result AS (
-                SELECT id_title_score."optionId", id_title_score."optionTitle",
+                SELECT id_title_score."optionId", id_title_score."optionTitle", id_title_score."optionSubTitle",
                     id_title_score."pluralityScore", distinct_users."distinctUsers",
                     hearts."allocatedHearts"
                 FROM plural_score_and_title AS id_title_score
@@ -126,6 +127,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
         string,
         {
           optionTitle: string;
+          optionSubTitle: string;
           pluralityScore: number;
           distinctUsers: number;
           allocatedHearts: number;
@@ -137,6 +139,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
         const {
           optionId: indivOptionId,
           optionTitle: indivOptionTitle,
+          optionSubTitle: indivOptionSubTitle,
           pluralityScore: indivPluralityScore,
           distinctUsers: indivDistinctUsers,
           allocatedHearts: indivAllocatedHearts,
@@ -144,6 +147,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
 
         indivStats[indivOptionId] = {
           optionTitle: indivOptionTitle || 'No Title Provided',
+          optionSubTitle: indivOptionSubTitle || '',
           pluralityScore: indivPluralityScore || 0,
           distinctUsers: indivDistinctUsers || 0,
           allocatedHearts: indivAllocatedHearts || 0,
