@@ -75,6 +75,8 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
           pluralityScore: number;
           distinctUsers: number;
           allocatedHearts: number;
+          distinctGroups: number;
+          listOfGroupNames: string[];
         }>(
           sql.raw(`
             WITH distinct_voters_by_option AS (
@@ -102,15 +104,48 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
                 GROUP BY option_id
             ),
             
+            /* Query distinct groups and group names by option id */
+            user_group_name AS (
+              SELECT users_to_groups."user_id", users_to_groups."group_id", groups."name" 
+              FROM users_to_groups
+              LEFT JOIN groups
+              ON users_to_groups."group_id" = groups."id"
+            ),
+            
+            option_user AS (
+              SELECT option_id, user_id
+              FROM votes
+              WHERE question_id = '${forumQuestionId}'
+              GROUP BY option_id, user_id
+            ),
+            
+            option_user_group_name AS (
+              SELECT option_user."user_id", option_user."option_id", 
+                user_group_name."group_id", user_group_name."name"
+              FROM option_user 
+              LEFT JOIN user_group_name 
+              ON option_user."user_id" = user_group_name."user_id"
+            ),
+            
+            option_distinct_group_name AS (
+              SELECT option_id AS "optionId", count(DISTINCT group_id) AS "distinctGroups", 
+              STRING_TO_ARRAY(STRING_AGG(DISTINCT name, ','), ',') AS "listOfGroupNames"
+              FROM option_user_group_name
+              GROUP BY option_id
+            ),
+            
+            /* Aggregated results */
             merged_result AS (
                 SELECT id_title_score."optionId", id_title_score."optionTitle", id_title_score."optionSubTitle",
                     id_title_score."pluralityScore", distinct_users."distinctUsers",
-                    hearts."allocatedHearts"
+                    hearts."allocatedHearts", group_count_names."distinctGroups", group_count_names."listOfGroupNames" 
                 FROM plural_score_and_title AS id_title_score
                 LEFT JOIN distinct_voters_by_option AS distinct_users 
                 ON id_title_score."optionId" = distinct_users."optionId"
                 LEFT JOIN allocated_hearts AS hearts 
                 ON id_title_score."optionId" = hearts."optionId"
+                LEFT JOIN option_distinct_group_name AS group_count_names
+                ON id_title_score."optionId" = group_count_names."optionId"
             )
 
             SELECT *
@@ -131,6 +166,8 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
           pluralityScore: number;
           distinctUsers: number;
           allocatedHearts: number;
+          distinctGroups: number;
+          listOfGroupNames: string[];
         }
       > = {};
 
@@ -143,6 +180,8 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
           pluralityScore: indivPluralityScore,
           distinctUsers: indivDistinctUsers,
           allocatedHearts: indivAllocatedHearts,
+          distinctGroups: indivdistinctGroups,
+          listOfGroupNames: indivlistOfGroupNames,
         } = row;
 
         indivStats[indivOptionId] = {
@@ -151,6 +190,8 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
           pluralityScore: indivPluralityScore || 0,
           distinctUsers: indivDistinctUsers || 0,
           allocatedHearts: indivAllocatedHearts || 0,
+          distinctGroups: indivdistinctGroups || 0,
+          listOfGroupNames: indivlistOfGroupNames || [],
         };
       });
 
