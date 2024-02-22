@@ -81,6 +81,7 @@ async function createCycle(dbPool: PostgresJsDatabase<typeof db>, eventId?: stri
     .values({
       startAt: new Date(),
       endAt: endInADay,
+      status: 'OPEN',
       eventId,
     })
     .returning();
@@ -111,8 +112,9 @@ async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, ques
       {
         questionId,
         optionTitle: randMovie(),
+        accepted: true,
       },
-      { questionId, optionTitle: randMovie() },
+      { questionId, optionTitle: randMovie(), accepted: true },
     ])
     .returning();
 }
