@@ -93,6 +93,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
                 SELECT "id" AS "optionId", "option_title" AS "optionTitle", "option_sub_title" AS "optionSubTitle", vote_score AS "pluralityScore"
                 FROM question_options
                 WHERE question_id = '${forumQuestionId}'
+                AND accepted = TRUE -- makes sure to only expose data of accepted options
             ),
             
             allocated_hearts AS (
