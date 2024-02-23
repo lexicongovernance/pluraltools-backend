@@ -16,7 +16,6 @@ describe('getResultStatistics endpoint', () => {
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
 
   beforeAll(async () => {
-    // Setup database connection
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
     await runMigrations(DB_CONNECTION_URL);
     dbPool = initDb.dbPool;
@@ -32,7 +31,7 @@ describe('getResultStatistics endpoint', () => {
     dbConnection = initDb.connection;
   });
 
-  it('should return aggregated statistics when all queries return valid data', async () => {
+  test('should return aggregated statistics when all queries return valid data', async () => {
     // Mock forumQuestionId in req.params
     req.params = { forumQuestionId: '3eac2a7b-a20d-4157-9855-ad7a65a5a731' };
 
@@ -46,16 +45,10 @@ describe('getResultStatistics endpoint', () => {
     // Assertions for response
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalled();
-    // Add more assertions as needed
   });
 
-  // Add more test cases for different scenarios
-
   afterAll(async () => {
-    // Clean up database
     await cleanup(dbPool);
-
-    // Close database connection
     await dbConnection.end();
   });
 });
