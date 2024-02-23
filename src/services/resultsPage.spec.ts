@@ -1,6 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { getResultStatistics } from './resultsPage';
 import * as db from '../db';
+import postgres from 'postgres';
 import { createDbPool } from '../utils/db/createDbPool';
 import { runMigrations } from '../utils/db/runMigrations';
 import { cleanup, seed } from '../utils/db/seed';
@@ -12,7 +13,7 @@ describe('getResultStatistics endpoint', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let req: Partial<Request>;
   let res: Partial<Response>;
-  let dbConnection: any; // Assuming the type of dbConnection
+  let dbConnection: postgres.Sql<NonNullable<unknown>>;
 
   beforeAll(async () => {
     // Setup database connection
@@ -24,8 +25,8 @@ describe('getResultStatistics endpoint', () => {
     await seed(dbPool);
 
     // Initialize req and res objects
-    req = {}; // Initialize req object as needed
-    res = {}; // Initialize res object as needed
+    req = {};
+    res = {};
 
     // Initialize dbConnection
     dbConnection = initDb.connection;
