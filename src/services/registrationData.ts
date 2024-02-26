@@ -118,6 +118,7 @@ export async function updateQuestionOptions(
   registrationData:
     | {
         id: string;
+        registrationFieldId: string;
         registrationId: string;
         value: string;
       }[]
@@ -130,26 +131,30 @@ export async function updateQuestionOptions(
     // Fetch registration_id's from registrationData that have
     // a question_id so it requires question_options to be populated
     const registrationFields = await dbPool.execute<{
-      registrationId: string;
+      registrationFieldId: string;
       questionId: string;
     }>(
       sql.raw(`
           SELECT id AS "registrationFieldId", question_id AS "questionId"
           FROM registration_fields
           WHERE question_id IS NOT NULL
-          AND id IN (${registrationData.map((data) => `'${data.registrationId}'`).join(', ')})
+          AND id IN (${registrationData.map((data) => `'${data.registrationFieldId}'`).join(', ')})
           `),
     );
 
+    console.log('registrationFields', registrationFields);
+
     // Pre-filter registrationData to include only relevant entries (avoids looping thorough the entire set of registration data)
     const filteredRegistrationData = registrationData.filter((data) =>
-      registrationFields.some((field) => field.registrationId === data.registrationId),
+      registrationFields.some((field) => field.registrationFieldId === data.registrationFieldId),
     );
+
+    console.log('filteredRegistrationData', filteredRegistrationData);
 
     // for each registrationFieldId update or insert question options
     for (const registrationField of registrationFields) {
       const registrationDataForField = filteredRegistrationData.find(
-        (data) => data.registrationId === registrationField.registrationId,
+        (data) => data.registrationFieldId === registrationField.registrationFieldId,
       );
 
       // check whether registrationDataForField exists
@@ -162,7 +167,8 @@ export async function updateQuestionOptions(
         await dbPool
           .update(db.questionOptions)
           .set({
-            registrationId: registrationDataForField?.id || existingQuestionOption.registrationId,
+            registrationId:
+              registrationDataForField?.registrationId || existingQuestionOption.registrationId,
             questionId: existingQuestionOption.questionId,
             optionTitle: registrationDataForField?.value || existingQuestionOption.optionTitle,
             updatedAt: new Date(),
@@ -174,7 +180,7 @@ export async function updateQuestionOptions(
         await dbPool
           .insert(db.questionOptions)
           .values({
-            registrationId: registrationDataForField?.id || '',
+            registrationId: registrationDataForField?.registrationId || '',
             questionId: registrationField.questionId,
             optionTitle: registrationDataForField?.value || '',
             createdAt: new Date(),
