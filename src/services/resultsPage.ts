@@ -212,7 +212,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
         optionStats: indivStats,
       };
 
-      return res.json({ data: responseData });
+      return res.status(200).json({ data: responseData });
     } catch (error) {
       console.error('Error in getResultStatistics:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
