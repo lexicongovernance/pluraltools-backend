@@ -2,12 +2,12 @@ import { boolean, pgTable, timestamp, uuid, varchar, numeric } from 'drizzle-orm
 import { forumQuestions } from './forumQuestions';
 import { relations } from 'drizzle-orm';
 import { votes } from './votes';
-import { registrationData } from './registrationData';
+import { registrations } from './registrations';
 import { comments } from './comments';
 
 export const questionOptions = pgTable('question_options', {
   id: uuid('id').primaryKey().defaultRandom(),
-  registrationId: uuid('registration_id').references(() => registrationData.registrationId),
+  registrationId: uuid('registration_id').references(() => registrations.id),
   questionId: uuid('question_id')
     .references(() => forumQuestions.id)
     .notNull(),
@@ -24,9 +24,9 @@ export const questionOptionsRelations = relations(questionOptions, ({ one, many 
     fields: [questionOptions.questionId],
     references: [forumQuestions.id],
   }),
-  registrationData: one(registrationData, {
+  registrations: one(registrations, {
     fields: [questionOptions.registrationId],
-    references: [registrationData.registrationId],
+    references: [registrations.id],
   }),
   comment: many(comments),
   votes: many(votes),

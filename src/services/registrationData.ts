@@ -118,7 +118,7 @@ export async function updateQuestionOptions(
   registrationData:
     | {
         id: string;
-        registrationFieldId: string;
+        registrationId: string;
         value: string;
       }[]
     | null,
@@ -127,34 +127,34 @@ export async function updateQuestionOptions(
     if (!registrationData) {
       return;
     }
-    // Fetch registration_field_ids from registrationData that have
+    // Fetch registration_id's from registrationData that have
     // a question_id so it requires question_options to be populated
     const registrationFields = await dbPool.execute<{
-      registrationFieldId: string;
+      registrationId: string;
       questionId: string;
     }>(
       sql.raw(`
           SELECT id AS "registrationFieldId", question_id AS "questionId"
           FROM registration_fields
           WHERE question_id IS NOT NULL
-          AND id IN (${registrationData.map((data) => `'${data.registrationFieldId}'`).join(', ')})
+          AND id IN (${registrationData.map((data) => `'${data.registrationId}'`).join(', ')})
           `),
     );
 
     // Pre-filter registrationData to include only relevant entries (avoids looping thorough the entire set of registration data)
     const filteredRegistrationData = registrationData.filter((data) =>
-      registrationFields.some((field) => field.registrationFieldId === data.registrationFieldId),
+      registrationFields.some((field) => field.registrationId === data.registrationId),
     );
 
     // for each registrationFieldId update or insert question options
     for (const registrationField of registrationFields) {
       const registrationDataForField = filteredRegistrationData.find(
-        (data) => data.registrationFieldId === registrationField.registrationFieldId,
+        (data) => data.registrationId === registrationField.registrationId,
       );
 
       // check whether registrationDataForField exists
       const existingQuestionOption = await dbPool.query.questionOptions.findFirst({
-        where: eq(db.questionOptions.registrationDataId, registrationDataForField?.id || ''),
+        where: eq(db.questionOptions.registrationId, registrationDataForField?.id || ''),
       });
 
       if (existingQuestionOption) {
@@ -162,8 +162,8 @@ export async function updateQuestionOptions(
         await dbPool
           .update(db.questionOptions)
           .set({
-            registrationDataId:
-              registrationDataForField?.id || existingQuestionOption.registrationDataId,
+            registrationId:
+              registrationDataForField?.id || existingQuestionOption.registrationId,
             questionId: existingQuestionOption.questionId,
             optionTitle: registrationDataForField?.value || existingQuestionOption.optionTitle,
             updatedAt: new Date(),
@@ -175,7 +175,7 @@ export async function updateQuestionOptions(
         await dbPool
           .insert(db.questionOptions)
           .values({
-            registrationDataId: registrationDataForField?.id || '',
+            registrationId: registrationDataForField?.id || '',
             questionId: registrationField.questionId,
             optionTitle: registrationDataForField?.value || '',
             createdAt: new Date(),

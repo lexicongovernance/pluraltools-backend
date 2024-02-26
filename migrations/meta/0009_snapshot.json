@@ -1,5 +1,5 @@
 {
-  "id": "9f848291-7f1d-408e-9252-dda29b98cb52",
+  "id": "45f302e4-48f7-4b35-9342-5eb2cd0e95bd",
   "prevId": "17c8b1f2-261d-4197-ae32-85eec68de8ee",
   "version": "5",
   "dialect": "pg",
@@ -660,15 +660,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "question_options_registration_id_registration_data_registration_id_fk": {
-          "name": "question_options_registration_id_registration_data_registration_id_fk",
+        "question_options_registration_id_registrations_id_fk": {
+          "name": "question_options_registration_id_registrations_id_fk",
           "tableFrom": "question_options",
-          "tableTo": "registration_data",
+          "tableTo": "registrations",
           "columnsFrom": [
             "registration_id"
           ],
           "columnsTo": [
-            "registration_id"
+            "id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
