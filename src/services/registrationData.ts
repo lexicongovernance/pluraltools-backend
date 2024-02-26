@@ -133,33 +133,52 @@ export async function updateQuestionOptions(
     const registrationFields = await dbPool.execute<{
       registrationFieldId: string;
       questionId: string;
+      questionOptionType: string;
     }>(
       sql.raw(`
-          SELECT id AS "registrationFieldId", question_id AS "questionId"
+          SELECT id AS "registrationFieldId", question_id AS "questionId", question_option_type AS "questionOptionType"
           FROM registration_fields
           WHERE question_id IS NOT NULL
+          AND question_option_type IN ('TITLE', 'SUBTITLE')
           AND id IN (${registrationData.map((data) => `'${data.registrationFieldId}'`).join(', ')})
           `),
     );
 
     console.log('registrationFields', registrationFields);
 
-    // Pre-filter registrationData to include only relevant entries (avoids looping thorough the entire set of registration data)
+    // Pre-filter registrationData to include entires that must be updated in question_options
     const filteredRegistrationData = registrationData.filter((data) =>
       registrationFields.some((field) => field.registrationFieldId === data.registrationFieldId),
     );
 
     console.log('filteredRegistrationData', filteredRegistrationData);
 
-    // for each registrationFieldId update or insert question options
-    for (const registrationField of registrationFields) {
-      const registrationDataForField = filteredRegistrationData.find(
-        (data) => data.registrationFieldId === registrationField.registrationFieldId,
+    const output = filteredRegistrationData.map((data) => {
+      const matchingField = registrationFields.find(
+        (field) => field.registrationFieldId === data.registrationFieldId,
       );
+      if (matchingField) {
+        return Object.assign({}, matchingField, {
+          id: data.id,
+          registrationId: data.registrationId,
+          value: data.value,
+        });
+      }
+      // If no matching field found return null
+      return null;
+    });
 
-      // check whether registrationDataForField exists
+    console.log('output', output);
+
+    // for each registrationFieldId update or insert question options
+    for (const data of output) {
+      if (!data) {
+        // Skip null entries
+        continue;
+      }
+      // Check whether a corresponding question option exists
       const existingQuestionOption = await dbPool.query.questionOptions.findFirst({
-        where: eq(db.questionOptions.registrationId, registrationDataForField?.id || ''),
+        where: eq(db.questionOptions.registrationId, data?.registrationId || ''),
       });
 
       if (existingQuestionOption) {
@@ -167,10 +186,10 @@ export async function updateQuestionOptions(
         await dbPool
           .update(db.questionOptions)
           .set({
-            registrationId:
-              registrationDataForField?.registrationId || existingQuestionOption.registrationId,
+            registrationId: data?.registrationId || existingQuestionOption.registrationId,
             questionId: existingQuestionOption.questionId,
-            optionTitle: registrationDataForField?.value || existingQuestionOption.optionTitle,
+            optionTitle: data?.value || existingQuestionOption.optionTitle,
+            optionSubTitle: data?.value || existingQuestionOption.optionSubTitle,
             updatedAt: new Date(),
           })
           .where(eq(db.questionOptions.id, existingQuestionOption.id))
@@ -180,9 +199,10 @@ export async function updateQuestionOptions(
         await dbPool
           .insert(db.questionOptions)
           .values({
-            registrationId: registrationDataForField?.registrationId || '',
-            questionId: registrationField.questionId,
-            optionTitle: registrationDataForField?.value || '',
+            registrationId: data?.registrationId || '',
+            questionId: data?.questionId || '',
+            optionTitle: data?.value || '',
+            optionSubTitle: data?.value || '',
             createdAt: new Date(),
             updatedAt: new Date(),
           })
