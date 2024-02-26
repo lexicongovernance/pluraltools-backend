@@ -7,7 +7,7 @@ import { comments } from './comments';
 
 export const questionOptions = pgTable('question_options', {
   id: uuid('id').primaryKey().defaultRandom(),
-  registrationDataId: uuid('registration_data_id').references(() => registrationData.id),
+  registrationId: uuid('registration_id').references(() => registrationData.registrationId),
   questionId: uuid('question_id')
     .references(() => forumQuestions.id)
     .notNull(),
@@ -25,8 +25,8 @@ export const questionOptionsRelations = relations(questionOptions, ({ one, many 
     references: [forumQuestions.id],
   }),
   registrationData: one(registrationData, {
-    fields: [questionOptions.registrationDataId],
-    references: [registrationData.id],
+    fields: [questionOptions.registrationId],
+    references: [registrationData.registrationId],
   }),
   comment: many(comments),
   votes: many(votes),
