@@ -162,8 +162,7 @@ export async function updateQuestionOptions(
         await dbPool
           .update(db.questionOptions)
           .set({
-            registrationId:
-              registrationDataForField?.id || existingQuestionOption.registrationId,
+            registrationId: registrationDataForField?.id || existingQuestionOption.registrationId,
             questionId: existingQuestionOption.questionId,
             optionTitle: registrationDataForField?.value || existingQuestionOption.optionTitle,
             updatedAt: new Date(),
