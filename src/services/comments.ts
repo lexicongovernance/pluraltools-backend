@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import { insertCommentSchema } from '../types';
@@ -17,6 +17,12 @@ export function saveComment(dbPool: PostgresJsDatabase<typeof db>) {
 
     if (!body.success) {
       return res.status(400).json({ errors: body.error.issues });
+    }
+
+    const canComment = await userCanComment(dbPool, userId, body.data.questionOptionId);
+
+    if (!canComment) {
+      return res.status(403).json({ errors: [{ message: 'User cannot comment on this option' }] });
     }
 
     try {
@@ -79,4 +85,34 @@ export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
       return res.sendStatus(500);
     }
   };
+}
+async function userCanComment(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  optionId: string | undefined | null,
+) {
+  if (!optionId) {
+    return false;
+  }
+
+  // check if user has an accepted registration for the option related to the event
+  const res = await dbPool
+    .select()
+    .from(db.questionOptions)
+    .leftJoin(db.forumQuestions, eq(db.forumQuestions.id, db.questionOptions.questionId))
+    .leftJoin(db.cycles, eq(db.cycles.id, db.forumQuestions.cycleId))
+    .leftJoin(db.events, eq(db.events.id, db.cycles.eventId))
+    .leftJoin(db.registrations, eq(db.registrations.eventId, db.events.id))
+    .where(and(eq(db.registrations.userId, userId), eq(db.questionOptions.id, optionId)))
+    .limit(1);
+
+  if (!res.length) {
+    return false;
+  }
+
+  if (res[0]?.registrations?.status !== 'ACCEPTED') {
+    return false;
+  }
+
+  return true;
 }

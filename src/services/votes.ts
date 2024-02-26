@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
@@ -207,6 +207,12 @@ async function validateAndSaveVote(
     return { data: null, error: body.error.errors[0]?.message };
   }
 
+  // check if user can vote
+  const canVote = await userCanVote(dbPool, userId, vote.optionId);
+  if (!canVote) {
+    return { data: null, error: 'User cannot vote' };
+  }
+
   const newVote = await saveVote(dbPool, insertVoteBody);
 
   if (newVote.errors) {
@@ -248,4 +254,31 @@ export async function saveVote(
     .returning();
 
   return { data: newVote[0] };
+}
+
+export async function userCanVote(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  optionId: string,
+) {
+  // check if user has an accepted registration for the option related to the event
+  const res = await dbPool
+    .select()
+    .from(db.questionOptions)
+    .leftJoin(db.forumQuestions, eq(db.forumQuestions.id, db.questionOptions.questionId))
+    .leftJoin(db.cycles, eq(db.cycles.id, db.forumQuestions.cycleId))
+    .leftJoin(db.events, eq(db.events.id, db.cycles.eventId))
+    .leftJoin(db.registrations, eq(db.registrations.eventId, db.events.id))
+    .where(and(eq(db.registrations.userId, userId), eq(db.questionOptions.id, optionId)))
+    .limit(1);
+
+  if (!res.length) {
+    return false;
+  }
+
+  if (res[0]?.registrations?.status !== 'ACCEPTED') {
+    return false;
+  }
+
+  return true;
 }

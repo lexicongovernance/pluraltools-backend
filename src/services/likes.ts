@@ -28,6 +28,12 @@ export function saveLike(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: ['commentId is required'] });
     }
 
+    const canLike = await userCanLike(dbPool, userId, commentId);
+
+    if (!canLike) {
+      return res.status(403).json({ errors: [{ message: 'User cannot like this comment' }] });
+    }
+
     const like = await dbPool.query.likes.findFirst({
       where: and(eq(db.comments.id, commentId), eq(db.comments.userId, userId)),
     });
@@ -79,4 +85,32 @@ export function deleteLike(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(500).json({ errors: ['Failed to delete like'] });
     }
   };
+}
+
+async function userCanLike(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  commentId: string,
+) {
+  // check if user has an accepted registration for the option related to the event
+  const res = await dbPool
+    .select()
+    .from(db.comments)
+    .leftJoin(db.questionOptions, eq(db.questionOptions.id, db.comments.questionOptionId))
+    .leftJoin(db.forumQuestions, eq(db.forumQuestions.id, db.questionOptions.questionId))
+    .leftJoin(db.cycles, eq(db.cycles.id, db.forumQuestions.cycleId))
+    .leftJoin(db.events, eq(db.events.id, db.cycles.eventId))
+    .leftJoin(db.registrations, eq(db.registrations.eventId, db.events.id))
+    .where(and(eq(db.registrations.userId, userId), eq(db.comments.id, commentId)))
+    .limit(1);
+
+  if (!res.length) {
+    return false;
+  }
+
+  if (res[0]?.registrations?.status !== 'ACCEPTED') {
+    return false;
+  }
+
+  return true;
 }
