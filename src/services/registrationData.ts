@@ -1,6 +1,6 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { eq, sql, and } from 'drizzle-orm';
+import { eq, and, isNotNull, inArray } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 
 export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
@@ -118,22 +118,26 @@ async function fetchRegistrationFields(
     questionOptionType: string;
   }[]
 > {
-  // Fetch registration fields from the database based on the provided IDs
-  const registrationFields = await dbPool.execute<{
+  const query = (await dbPool
+    .select({
+      registrationFieldId: db.registrationFields.id,
+      questionId: db.registrationFields.questionId,
+      questionOptionType: db.registrationFields.questionOptionType,
+    })
+    .from(db.registrationFields)
+    .where(
+      and(
+        isNotNull(db.registrationFields.questionId),
+        inArray(db.registrationFields.questionOptionType, ['TITLE', 'SUBTITLE']),
+        inArray(db.registrationFields.id, registrationFieldIds),
+      ),
+    )) as {
     registrationFieldId: string;
     questionId: string;
-    questionOptionType: string;
-  }>(
-    sql.raw(`
-        SELECT id AS "registrationFieldId", question_id AS "questionId", question_option_type AS "questionOptionType"
-        FROM registration_fields
-        WHERE question_id IS NOT NULL
-        AND question_option_type IN ('TITLE', 'SUBTITLE')
-        AND id IN (${registrationFieldIds.map((id) => `'${id}'`).join(', ')})
-        `),
-  );
+    questionOptionType: 'TITLE' | 'SUBTITLE';
+  }[];
 
-  return registrationFields;
+  return query;
 }
 
 /**
