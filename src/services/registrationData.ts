@@ -173,7 +173,7 @@ function filterRegistrationData(
  * @param filteredRegistrationData - Filtered registration data.
  * @returns Combined registration data.
  */
-function mapToCombinedData(
+function transformRegistrationDataToCombinedFormat(
   filteredRegistrationData: {
     id: string;
     registrationFieldId: string;
@@ -214,7 +214,7 @@ function mapToCombinedData(
  * @param dbPool - The database pool instance.
  * @param combinedData - Combined registration data.
  */
-async function updateQuestionOptions(
+async function upsertQuestionOptions(
   dbPool: PostgresJsDatabase<typeof db>,
   combinedData: {
     registrationId: string;
@@ -263,7 +263,7 @@ async function updateQuestionOptions(
  * @param dbPool - The database pool instance.
  * @param registrationData - An array of registration data.
  */
-export async function updateQuestionOptionsMain(
+export async function upsertQuestionOptionsMain(
   dbPool: PostgresJsDatabase<typeof db>,
   registrationData:
     | {
@@ -285,9 +285,12 @@ export async function updateQuestionOptionsMain(
 
     const filteredRegistrationData = filterRegistrationData(registrationData, registrationFields);
 
-    const combinedData = mapToCombinedData(filteredRegistrationData, registrationFields);
+    const combinedData = transformRegistrationDataToCombinedFormat(
+      filteredRegistrationData,
+      registrationFields,
+    );
 
-    await updateQuestionOptions(dbPool, combinedData);
+    await upsertQuestionOptions(dbPool, combinedData);
   } catch (e) {
     console.error('Error updating or inserting question options:', e);
     throw e;
