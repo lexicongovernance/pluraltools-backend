@@ -267,7 +267,7 @@ async function upsertQuestionOptions(
  * @param dbPool - The database pool instance.
  * @param registrationData - An array of registration data.
  */
-export async function upsertQuestionOptionsMain(
+export async function upsertQuestionOptionFromRegistrationData(
   dbPool: PostgresJsDatabase<typeof db>,
   registrationData:
     | {
