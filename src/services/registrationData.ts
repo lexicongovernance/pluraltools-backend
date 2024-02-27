@@ -103,19 +103,167 @@ export async function upsertRegistrationData({
 }
 
 /**
- * Function: updateQuestionOptions
- * Updates or inserts registration data into the question options table.
- *
- * @param dbPool - The database pool instance of type `PostgresJsDatabase<typeof db>`.
- * @param registrationData - An array of objects representing registration data.
- *   Each object should have the properties:
- *   - id: The unique identifier for the registration data.
- *   - registrationFieldId: The identifier for the registration field associated with the data.
- *   - registrationId: The identifier for the registration associated with the data.
- *   - value: The value of the registration data.
- * @returns A Promise that resolves once the update/insert operation is completed.
+ * Fetches registration fields from the database.
+ * @param dbPool - The database pool instance.
+ * @param registrationFieldIds - Array of registration field IDs.
+ * @returns An array of registration fields.
  */
-export async function updateQuestionOptions(
+async function fetchRegistrationFields(
+  dbPool: PostgresJsDatabase<typeof db>,
+  registrationFieldIds: string[],
+): Promise<
+  {
+    registrationFieldId: string;
+    questionId: string;
+    questionOptionType: string;
+  }[]
+> {
+  // Fetch registration fields from the database based on the provided IDs
+  const registrationFields = await dbPool.execute<{
+    registrationFieldId: string;
+    questionId: string;
+    questionOptionType: string;
+  }>(
+    sql.raw(`
+        SELECT id AS "registrationFieldId", question_id AS "questionId", question_option_type AS "questionOptionType"
+        FROM registration_fields
+        WHERE question_id IS NOT NULL
+        AND question_option_type IN ('TITLE', 'SUBTITLE')
+        AND id IN (${registrationFieldIds.map((id) => `'${id}'`).join(', ')})
+        `),
+  );
+
+  return registrationFields;
+}
+
+/**
+ * Filters registration data based on the available registration fields.
+ * @param registrationData - An array of registration data.
+ * @param registrationFields - An array of registration fields.
+ * @returns Filtered registration data.
+ */
+function filterRegistrationData(
+  registrationData: {
+    id: string;
+    registrationFieldId: string;
+    registrationId: string;
+    value: string;
+  }[],
+  registrationFields: {
+    registrationFieldId: string;
+    questionId: string;
+    questionOptionType: string;
+  }[],
+): {
+  id: string;
+  registrationFieldId: string;
+  registrationId: string;
+  value: string;
+}[] {
+  // Filter registration data to include only entries that require updating
+  const filteredRegistrationData = registrationData.filter((data) =>
+    registrationFields.some((field) => field.registrationFieldId === data.registrationFieldId),
+  );
+
+  return filteredRegistrationData;
+}
+
+/**
+ * Maps filtered registration data to a combined format.
+ * @param filteredRegistrationData - Filtered registration data.
+ * @returns Combined registration data.
+ */
+function mapToCombinedData(
+  filteredRegistrationData: {
+    id: string;
+    registrationFieldId: string;
+    registrationId: string;
+    value: string;
+  }[],
+  registrationFields: {
+    registrationFieldId: string;
+    questionId: string;
+    questionOptionType: string;
+  }[],
+): {
+  registrationId: string;
+  questionId: string;
+  values: { [questionOptionType: string]: string };
+}[] {
+  const combinedData = filteredRegistrationData.map((data) => {
+    const matchingField = registrationFields.find(
+      (field) => field.registrationFieldId === data.registrationFieldId,
+    );
+    if (matchingField) {
+      return {
+        registrationId: data.registrationId,
+        questionId: matchingField.questionId,
+        values: {
+          [matchingField.questionOptionType]: data.value,
+        },
+      };
+    }
+    throw new Error(`No matching field found for registrationFieldId: ${data.registrationFieldId}`);
+  });
+
+  return combinedData;
+}
+
+/**
+ * Updates or inserts question options based on the combined data.
+ * @param dbPool - The database pool instance.
+ * @param combinedData - Combined registration data.
+ */
+async function updateQuestionOptions(
+  dbPool: PostgresJsDatabase<typeof db>,
+  combinedData: {
+    registrationId: string;
+    questionId: string;
+    values: { [questionOptionType: string]: string };
+  }[],
+): Promise<void> {
+  for (const data of combinedData) {
+    // Check whether a corresponding question option exists
+    const existingQuestionOption = await dbPool.query.questionOptions.findFirst({
+      where: eq(db.questionOptions.registrationId, data.registrationId),
+    });
+
+    if (existingQuestionOption) {
+      // Update question option
+      await dbPool
+        .update(db.questionOptions)
+        .set({
+          registrationId: data.registrationId,
+          questionId: data.questionId,
+          optionTitle: data.values['TITLE'] || existingQuestionOption.optionTitle,
+          optionSubTitle: data.values['SUBTITLE'] || existingQuestionOption.optionSubTitle,
+          updatedAt: new Date(),
+        })
+        .where(eq(db.questionOptions.id, existingQuestionOption.id))
+        .returning();
+    } else {
+      // Insert new question option
+      await dbPool
+        .insert(db.questionOptions)
+        .values({
+          registrationId: data.registrationId,
+          questionId: data.questionId,
+          optionTitle: data.values['TITLE'] || '',
+          optionSubTitle: data.values['SUBTITLE'] || '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+    }
+  }
+}
+
+/**
+ * Main function to update question options.
+ * @param dbPool - The database pool instance.
+ * @param registrationData - An array of registration data.
+ */
+export async function updateQuestionOptionsMain(
   dbPool: PostgresJsDatabase<typeof db>,
   registrationData:
     | {
@@ -130,111 +278,18 @@ export async function updateQuestionOptions(
     if (!registrationData) {
       return;
     }
-    // Fetch registration_id's from registrationData that have
-    // a question_id so it requires question_options to be populated
-    const registrationFields = await dbPool.execute<{
-      registrationFieldId: string;
-      questionId: string;
-      questionOptionType: string;
-    }>(
-      sql.raw(`
-          SELECT id AS "registrationFieldId", question_id AS "questionId", question_option_type AS "questionOptionType"
-          FROM registration_fields
-          WHERE question_id IS NOT NULL
-          AND question_option_type IN ('TITLE', 'SUBTITLE')
-          AND id IN (${registrationData.map((data) => `'${data.registrationFieldId}'`).join(', ')})
-          `),
-    );
 
-    // Pre-filter registrationData to include entires that must be updated in question_options
-    const filteredRegistrationData = registrationData.filter((data) =>
-      registrationFields.some((field) => field.registrationFieldId === data.registrationFieldId),
-    );
+    const registrationFieldIds = registrationData.map((data) => data.registrationFieldId);
 
-    const combinedData = filteredRegistrationData.map((data) => {
-      const matchingField = registrationFields.find(
-        (field) => field.registrationFieldId === data.registrationFieldId,
-      );
-      if (matchingField) {
-        return Object.assign({}, matchingField, {
-          id: data.id,
-          registrationId: data.registrationId,
-          value: data.value,
-        });
-      }
-      throw new Error(
-        `No matching field found for registrationFieldId: ${data.registrationFieldId}`,
-      );
-    });
+    const registrationFields = await fetchRegistrationFields(dbPool, registrationFieldIds);
 
-    const filteredCombinedData: {
-      [registrationId: string]: {
-        registrationId: string;
-        questionId: string;
-        values: {
-          [questionOptionType: string]: string;
-        };
-      };
-    } = {};
+    const filteredRegistrationData = filterRegistrationData(registrationData, registrationFields);
 
-    combinedData.forEach((data) => {
-      if (data) {
-        const key = data.registrationId;
-        if (!filteredCombinedData[key]) {
-          filteredCombinedData[key] = {
-            registrationId: data.registrationId,
-            questionId: data.questionId,
-            values: {},
-          };
-        }
+    const combinedData = mapToCombinedData(filteredRegistrationData, registrationFields);
 
-        // Demand that combinedOutput[key] will always be defined
-        filteredCombinedData[key]!.values[data.questionOptionType] = data.value;
-      }
-    });
-
-    const filteredCombinedDataArray = Object.values(filteredCombinedData);
-
-    // for each registrationFieldId update or insert question options
-    for (const data of filteredCombinedDataArray) {
-      if (!data) {
-        continue;
-      }
-      // Check whether a corresponding question option exists
-      const existingQuestionOption = await dbPool.query.questionOptions.findFirst({
-        where: eq(db.questionOptions.registrationId, data?.registrationId || ''),
-      });
-
-      if (existingQuestionOption) {
-        // Update question option
-        await dbPool
-          .update(db.questionOptions)
-          .set({
-            registrationId: data?.registrationId || existingQuestionOption.registrationId,
-            questionId: existingQuestionOption.questionId,
-            optionTitle: data?.values['TITLE'] || existingQuestionOption.optionTitle,
-            optionSubTitle: data?.values['SUBTITLE'] || existingQuestionOption.optionSubTitle,
-            updatedAt: new Date(),
-          })
-          .where(eq(db.questionOptions.id, existingQuestionOption.id))
-          .returning();
-      } else {
-        // Insert new question option
-        await dbPool
-          .insert(db.questionOptions)
-          .values({
-            registrationId: data?.registrationId || '',
-            questionId: data?.questionId || '',
-            optionTitle: data?.values['TITLE'] || '',
-            optionSubTitle: data?.values['SUBTITLE'] || '',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .returning();
-      }
-    }
+    await updateQuestionOptions(dbPool, combinedData);
   } catch (e) {
-    console.error('Error populating registrationDataId in questionOptions: ', e);
+    console.error('Error updating or inserting question options:', e);
     throw e;
   }
 }
