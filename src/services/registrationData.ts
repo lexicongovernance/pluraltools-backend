@@ -105,11 +105,13 @@ export async function upsertRegistrationData({
 /**
  * Function: updateQuestionOptions
  * Updates or inserts registration data into the question options table.
+ *
  * @param dbPool - The database pool instance of type `PostgresJsDatabase<typeof db>`.
  * @param registrationData - An array of objects representing registration data.
  *   Each object should have the properties:
  *   - id: The unique identifier for the registration data.
  *   - registrationFieldId: The identifier for the registration field associated with the data.
+ *   - registrationId: The identifier for the registration associated with the data.
  *   - value: The value of the registration data.
  * @returns A Promise that resolves once the update/insert operation is completed.
  */
@@ -144,16 +146,12 @@ export async function updateQuestionOptions(
           `),
     );
 
-    console.log('registrationFields', registrationFields);
-
     // Pre-filter registrationData to include entires that must be updated in question_options
     const filteredRegistrationData = registrationData.filter((data) =>
       registrationFields.some((field) => field.registrationFieldId === data.registrationFieldId),
     );
 
-    console.log('filteredRegistrationData', filteredRegistrationData);
-
-    const output = filteredRegistrationData.map((data) => {
+    const combinedData = filteredRegistrationData.map((data) => {
       const matchingField = registrationFields.find(
         (field) => field.registrationFieldId === data.registrationFieldId,
       );
@@ -164,13 +162,12 @@ export async function updateQuestionOptions(
           value: data.value,
         });
       }
-      // If no matching field found return null
-      return null;
+      throw new Error(
+        `No matching field found for registrationFieldId: ${data.registrationFieldId}`,
+      );
     });
 
-    console.log('output', output);
-
-    const combinedOutput: {
+    const filteredCombinedData: {
       [registrationId: string]: {
         registrationId: string;
         questionId: string;
@@ -180,11 +177,11 @@ export async function updateQuestionOptions(
       };
     } = {};
 
-    output.forEach((data) => {
+    combinedData.forEach((data) => {
       if (data) {
         const key = data.registrationId;
-        if (!combinedOutput[key]) {
-          combinedOutput[key] = {
+        if (!filteredCombinedData[key]) {
+          filteredCombinedData[key] = {
             registrationId: data.registrationId,
             questionId: data.questionId,
             values: {},
@@ -192,16 +189,14 @@ export async function updateQuestionOptions(
         }
 
         // Demand that combinedOutput[key] will always be defined
-        combinedOutput[key]!.values[data.questionOptionType] = data.value;
+        filteredCombinedData[key]!.values[data.questionOptionType] = data.value;
       }
     });
 
-    const outputArray = Object.values(combinedOutput);
-
-    console.log('Combined Output:', outputArray);
+    const filteredCombinedDataArray = Object.values(filteredCombinedData);
 
     // for each registrationFieldId update or insert question options
-    for (const data of outputArray) {
+    for (const data of filteredCombinedDataArray) {
       if (!data) {
         continue;
       }
