@@ -170,10 +170,39 @@ export async function updateQuestionOptions(
 
     console.log('output', output);
 
+    const combinedOutput: {
+      [registrationId: string]: {
+        registrationId: string;
+        questionId: string;
+        values: {
+          [questionOptionType: string]: string;
+        };
+      };
+    } = {};
+
+    output.forEach((data) => {
+      if (data) {
+        const key = data.registrationId;
+        if (!combinedOutput[key]) {
+          combinedOutput[key] = {
+            registrationId: data.registrationId,
+            questionId: data.questionId,
+            values: {},
+          };
+        }
+
+        // Demand that combinedOutput[key] will always be defined
+        combinedOutput[key]!.values[data.questionOptionType] = data.value;
+      }
+    });
+
+    const outputArray = Object.values(combinedOutput);
+
+    console.log('Combined Output:', outputArray);
+
     // for each registrationFieldId update or insert question options
-    for (const data of output) {
+    for (const data of outputArray) {
       if (!data) {
-        // Skip null entries
         continue;
       }
       // Check whether a corresponding question option exists
@@ -188,8 +217,8 @@ export async function updateQuestionOptions(
           .set({
             registrationId: data?.registrationId || existingQuestionOption.registrationId,
             questionId: existingQuestionOption.questionId,
-            optionTitle: data?.value || existingQuestionOption.optionTitle,
-            optionSubTitle: data?.value || existingQuestionOption.optionSubTitle,
+            optionTitle: data?.values['TITLE'] || existingQuestionOption.optionTitle,
+            optionSubTitle: data?.values['SUBTITLE'] || existingQuestionOption.optionSubTitle,
             updatedAt: new Date(),
           })
           .where(eq(db.questionOptions.id, existingQuestionOption.id))
@@ -201,8 +230,8 @@ export async function updateQuestionOptions(
           .values({
             registrationId: data?.registrationId || '',
             questionId: data?.questionId || '',
-            optionTitle: data?.value || '',
-            optionSubTitle: data?.value || '',
+            optionTitle: data?.values['TITLE'] || '',
+            optionSubTitle: data?.values['SUBTITLE'] || '',
             createdAt: new Date(),
             updatedAt: new Date(),
           })
