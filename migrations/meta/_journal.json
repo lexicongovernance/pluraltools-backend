@@ -71,6 +71,13 @@
       "when": 1708944974732,
       "tag": "0009_misty_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1709109222415,
+      "tag": "0010_black_cassandra_nova",
+      "breakpoints": true
     }
   ]
 }

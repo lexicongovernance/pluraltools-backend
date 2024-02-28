@@ -47,6 +47,7 @@ export async function insertComment(
       .insert(db.comments)
       .values({
         userId: userId,
+        username: data.username,
         questionOptionId: data.questionOptionId,
         value: data.value,
       })
