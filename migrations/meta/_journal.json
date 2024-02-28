@@ -43,6 +43,41 @@
       "when": 1707401588978,
       "tag": "0005_goofy_northstar",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1708350255136,
+      "tag": "0006_far_vapor",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1708359290467,
+      "tag": "0007_stormy_human_fly",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1708437059939,
+      "tag": "0008_heavy_the_hunter",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1708944974732,
+      "tag": "0009_misty_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1709135839413,
+      "tag": "0010_great_lord_tyger",
+      "breakpoints": true
     }
   ]
 }

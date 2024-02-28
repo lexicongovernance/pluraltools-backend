@@ -5,11 +5,12 @@ import { ironSession } from 'iron-session/express';
 import { authRouter } from './auth';
 import cors from 'cors';
 import { usersRouter } from './users';
-import { votesRouter } from './votes';
 import { cyclesRouter } from './cycles';
 import { eventsRouter } from './events';
 import { forumQuestionsRouter } from './forumQuestions';
 import { groupsRouter } from './groups';
+import { commentsRouter } from './comments';
+import { optionsRouter } from './options';
 
 const router = express.Router();
 
@@ -45,11 +46,12 @@ export function apiRouter({
   // routes
   router.use('/auth', authRouter({ dbPool }));
   router.use('/users', usersRouter({ dbPool }));
-  router.use('/votes', votesRouter({ dbPool }));
   router.use('/cycles', cyclesRouter({ dbPool }));
   router.use('/events', eventsRouter({ dbPool }));
   router.use('/forum-questions', forumQuestionsRouter({ dbPool }));
   router.use('/groups', groupsRouter({ dbPool }));
+  router.use('/comments', commentsRouter({ dbPool }));
+  router.use('/options', optionsRouter({ dbPool }));
 
   return router;
 }

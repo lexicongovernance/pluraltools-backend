@@ -10,7 +10,9 @@ export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
       with: {
         forumQuestions: {
           with: {
-            questionOptions: true,
+            questionOptions: {
+              where: eq(db.questionOptions.accepted, true),
+            },
           },
         },
       },
@@ -33,7 +35,9 @@ export function getEventCycles(dbPool: PostgresJsDatabase<typeof db>) {
       with: {
         forumQuestions: {
           with: {
-            questionOptions: true,
+            questionOptions: {
+              where: eq(db.questionOptions.accepted, true),
+            },
           },
         },
       },
@@ -56,7 +60,9 @@ export function getCycleById(dbPool: PostgresJsDatabase<typeof db>) {
       with: {
         forumQuestions: {
           with: {
-            questionOptions: true,
+            questionOptions: {
+              where: eq(db.questionOptions.accepted, true),
+            },
           },
         },
       },
