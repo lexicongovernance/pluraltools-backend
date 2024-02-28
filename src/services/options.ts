@@ -30,11 +30,7 @@ export function getUserOptions(dbPool: PostgresJsDatabase<typeof db>) {
     const query = await dbPool
       .select()
       .from(db.questionOptions)
-      .leftJoin(
-        db.registrationData,
-        eq(db.registrationData.id, db.questionOptions.registrationDataId),
-      )
-      .leftJoin(db.registrations, eq(db.registrations.id, db.registrationData.registrationId))
+      .leftJoin(db.registrations, eq(db.registrations.id, db.questionOptions.registrationId))
       .where(eq(db.registrations.userId, userId));
 
     const options = query.map((q) => q.question_options);
