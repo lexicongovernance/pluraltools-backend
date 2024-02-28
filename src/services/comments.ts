@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import { insertCommentSchema } from '../types';
@@ -47,7 +47,6 @@ export async function insertComment(
       .insert(db.comments)
       .values({
         userId: userId,
-        username: data.username,
         questionOptionId: data.questionOptionId,
         value: data.value,
       })
@@ -69,12 +68,38 @@ export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
     const optionId = req.params.optionId ?? '';
 
     try {
-      // Query the database for comments related to the specified questionOptionId
-      const comments = await dbPool.query.comments.findMany({
-        where: eq(db.comments.questionOptionId, optionId),
+      // Query userId username pairs
+      const users = await dbPool
+        .select({
+          userId: db.users.id,
+          username: db.users.username,
+        })
+        .from(db.users)
+        .where(inArray(db.comments.userId, db.users.id));
+
+      // Query comments
+      const comments = await dbPool
+        .select()
+        .from(db.comments)
+        .where(eq(db.comments.questionOptionId, optionId));
+
+      const commentsWithUserNames = comments.map((comment) => {
+        const user = users.find((user) => user.userId === comment.userId);
+        // If user is found, add user information to comment
+        if (user) {
+          return {
+            ...comment,
+            user: {
+              userId: user.userId,
+              username: user.username,
+            },
+          };
+        } else {
+          throw new Error(`User not found for comment with ID ${comment.id}`);
+        }
       });
 
-      return res.json({ data: comments });
+      return res.json({ data: commentsWithUserNames });
     } catch (error) {
       console.error('Error getting comments: ', error);
       return res.sendStatus(500);

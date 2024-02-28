@@ -7,7 +7,6 @@ import { likes } from './likes';
 export const comments = pgTable('comments', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id),
-  username: varchar('username').references(() => users.username),
   questionOptionId: uuid('question_option_id').references(() => questionOptions.id),
   value: varchar('value').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -16,8 +15,8 @@ export const comments = pgTable('comments', {
 
 export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, {
-    fields: [comments.userId, comments.username],
-    references: [users.id, users.username],
+    fields: [comments.userId],
+    references: [users.id],
   }),
   questionOption: one(questionOptions, {
     fields: [comments.questionOptionId],
