@@ -59,9 +59,9 @@ export async function insertComment(
 }
 
 /**
- * Retrieves comments related to a specific question option from the database.
+ * Retrieves comments related to a specific question option from the database and associates them with corresponding user information.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
- * @returns {Promise<void>} - A promise that resolves with the retrieved comments.
+ * @returns {Promise<void>} - A promise that resolves with the retrieved comments, each associated with user information if available.
  */
 export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -85,7 +85,6 @@ export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
 
       const commentsWithUserNames = comments.map((comment) => {
         const user = users.find((user) => user.userId === comment.userId);
-        // If user is found, add user information to comment
         if (user) {
           return {
             ...comment,
