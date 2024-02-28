@@ -68,34 +68,25 @@ export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
     const optionId = req.params.optionId ?? '';
 
     try {
-      // Query userId username pairs
-      const users = await dbPool
-        .select({
-          userId: db.users.id,
-          username: db.users.username,
-        })
-        .from(db.users)
-        .where(inArray(db.comments.userId, db.users.id));
-
       // Query comments
-      const comments = await dbPool
+      const rows = await dbPool
         .select()
         .from(db.comments)
+        .leftJoin(db.users, eq(db.comments.userId, db.users.id))
         .where(eq(db.comments.questionOptionId, optionId));
 
-      const commentsWithUserNames = comments.map((comment) => {
-        const user = users.find((user) => user.userId === comment.userId);
-        if (user) {
-          return {
-            ...comment,
-            user: {
-              userId: user.userId,
-              username: user.username,
-            },
-          };
-        } else {
-          throw new Error(`User not found for comment with ID ${comment.id}`);
-        }
+      const commentsWithUserNames = rows.map((row) => {
+        return {
+          id: row.comments.id,
+          userId: row.comments.userId,
+          questionOptionId: row.comments.questionOptionId,
+          value: row.comments.value,
+          createdAt: row.comments.createdAt,
+          user: {
+            id: row.users?.id,
+            username: row.users?.username,
+          },
+        };
       });
 
       return res.json({ data: commentsWithUserNames });
