@@ -27,7 +27,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   federatedCredential: one(federatedCredentials),
   comments: many(comments),
   likes: many(likes),
-  questionOptions: one(questionOptions),
+  questionOptions: many(questionOptions),
 }));
 
 export type User = typeof users.$inferSelect;
