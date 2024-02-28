@@ -220,6 +220,7 @@ function transformRegistrationDataToCombinedFormat(
  */
 async function upsertQuestionOptions(
   dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
   combinedData: {
     registrationId: string;
     questionId: string;
@@ -250,6 +251,7 @@ async function upsertQuestionOptions(
       await dbPool
         .insert(db.questionOptions)
         .values({
+          userId: userId,
           registrationId: data.registrationId,
           questionId: data.questionId,
           optionTitle: data.values['TITLE'] || '',
@@ -269,6 +271,7 @@ async function upsertQuestionOptions(
  */
 export async function upsertQuestionOptionFromRegistrationData(
   dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
   registrationData:
     | {
         id: string;
@@ -294,7 +297,7 @@ export async function upsertQuestionOptionFromRegistrationData(
       registrationFields,
     );
 
-    await upsertQuestionOptions(dbPool, combinedData);
+    await upsertQuestionOptions(dbPool, userId, combinedData);
   } catch (e) {
     console.error('Error updating or inserting question options:', e);
     throw e;

@@ -98,7 +98,7 @@ export async function sendRegistrationData(
   });
 
   try {
-    await upsertQuestionOptionFromRegistrationData(dbPool, updatedRegistrationData);
+    await upsertQuestionOptionFromRegistrationData(dbPool, userId, updatedRegistrationData);
 
     const out = {
       ...newRegistration,
