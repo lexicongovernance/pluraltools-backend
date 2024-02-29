@@ -8,6 +8,7 @@ import { registrations } from './registrations';
 import { userAttributes } from './userAttributes';
 import { usersToGroups } from './usersToGroups';
 import { votes } from './votes';
+import { usersToNotifications } from './usersToNotifications';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -27,6 +28,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   comments: many(comments),
   likes: many(likes),
   questionOptions: many(questionOptions),
+  notifications: many(usersToNotifications),
 }));
 
 export type User = typeof users.$inferSelect;
