@@ -7,10 +7,11 @@ export function isLoggedIn(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response, next: NextFunction) {
     if (req.session?.userId) {
       const rows = await dbPool
-        .select()
+        .selectDistinct({
+          id: db.users.id,
+        })
         .from(db.users)
-        .where(eq(db.users.id, req.session.userId))
-        .limit(1);
+        .where(eq(db.users.id, req.session.userId));
 
       if (!rows.length) {
         return res.status(401).send();
