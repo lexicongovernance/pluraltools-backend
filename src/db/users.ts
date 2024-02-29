@@ -1,20 +1,19 @@
 import { relations } from 'drizzle-orm';
-import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { registrations } from './registrations';
-import { votes } from './votes';
-import { usersToGroups } from './usersToGroups';
-import { userAttributes } from './userAttributes';
+import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { federatedCredentials } from '.';
 import { comments } from './comments';
 import { likes } from './likes';
 import { questionOptions } from './questionOptions';
+import { registrations } from './registrations';
+import { userAttributes } from './userAttributes';
+import { usersToGroups } from './usersToGroups';
+import { votes } from './votes';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   username: varchar('username', { length: 256 }).unique(),
   name: varchar('name'),
   email: varchar('email', { length: 256 }).unique(),
-  emailNotification: boolean('email_notification').default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
