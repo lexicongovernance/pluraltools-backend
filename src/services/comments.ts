@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import { insertCommentSchema } from '../types';
@@ -56,6 +56,42 @@ export async function insertComment(
     console.error('Error in insertComment: ', error);
     throw new Error('Failed to insert comment');
   }
+}
+
+export function deleteComment(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const commentId = req.params.commentId;
+    const userId = req.session.userId;
+
+    if (!commentId) {
+      return res.status(400).json({ errors: ['commentId is required'] });
+    }
+
+    try {
+      // Only the author of the comment has the authorization to delete the comment
+      const comment = await dbPool.query.comments.findFirst({
+        where: and(eq(db.comments.id, commentId), eq(db.comments.userId, userId)),
+      });
+
+      if (!comment) {
+        return res.status(404).json({ errors: ['Unauthorized to delete comment'] });
+      }
+
+      // Delete all likes associated with the deleted comment
+      await dbPool.delete(db.likes).where(eq(db.likes.commentId, commentId));
+
+      // Delete the comment
+      const deletedComment = await dbPool
+        .delete(db.comments)
+        .where(eq(db.comments.id, commentId))
+        .returning();
+
+      return res.json({ data: deletedComment });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ errors: ['Failed to delete comment'] });
+    }
+  };
 }
 
 /**
