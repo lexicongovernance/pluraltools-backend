@@ -58,6 +58,12 @@ export async function insertComment(
   }
 }
 
+/**
+ * Deletes a comment from the database, along with associated likes if any.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @returns {Promise<void>} - A promise that resolves once the comment and associated likes are deleted.
+ * @throws {Error} - Throws an error if the deletion fails.
+ */
 export function deleteComment(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
