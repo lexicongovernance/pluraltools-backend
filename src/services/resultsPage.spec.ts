@@ -44,9 +44,7 @@ describe('getResultStatistics endpoint', () => {
 
   test('should return aggregated statistics when all queries return valid data', async () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-    // Prepare the request object (if needed based on your function's signature)
     const req = { params: { forumQuestionId: forumQuestion!.id } };
-
     // Mock the response object
     const res = {
       status: jest.fn().mockReturnThis(), // Mock the status function
