@@ -8,10 +8,10 @@ import { getUserOptions } from '../services/options';
 const router = express.Router();
 
 export function usersRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
-  router.get('/', isLoggedIn(), getUser(dbPool));
-  router.put('/:userId', isLoggedIn(), updateUser(dbPool));
-  router.get('/:userId/groups', isLoggedIn(), getGroupsPerUser(dbPool));
-  router.get('/:userId/attributes', isLoggedIn(), getUserAttributes(dbPool));
-  router.get('/:userId/options', isLoggedIn(), getUserOptions(dbPool));
+  router.get('/', isLoggedIn(dbPool), getUser(dbPool));
+  router.put('/:userId', isLoggedIn(dbPool), updateUser(dbPool));
+  router.get('/:userId/groups', isLoggedIn(dbPool), getGroupsPerUser(dbPool));
+  router.get('/:userId/attributes', isLoggedIn(dbPool), getUserAttributes(dbPool));
+  router.get('/:userId/options', isLoggedIn(dbPool), getUserOptions(dbPool));
   return router;
 }

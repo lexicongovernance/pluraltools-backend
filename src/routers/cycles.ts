@@ -8,9 +8,9 @@ import { getVotes, saveVotes } from '../services/votes';
 const router = express.Router();
 
 export function cyclesRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
-  router.get('/', isLoggedIn(), getActiveCycles(dbPool));
-  router.get('/:cycleId', isLoggedIn(), getCycleById(dbPool));
-  router.get('/:cycleId/votes', isLoggedIn(), getVotes(dbPool));
-  router.post('/:cycleId/votes', isLoggedIn(), saveVotes(dbPool));
+  router.get('/', isLoggedIn(dbPool), getActiveCycles(dbPool));
+  router.get('/:cycleId', isLoggedIn(dbPool), getCycleById(dbPool));
+  router.get('/:cycleId/votes', isLoggedIn(dbPool), getVotes(dbPool));
+  router.post('/:cycleId/votes', isLoggedIn(dbPool), saveVotes(dbPool));
   return router;
 }
