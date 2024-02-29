@@ -79,12 +79,6 @@ devDependencies:
   eslint-config-prettier:
     specifier: ^9.1.0
     version: 9.1.0(eslint@8.56.0)
-  istanbul-lib-coverage:
-    specifier: ^3.2.2
-    version: 3.2.2
-  istanbul-reports:
-    specifier: ^3.1.7
-    version: 3.1.7
   jest:
     specifier: ^29.7.0
     version: 29.7.0(@types/node@20.10.3)
