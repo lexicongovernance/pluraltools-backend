@@ -6,7 +6,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { getResultStatistics } from './resultsPage';
+import { executeQueries } from './resultsPage';
 import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -44,20 +44,15 @@ describe('getResultStatistics endpoint', () => {
 
   test('should return aggregated statistics when all queries return valid data', async () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-    const req = { params: { forumQuestionId: forumQuestion!.id } };
-    // Mock the response object
-    const res = {
-      status: jest.fn().mockReturnThis(), // Mock the status function
-      json: jest.fn().mockImplementation((data) => {
-        return data; // Return the entire data object
-      }),
-    };
+    const questionId = forumQuestion!.id;
 
     // Call getResultStatistics with the required parameters
-    const result = await getResultStatistics(dbPool)(req as any, res as any);
+    const result = await executeQueries(questionId, dbPool);
+    console.log(result);
 
-    // Check if result contains the expected data
+    // Check if result is defined
     expect(result).toBeDefined();
+    expect(result.numProposals).toEqual(2);
   });
 
   afterAll(async () => {

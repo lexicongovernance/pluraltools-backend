@@ -3,6 +3,25 @@ import * as db from '../db';
 import type { Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
 
+type ResultData = {
+  numProposals: number;
+  sumNumOfHearts: number;
+  numOfParticipants: number;
+  numOfGroups: number;
+  optionStats: Record<
+    string,
+    {
+      optionTitle: string;
+      optionSubTitle: string;
+      pluralityScore: number;
+      distinctUsers: number;
+      allocatedHearts: number;
+      distinctGroups: number;
+      listOfGroupNames: string[];
+    }
+  >;
+};
+
 /**
  * Retrieves result statistics for a specific forum question from the database.
  *
@@ -41,10 +60,10 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
  * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
  * @returns {Promise<unknown>} - A promise resolving to an object containing various statistics related to the forum question.
  */
-async function executeQueries(
+export async function executeQueries(
   forumQuestionId: string | undefined,
   dbPool: PostgresJsDatabase<typeof db>,
-): Promise<unknown> {
+): Promise<ResultData> {
   try {
     // Execute all queries concurrently
     const [
@@ -57,7 +76,7 @@ async function executeQueries(
       // Get total number of proposals
       dbPool.execute<{ numProposals: number }>(
         sql.raw(`
-          SELECT count("id") AS "numProposals" 
+          SELECT count("id")::int AS "numProposals" 
           FROM question_options
           WHERE question_id = '${forumQuestionId}'
           AND accepted = TRUE
@@ -81,7 +100,7 @@ async function executeQueries(
       // Get number of Participants
       dbPool.execute<{ numOfParticipants: number }>(
         sql.raw(`
-          SELECT count(DISTINCT user_id) AS "numOfParticipants"
+          SELECT count(DISTINCT user_id)::int AS "numOfParticipants"
           FROM votes 
           WHERE question_id = '${forumQuestionId}'
           `),
@@ -96,7 +115,7 @@ async function executeQueries(
               WHERE question_id = '${forumQuestionId}'
           )
   
-          SELECT count(DISTINCT group_id) AS "numOfGroups"
+          SELECT count(DISTINCT group_id)::int AS "numOfGroups"
           FROM users_to_groups
           WHERE user_id IN (SELECT user_id FROM votes_users)
           `),
@@ -196,6 +215,7 @@ async function executeQueries(
     ]);
 
     const numProposals = queryResultNumProposals[0]?.numProposals;
+    console.log(numProposals);
     const sumNumOfHearts = queryResultAllocatedHearts[0]?.sumNumOfHearts;
     const numOfParticipants = queryNumOfParticipants[0]?.numOfParticipants;
     const numOfGroups = queryNumOfGroups[0]?.numOfGroups;
