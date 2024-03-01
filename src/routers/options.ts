@@ -11,6 +11,6 @@ export function optionsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db
   router.get('/:optionId', isLoggedIn(), getOption(dbPool));
   router.get('/:optionId/comments', isLoggedIn(), getCommentsForOption(dbPool));
   router.post('/:optionId/comments', isLoggedIn(), saveComment(dbPool));
-  router.delete('/:optionId/comments', isLoggedIn(), deleteComment(dbPool));
+  router.delete('/:optionId/comments/:commentId', isLoggedIn(), deleteComment(dbPool));
   return router;
 }
