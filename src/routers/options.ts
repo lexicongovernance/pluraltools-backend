@@ -8,9 +8,10 @@ import { saveComment, getCommentsForOption, deleteComment } from '../services/co
 const router = express.Router();
 
 export function optionsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
-  router.get('/:optionId', isLoggedIn(), getOption(dbPool));
-  router.get('/:optionId/comments', isLoggedIn(), getCommentsForOption(dbPool));
-  router.post('/:optionId/comments', isLoggedIn(), saveComment(dbPool));
-  router.delete('/:optionId/comments/:commentId', isLoggedIn(), deleteComment(dbPool));
+  router.get('/:optionId', isLoggedIn(dbPool), getOption(dbPool));
+  router.get('/:optionId/comments', isLoggedIn(dbPool), getCommentsForOption(dbPool));
+  router.post('/:optionId/comments', isLoggedIn(dbPool), saveComment(dbPool));
+  router.delete('/:optionId/comments/:commentId', isLoggedIn(dbPool), deleteComment(dbPool));
+
   return router;
 }
