@@ -184,7 +184,7 @@ export async function executeResultQueries(
           
           option_distinct_group_name AS (
               SELECT option_id AS "optionId", count(DISTINCT group_id)::int AS "distinctGroups", 
-              STRING_TO_ARRAY(STRING_AGG(DISTINCT name, ','), ',') AS "listOfGroupNames"
+              STRING_TO_ARRAY(STRING_AGG(DISTINCT name, ';'), ';') AS "listOfGroupNames"
               FROM option_user_group_name
               GROUP BY option_id
           ),
