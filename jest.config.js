@@ -9,7 +9,7 @@ module.exports = {
   testPathIgnorePatterns: ['node_modules'],
   preset: 'ts-jest',
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: [
     'src/modules/**/*.ts',
     'src/services/**/*.ts',

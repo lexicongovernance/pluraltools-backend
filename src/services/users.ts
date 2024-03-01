@@ -81,7 +81,6 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
       .update(db.users)
       .set({
         email: body.data.email,
-        emailNotification: body.data.emailNotification,
         username: body.data.username,
         name: body.data.name,
         updatedAt: new Date(),
