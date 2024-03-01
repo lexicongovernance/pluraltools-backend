@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
-      - next
+      - v2.2.0
       - develop
       - main
 
