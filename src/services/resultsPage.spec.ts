@@ -59,7 +59,6 @@ describe('getResultStatistics endpoint', () => {
 
     // Call getResultStatistics with the required parameters
     const result = await executeResultQueries(questionId, dbPool);
-    console.log(result);
 
     // Test aggregate result statistics
     expect(result).toBeDefined();
@@ -89,7 +88,6 @@ describe('getResultStatistics endpoint', () => {
         expect(optionStat?.allocatedHearts).toEqual(4);
         expect(optionStat?.distinctGroups).toEqual(1);
         const listOfGroupNames = optionStat?.listOfGroupNames;
-        console.log(listOfGroupNames);
         // Check if the array is not empty
         expect(listOfGroupNames).toBeDefined();
         expect(listOfGroupNames?.length).toBeGreaterThan(0);
