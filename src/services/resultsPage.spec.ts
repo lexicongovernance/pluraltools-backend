@@ -6,7 +6,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { executeQueries } from './resultsPage';
+import { executeResultQueries } from './resultsPage';
 import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -14,7 +14,8 @@ const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 describe('getResultStatistics endpoint', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
-  let testData: z.infer<typeof insertVotesSchema>;
+  let userTestData: z.infer<typeof insertVotesSchema>;
+  let otherUserTestData: z.infer<typeof insertVotesSchema>;
   let cycle: db.Cycle | undefined;
   let questionOption: db.QuestionOption | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
@@ -34,25 +35,66 @@ describe('getResultStatistics endpoint', () => {
     user = users[0];
     otherUser = users[1];
     cycle = cycles[0];
-    testData = {
-      numOfVotes: 1,
+    userTestData = {
+      numOfVotes: 2,
       optionId: questionOption?.id ?? '',
       questionId: forumQuestion?.id ?? '',
       userId: user?.id ?? '',
     };
+    otherUserTestData = {
+      numOfVotes: 2,
+      optionId: questionOption?.id ?? '',
+      questionId: forumQuestion?.id ?? '',
+      userId: otherUser?.id ?? '',
+    };
+
+    // Add additional data to the Db
+    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    await dbPool.insert(db.votes).values(userTestData);
+    await dbPool.insert(db.votes).values(otherUserTestData);
   });
 
   test('should return aggregated statistics when all queries return valid data', async () => {
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     const questionId = forumQuestion!.id;
 
     // Call getResultStatistics with the required parameters
-    const result = await executeQueries(questionId, dbPool);
+    const result = await executeResultQueries(questionId, dbPool);
     console.log(result);
 
-    // Check if result is defined
+    // Test aggregate result statistics
     expect(result).toBeDefined();
     expect(result.numProposals).toEqual(2);
+    expect(result.sumNumOfHearts).toEqual(4);
+    expect(result.numOfParticipants).toEqual(2);
+
+    // Test option stats
+    expect(result.optionStats).toBeDefined();
+    expect(Object.keys(result.optionStats)).toHaveLength(2);
+
+    for (const optionId in result.optionStats) {
+      const optionStat = result.optionStats[optionId];
+      expect(optionStat).toBeDefined();
+      expect(optionStat?.optionTitle).toBeDefined();
+      expect(optionStat?.optionSubTitle).toBeDefined();
+      expect(optionStat?.pluralityScore).toBeDefined();
+      expect(optionStat?.distinctUsers).toBeDefined();
+      expect(optionStat?.allocatedHearts).toBeDefined();
+      expect(optionStat?.distinctGroups).toBeDefined();
+      expect(optionStat?.listOfGroupNames).toBeDefined();
+
+      // Add assertions for distinct users and allocated hearts
+      if (optionId === questionOption?.id) {
+        // Assuming this option belongs to the user
+        expect(optionStat?.distinctUsers).toEqual(2);
+        expect(optionStat?.allocatedHearts).toEqual(4);
+        expect(optionStat?.distinctGroups).toEqual(1);
+        const listOfGroupNames = optionStat?.listOfGroupNames;
+        console.log(listOfGroupNames);
+        // Check if the array is not empty
+        expect(listOfGroupNames).toBeDefined();
+        expect(listOfGroupNames?.length).toBeGreaterThan(0);
+      }
+    }
   });
 
   afterAll(async () => {

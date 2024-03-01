@@ -13,7 +13,7 @@ type ResultData = {
     {
       optionTitle: string;
       optionSubTitle: string;
-      pluralityScore: number;
+      pluralityScore: string;
       distinctUsers: number;
       allocatedHearts: number;
       distinctGroups: number;
@@ -42,7 +42,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
       }
 
       // Execute queries
-      const responseData = await executeQueries(forumQuestionId, dbPool);
+      const responseData = await executeResultQueries(forumQuestionId, dbPool);
 
       // Send response
       return res.status(200).json({ data: responseData });
@@ -60,7 +60,7 @@ export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
  * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
  * @returns {Promise<unknown>} - A promise resolving to an object containing various statistics related to the forum question.
  */
-export async function executeQueries(
+export async function executeResultQueries(
   forumQuestionId: string | undefined,
   dbPool: PostgresJsDatabase<typeof db>,
 ): Promise<ResultData> {
@@ -86,7 +86,7 @@ export async function executeQueries(
       // Get total allocated hearts
       dbPool.execute<{ sumNumOfHearts: number }>(
         sql.raw(`
-          SELECT sum(num_of_votes) AS "sumNumOfHearts"
+          SELECT sum(num_of_votes)::int AS "sumNumOfHearts"
           FROM (
               SELECT user_id, num_of_votes, updated_at,
                   ROW_NUMBER() OVER (PARTITION BY user_id, option_id ORDER BY updated_at DESC) as row_num
@@ -126,7 +126,7 @@ export async function executeQueries(
         optionId: string;
         optionTitle: string;
         optionSubTitle: string;
-        pluralityScore: number;
+        pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
         distinctGroups: number;
@@ -134,7 +134,7 @@ export async function executeQueries(
       }>(
         sql.raw(`
           WITH distinct_voters_by_option AS (
-              SELECT option_id AS "optionId", count(DISTINCT user_id) AS "distinctUsers" 
+              SELECT option_id AS "optionId", count(DISTINCT user_id)::int AS "distinctUsers" 
               FROM votes
               WHERE question_id = '${forumQuestionId}'
               GROUP BY option_id
@@ -148,7 +148,7 @@ export async function executeQueries(
           ),
           
           allocated_hearts AS (
-              SELECT option_id AS "optionId", sum(num_of_votes) AS "allocatedHearts"
+              SELECT option_id AS "optionId", sum(num_of_votes)::int AS "allocatedHearts"
               FROM (
                   SELECT user_id, option_id, num_of_votes, updated_at,
                   ROW_NUMBER() OVER (PARTITION BY user_id, option_id ORDER BY updated_at DESC) as row_num
@@ -183,7 +183,7 @@ export async function executeQueries(
           ),
           
           option_distinct_group_name AS (
-              SELECT option_id AS "optionId", count(DISTINCT group_id) AS "distinctGroups", 
+              SELECT option_id AS "optionId", count(DISTINCT group_id)::int AS "distinctGroups", 
               STRING_TO_ARRAY(STRING_AGG(DISTINCT name, ','), ',') AS "listOfGroupNames"
               FROM option_user_group_name
               GROUP BY option_id
@@ -215,7 +215,6 @@ export async function executeQueries(
     ]);
 
     const numProposals = queryResultNumProposals[0]?.numProposals;
-    console.log(numProposals);
     const sumNumOfHearts = queryResultAllocatedHearts[0]?.sumNumOfHearts;
     const numOfParticipants = queryNumOfParticipants[0]?.numOfParticipants;
     const numOfGroups = queryNumOfGroups[0]?.numOfGroups;
@@ -224,7 +223,7 @@ export async function executeQueries(
       {
         optionTitle: string;
         optionSubTitle: string;
-        pluralityScore: number;
+        pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
         distinctGroups: number;
@@ -248,7 +247,7 @@ export async function executeQueries(
       indivStats[indivOptionId] = {
         optionTitle: indivOptionTitle || 'No Title Provided',
         optionSubTitle: indivOptionSubTitle || '',
-        pluralityScore: indivPluralityScore || 0,
+        pluralityScore: indivPluralityScore || '0.0',
         distinctUsers: indivDistinctUsers || 0,
         allocatedHearts: indivAllocatedHearts || 0,
         distinctGroups: indivdistinctGroups || 0,
@@ -264,7 +263,6 @@ export async function executeQueries(
       optionStats: indivStats,
     };
 
-    console.log(responseData);
     return responseData;
   } catch (error) {
     console.error('Error in executeQueries:', error);
