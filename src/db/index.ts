@@ -14,3 +14,5 @@ export * from './usersToGroups';
 export * from './userAttributes';
 export * from './comments';
 export * from './likes';
+export * from './notificationTypes';
+export * from './usersToNotifications';

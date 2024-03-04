@@ -5,7 +5,10 @@ import { and } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
-import { upsertRegistrationData, updateQuestionOptions } from './registrationData';
+import {
+  upsertRegistrationData,
+  upsertQuestionOptionFromRegistrationData,
+} from './registrationData';
 
 export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -75,6 +78,25 @@ export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+export function getUserRegistrations(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    // parse input
+    const userId = req.session.userId;
+
+    try {
+      const out = await dbPool
+        .select()
+        .from(db.registrations)
+        .where(eq(db.registrations.userId, userId));
+
+      return res.json({ data: out });
+    } catch (e) {
+      console.log('error getting user registrations ' + e);
+      return res.sendStatus(500);
+    }
+  };
+}
+
 export async function sendRegistrationData(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
@@ -95,7 +117,7 @@ export async function sendRegistrationData(
   });
 
   try {
-    await updateQuestionOptions(dbPool, updatedRegistrationData);
+    await upsertQuestionOptionFromRegistrationData(dbPool, userId, updatedRegistrationData);
 
     const out = {
       ...newRegistration,

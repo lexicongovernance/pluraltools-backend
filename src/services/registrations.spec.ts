@@ -10,7 +10,7 @@ import { cleanup, seed } from '../utils/db/seed';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
-describe('sendRegistrationData  function', () => {
+describe('service: registrations', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let testData: z.infer<typeof insertRegistrationSchema>;

@@ -65,21 +65,79 @@ export async function insertComment(
 }
 
 /**
- * Retrieves comments related to a specific question option from the database.
+ * Deletes a comment from the database, along with associated likes if any.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
- * @returns {Promise<void>} - A promise that resolves with the retrieved comments.
+ * @returns {Promise<void>} - A promise that resolves once the comment and associated likes are deleted.
+ * @throws {Error} - Throws an error if the deletion fails.
+ */
+export function deleteComment(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const commentId = req.params.commentId;
+    const userId = req.session.userId;
+
+    if (!commentId) {
+      return res.status(400).json({ errors: ['commentId is required'] });
+    }
+
+    try {
+      // Only the author of the comment has the authorization to delete the comment
+      const comment = await dbPool.query.comments.findFirst({
+        where: and(eq(db.comments.id, commentId), eq(db.comments.userId, userId)),
+      });
+
+      if (!comment) {
+        return res.status(404).json({ errors: ['Unauthorized to delete comment'] });
+      }
+
+      // Delete all likes associated with the deleted comment
+      await dbPool.delete(db.likes).where(eq(db.likes.commentId, commentId));
+
+      // Delete the comment
+      const deletedComment = await dbPool
+        .delete(db.comments)
+        .where(eq(db.comments.id, commentId))
+        .returning();
+
+      return res.json({ data: deletedComment });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ errors: ['Failed to delete comment'] });
+    }
+  };
+}
+
+/**
+ * Retrieves comments related to a specific question option from the database and associates them with corresponding user information.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @returns {Promise<void>} - A promise that resolves with the retrieved comments, each associated with user information if available.
  */
 export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const optionId = req.params.optionId ?? '';
 
     try {
-      // Query the database for comments related to the specified questionOptionId
-      const comments = await dbPool.query.comments.findMany({
-        where: eq(db.comments.questionOptionId, optionId),
+      // Query comments
+      const rows = await dbPool
+        .select()
+        .from(db.comments)
+        .leftJoin(db.users, eq(db.comments.userId, db.users.id))
+        .where(eq(db.comments.questionOptionId, optionId));
+
+      const commentsWithUserNames = rows.map((row) => {
+        return {
+          id: row.comments.id,
+          userId: row.comments.userId,
+          questionOptionId: row.comments.questionOptionId,
+          value: row.comments.value,
+          createdAt: row.comments.createdAt,
+          user: {
+            id: row.users?.id,
+            username: row.users?.username,
+          },
+        };
       });
 
-      return res.json({ data: comments });
+      return res.json({ data: commentsWithUserNames });
     } catch (error) {
       console.error('Error getting comments: ', error);
       return res.sendStatus(500);
