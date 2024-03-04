@@ -11,7 +11,7 @@ import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
-describe('getResultStatistics endpoint', () => {
+describe('service: statistics', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let userTestData: z.infer<typeof insertVotesSchema>;
@@ -49,7 +49,6 @@ describe('getResultStatistics endpoint', () => {
     };
 
     // Add additional data to the Db
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     await dbPool.insert(db.votes).values(userTestData);
     await dbPool.insert(db.votes).values(otherUserTestData);
   });
