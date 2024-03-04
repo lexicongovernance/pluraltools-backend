@@ -1,7 +1,7 @@
 import { availableHearts } from './forumQuestions';
 
 // Test availableHearts function
-describe('availableHearts function', () => {
+describe('service: forumQuestions', () => {
   test('calculates available hearts correctly', () => {
     const numProposals = 2;
     const baseNumerator = 4;
