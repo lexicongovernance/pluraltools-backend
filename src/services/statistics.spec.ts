@@ -1,5 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { getResultStatistics } from './resultsPage';
+import { getResultStatistics } from './statistics';
 import * as db from '../db';
 import postgres from 'postgres';
 import { createDbPool } from '../utils/db/createDbPool';
@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
-describe('getResultStatistics endpoint', () => {
+describe('service: statistics', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let req: Partial<Request>;
   let res: Partial<Response>;
