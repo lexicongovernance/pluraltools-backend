@@ -55,19 +55,62 @@ export function getCycleById(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing cycleId' });
     }
 
-    const cycle = await dbPool.query.cycles.findFirst({
-      where: eq(db.cycles.id, cycleId),
-      with: {
-        forumQuestions: {
-          with: {
-            questionOptions: {
-              where: eq(db.questionOptions.accepted, true),
+    const out = await GetCycleByIdFromDB(dbPool, cycleId);
+
+    return res.json({ data: out });
+  };
+}
+
+export async function GetCycleByIdFromDB(dbPool: PostgresJsDatabase<typeof db>, cycleId: string) {
+  const cycle = await dbPool.query.cycles.findFirst({
+    where: eq(db.cycles.id, cycleId),
+    with: {
+      forumQuestions: {
+        with: {
+          questionOptions: {
+            with: {
+              user: {
+                with: {
+                  usersToGroups: {
+                    with: {
+                      group: true,
+                    },
+                  },
+                },
+              },
             },
+            where: eq(db.questionOptions.accepted, true),
           },
         },
       },
-    });
+    },
+  });
 
-    return res.json({ data: cycle });
+  const out = {
+    ...cycle,
+    forumQuestions: cycle?.forumQuestions.map((question) => {
+      return {
+        ...question,
+        questionOptions: question.questionOptions.map((option) => {
+          return {
+            id: option.id,
+            accepted: option.accepted,
+            optionTitle: option.optionTitle,
+            optionSubTitle: option.optionSubTitle,
+            voteScore: option.voteScore,
+            questionId: option.questionId,
+            registrationId: option.registrationId,
+            user: {
+              username: option.user?.username,
+              group: option.user?.usersToGroups[0]?.group,
+            },
+            createdAt: option.createdAt,
+            updatedAt: option.updatedAt,
+          };
+        }),
+      };
+    }),
   };
+
+  return out;
 }
