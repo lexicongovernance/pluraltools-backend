@@ -1,50 +1,97 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { getResultStatistics } from './statistics';
-import * as db from '../db';
 import postgres from 'postgres';
+import * as db from '../db';
 import { createDbPool } from '../utils/db/createDbPool';
 import { runMigrations } from '../utils/db/runMigrations';
+import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
-import { Request, Response } from 'express';
+import { z } from 'zod';
+import { executeResultQueries } from './statistics';
+import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
 describe('service: statistics', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
-  let req: Partial<Request>;
-  let res: Partial<Response>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
+  let userTestData: z.infer<typeof insertVotesSchema>;
+  let otherUserTestData: z.infer<typeof insertVotesSchema>;
+  let cycle: db.Cycle | undefined;
+  let questionOption: db.QuestionOption | undefined;
+  let forumQuestion: db.ForumQuestion | undefined;
+  let user: db.User | undefined;
+  let otherUser: db.User | undefined;
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
     await runMigrations(DB_CONNECTION_URL);
     dbPool = initDb.dbPool;
-
-    // Seed the database
-    await seed(dbPool);
-
-    // Initialize req and res objects
-    req = {};
-    res = {};
-
-    // Initialize dbConnection
     dbConnection = initDb.connection;
+    // seed
+    const { users, questionOptions, forumQuestions, cycles } = await seed(dbPool);
+    // Insert registration fields for the user
+    questionOption = questionOptions[0];
+    forumQuestion = forumQuestions[0];
+    user = users[0];
+    otherUser = users[1];
+    cycle = cycles[0];
+    userTestData = {
+      numOfVotes: 2,
+      optionId: questionOption?.id ?? '',
+      questionId: forumQuestion?.id ?? '',
+      userId: user?.id ?? '',
+    };
+    otherUserTestData = {
+      numOfVotes: 2,
+      optionId: questionOption?.id ?? '',
+      questionId: forumQuestion?.id ?? '',
+      userId: otherUser?.id ?? '',
+    };
+
+    // Add additional data to the Db
+    await dbPool.insert(db.votes).values(userTestData);
+    await dbPool.insert(db.votes).values(otherUserTestData);
   });
 
   test('should return aggregated statistics when all queries return valid data', async () => {
-    // Mock forumQuestionId in req.params
-    req.params = { forumQuestionId: '3eac2a7b-a20d-4157-9855-ad7a65a5a731' };
+    const questionId = forumQuestion!.id;
 
-    // Mock res.json and res.status to capture the response
-    res.json = jest.fn();
-    res.status = jest.fn().mockReturnValue(res);
+    // Call getResultStatistics with the required parameters
+    const result = await executeResultQueries(questionId, dbPool);
 
-    // Call getResultStatistics
-    await getResultStatistics(dbPool)(req as Request, res as Response);
+    // Test aggregate result statistics
+    expect(result).toBeDefined();
+    expect(result.numProposals).toEqual(2);
+    expect(result.sumNumOfHearts).toEqual(4);
+    expect(result.numOfParticipants).toEqual(2);
 
-    // Assertions for response
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalled();
+    // Test option stats
+    expect(result.optionStats).toBeDefined();
+    expect(Object.keys(result.optionStats)).toHaveLength(2);
+
+    for (const optionId in result.optionStats) {
+      const optionStat = result.optionStats[optionId];
+      expect(optionStat).toBeDefined();
+      expect(optionStat?.optionTitle).toBeDefined();
+      expect(optionStat?.optionSubTitle).toBeDefined();
+      expect(optionStat?.pluralityScore).toBeDefined();
+      expect(optionStat?.distinctUsers).toBeDefined();
+      expect(optionStat?.allocatedHearts).toBeDefined();
+      expect(optionStat?.distinctGroups).toBeDefined();
+      expect(optionStat?.listOfGroupNames).toBeDefined();
+
+      // Add assertions for distinct users and allocated hearts
+      if (optionId === questionOption?.id) {
+        // Assuming this option belongs to the user
+        expect(optionStat?.distinctUsers).toEqual(2);
+        expect(optionStat?.allocatedHearts).toEqual(4);
+        expect(optionStat?.distinctGroups).toEqual(1);
+        const listOfGroupNames = optionStat?.listOfGroupNames;
+        // Check if the array is not empty
+        expect(listOfGroupNames).toBeDefined();
+        expect(listOfGroupNames?.length).toBeGreaterThan(0);
+      }
+    }
   });
 
   afterAll(async () => {
