@@ -7,7 +7,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const cycles = await createCycle(dbPool, events[0]?.id);
   const registrationFields = await createRegistrationFields(dbPool, events[0]?.id);
   const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id);
-  const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
+  const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id, events[0]?.id);
   const groups = await createGroups(dbPool);
   const users = await createUsers(dbPool);
   const usersToGroups = await createUsersToGroups(
@@ -101,9 +101,17 @@ async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycle
     .returning();
 }
 
-async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, questionId?: string) {
+async function createQuestionOptions(
+  dbPool: PostgresJsDatabase<typeof db>,
+  questionId?: string,
+  eventId?: string,
+) {
   if (questionId === undefined) {
     throw new Error('Question ID is undefined.');
+  }
+
+  if (eventId === undefined) {
+    throw new Error('Event ID is undefined.');
   }
 
   return dbPool
@@ -111,10 +119,11 @@ async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, ques
     .values([
       {
         questionId,
+        eventId,
         optionTitle: randMovie(),
         accepted: true,
       },
-      { questionId, optionTitle: randMovie(), accepted: true },
+      { questionId, eventId, optionTitle: randMovie(), accepted: true },
     ])
     .returning();
 }
