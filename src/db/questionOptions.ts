@@ -15,8 +15,8 @@ export const questionOptions = pgTable('question_options', {
     .references(() => forumQuestions.id)
     .notNull(),
   eventId: uuid('event_id')
-  .references(() => events.id)
-  .notNull(),
+    .references(() => events.id)
+    .notNull(),
   optionTitle: varchar('option_title', { length: 256 }).notNull(),
   optionSubTitle: varchar('option_sub_title'),
   accepted: boolean('accepted').default(false),

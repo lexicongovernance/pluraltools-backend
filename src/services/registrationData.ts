@@ -115,6 +115,7 @@ async function fetchRegistrationFields(
   {
     registrationFieldId: string;
     questionId: string;
+    eventId: string;
     questionOptionType: string;
   }[]
 > {
@@ -122,6 +123,7 @@ async function fetchRegistrationFields(
     .select({
       registrationFieldId: db.registrationFields.id,
       questionId: db.registrationFields.questionId,
+      eventId: db.registrationFields.eventId,
       questionOptionType: db.registrationFields.questionOptionType,
     })
     .from(db.registrationFields)
@@ -134,6 +136,7 @@ async function fetchRegistrationFields(
     )) as {
     registrationFieldId: string;
     questionId: string;
+    eventId: string;
     questionOptionType: 'TITLE' | 'SUBTITLE';
   }[];
 
@@ -156,6 +159,7 @@ function filterRegistrationData(
   registrationFields: {
     registrationFieldId: string;
     questionId: string;
+    eventId: string;
     questionOptionType: string;
   }[],
 ): {
@@ -187,11 +191,13 @@ function transformRegistrationDataToCombinedFormat(
   registrationFields: {
     registrationFieldId: string;
     questionId: string;
+    eventId: string;
     questionOptionType: string;
   }[],
 ): {
   registrationId: string;
   questionId: string;
+  eventId: string;
   values: { [questionOptionType: string]: string };
 }[] {
   const combinedData = filteredRegistrationData.map((data) => {
@@ -202,6 +208,7 @@ function transformRegistrationDataToCombinedFormat(
       return {
         registrationId: data.registrationId,
         questionId: matchingField.questionId,
+        eventId: matchingField.eventId,
         values: {
           [matchingField.questionOptionType]: data.value,
         },
@@ -224,6 +231,7 @@ async function upsertQuestionOptions(
   combinedData: {
     registrationId: string;
     questionId: string;
+    eventId: string;
     values: { [questionOptionType: string]: string };
   }[],
 ): Promise<void> {
@@ -240,6 +248,7 @@ async function upsertQuestionOptions(
         .set({
           registrationId: data.registrationId,
           questionId: data.questionId,
+          eventId: data.eventId,
           optionTitle: data.values['TITLE'] || existingQuestionOption.optionTitle,
           optionSubTitle: data.values['SUBTITLE'] || existingQuestionOption.optionSubTitle,
           updatedAt: new Date(),
@@ -254,6 +263,7 @@ async function upsertQuestionOptions(
           userId: userId,
           registrationId: data.registrationId,
           questionId: data.questionId,
+          eventId: data.eventId,
           optionTitle: data.values['TITLE'] || '',
           optionSubTitle: data.values['SUBTITLE'] || '',
           createdAt: new Date(),
