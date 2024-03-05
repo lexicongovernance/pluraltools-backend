@@ -18,6 +18,7 @@ describe('service: registrationData', () => {
   let forumQuestion: db.ForumQuestion | undefined;
   let registrationField: db.RegistrationField | undefined;
   let user: db.User | undefined;
+  let registration: db.Registration | undefined;
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -25,7 +26,7 @@ describe('service: registrationData', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { users, questionOptions, forumQuestions, cycles, registrationFields } = await seed(dbPool);
+    const { users, questionOptions, forumQuestions, registrationFields } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
     forumQuestion = forumQuestions[0];
