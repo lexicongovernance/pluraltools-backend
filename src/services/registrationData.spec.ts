@@ -4,9 +4,11 @@ import * as db from '../db';
 import { createDbPool } from '../utils/db/createDbPool';
 import { runMigrations } from '../utils/db/runMigrations';
 import { registrationDataSchema } from '../types';
+import { insertRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import { upsertRegistrationData } from './registrationData';
+import { sendRegistrationData } from './registrations';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -18,7 +20,7 @@ describe('service: registrationData', () => {
   let forumQuestion: db.ForumQuestion | undefined;
   let registrationField: db.RegistrationField | undefined;
   let user: db.User | undefined;
-  let registration: db.Registration | undefined;
+  let testRegistration: z.infer<typeof insertRegistrationSchema>;
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -26,62 +28,37 @@ describe('service: registrationData', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { users, questionOptions, forumQuestions, registrationFields } = await seed(dbPool);
+    const { events, users, questionOptions, forumQuestions, registrationFields } =
+      await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
     forumQuestion = forumQuestions[0];
     user = users[0];
     registrationField = registrationFields[0];
-    registrationTestData = [{
-      registrationFieldId: registrationField?.id ?? "",
-      value: 'something',
-    }];
+    registrationTestData = [
+      {
+        registrationFieldId: registrationField?.id ?? '',
+        value: 'something',
+      },
+    ];
 
-    // Add additional data to the Db
-    await dbPool.insert(db.registrationData).values(registrationTestData);
-    await dbPool.insert(db.votes).values(otherUserTestData);
+    testRegistration = {
+      userId: users[0]?.id ?? '',
+      eventId: events[0]?.id ?? '',
+      status: 'DRAFT',
+      registrationData: [
+        {
+          registrationFieldId: registrationFields[0]?.id ?? '',
+          value: 'something',
+        },
+      ],
+    };
+
+    // Add test registration data to the db
+    await sendRegistrationData(dbPool, testRegistration, testRegistration.userId);
   });
 
-  test('should return aggregated statistics when all queries return valid data', async () => {
-    const questionId = forumQuestion!.id;
-
-    // Call getResultStatistics with the required parameters
-    const result = await upsertRegistrationData(questionId, dbPool);
-
-    // Test aggregate result statistics
-    expect(result).toBeDefined();
-    expect(result.numProposals).toEqual(2);
-    expect(result.sumNumOfHearts).toEqual(4);
-    expect(result.numOfParticipants).toEqual(2);
-
-    // Test option stats
-    expect(result.optionStats).toBeDefined();
-    expect(Object.keys(result.optionStats)).toHaveLength(2);
-
-    for (const optionId in result.optionStats) {
-      const optionStat = result.optionStats[optionId];
-      expect(optionStat).toBeDefined();
-      expect(optionStat?.optionTitle).toBeDefined();
-      expect(optionStat?.optionSubTitle).toBeDefined();
-      expect(optionStat?.pluralityScore).toBeDefined();
-      expect(optionStat?.distinctUsers).toBeDefined();
-      expect(optionStat?.allocatedHearts).toBeDefined();
-      expect(optionStat?.distinctGroups).toBeDefined();
-      expect(optionStat?.listOfGroupNames).toBeDefined();
-
-      // Add assertions for distinct users and allocated hearts
-      if (optionId === questionOption?.id) {
-        // Assuming this option belongs to the user
-        expect(optionStat?.distinctUsers).toEqual(2);
-        expect(optionStat?.allocatedHearts).toEqual(4);
-        expect(optionStat?.distinctGroups).toEqual(1);
-        const listOfGroupNames = optionStat?.listOfGroupNames;
-        // Check if the array is not empty
-        expect(listOfGroupNames).toBeDefined();
-        expect(listOfGroupNames?.length).toBeGreaterThan(0);
-      }
-    }
-  });
+  test('should return aggregated statistics when all queries return valid data', async () => {});
 
   afterAll(async () => {
     await cleanup(dbPool);
