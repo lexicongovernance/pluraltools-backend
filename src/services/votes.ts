@@ -256,27 +256,30 @@ export async function saveVote(
   return { data: newVote[0] };
 }
 
+/**
+ * Checks whether a user can vote on an option based on their registration status.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param {string} userId - The ID of the user attempting to vote.
+ * @param {string} optionId - The ID of the option to be voted on.
+ * @returns {Promise<boolean>} A promise that resolves to true if the user can vote on the option, false otherwise.
+ */
 export async function userCanVote(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   optionId: string,
 ) {
-  // check if user has an accepted registration for the option related to the event
-  const res = await dbPool
-    .select()
-    .from(db.questionOptions)
-    .leftJoin(db.forumQuestions, eq(db.forumQuestions.id, db.questionOptions.questionId))
-    .leftJoin(db.cycles, eq(db.cycles.id, db.forumQuestions.cycleId))
-    .leftJoin(db.events, eq(db.events.id, db.cycles.eventId))
-    .leftJoin(db.registrations, eq(db.registrations.eventId, db.events.id))
-    .where(and(eq(db.registrations.userId, userId), eq(db.questionOptions.id, optionId)))
-    .limit(1);
-
-  if (!res.length) {
+  if (!optionId) {
     return false;
   }
+  // check if user has an accepted registration
+  const res = await dbPool
+    .selectDistinct({
+      user: db.registrations.userId,
+    })
+    .from(db.registrations)
+    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'ACCEPTED')));
 
-  if (res[0]?.registrations?.status !== 'ACCEPTED') {
+  if (!res.length) {
     return false;
   }
 

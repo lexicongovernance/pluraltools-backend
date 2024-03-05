@@ -87,28 +87,31 @@ export function deleteLike(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+/**
+ * Checks whether a user can like a comment based on their registration status.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param {string} userId - The ID of the user attempting to like the comment.
+ * @param {string} commentId - The ID of the comment to be liked.
+ * @returns {Promise<boolean>} A promise that resolves to true if the user can like the comment, false otherwise.
+ */
 async function userCanLike(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   commentId: string,
 ) {
-  // check if user has an accepted registration for the option related to the event
-  const res = await dbPool
-    .select()
-    .from(db.comments)
-    .leftJoin(db.questionOptions, eq(db.questionOptions.id, db.comments.questionOptionId))
-    .leftJoin(db.forumQuestions, eq(db.forumQuestions.id, db.questionOptions.questionId))
-    .leftJoin(db.cycles, eq(db.cycles.id, db.forumQuestions.cycleId))
-    .leftJoin(db.events, eq(db.events.id, db.cycles.eventId))
-    .leftJoin(db.registrations, eq(db.registrations.eventId, db.events.id))
-    .where(and(eq(db.registrations.userId, userId), eq(db.comments.id, commentId)))
-    .limit(1);
-
-  if (!res.length) {
+  if (!commentId) {
     return false;
   }
 
-  if (res[0]?.registrations?.status !== 'ACCEPTED') {
+  // check if user has an accepted registration
+  const res = await dbPool
+    .selectDistinct({
+      user: db.registrations.userId,
+    })
+    .from(db.registrations)
+    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'ACCEPTED')));
+
+  if (!res.length) {
     return false;
   }
 

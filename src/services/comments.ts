@@ -144,6 +144,14 @@ export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
     }
   };
 }
+
+/**
+ * Checks whether a user can comment based on their registration status.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param {string} userId - The ID of the user attempting to comment.
+ * @param {string | undefined | null} optionId - The ID of the option for which the user is attempting to comment.
+ * @returns {Promise<boolean>} A promise that resolves to true if the user can comment, false otherwise.
+ */
 async function userCanComment(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
@@ -153,22 +161,15 @@ async function userCanComment(
     return false;
   }
 
-  // check if user has an accepted registration for the option related to the event
+  // check if user has an accepted registration
   const res = await dbPool
-    .select()
-    .from(db.questionOptions)
-    .leftJoin(db.forumQuestions, eq(db.forumQuestions.id, db.questionOptions.questionId))
-    .leftJoin(db.cycles, eq(db.cycles.id, db.forumQuestions.cycleId))
-    .leftJoin(db.events, eq(db.events.id, db.cycles.eventId))
-    .leftJoin(db.registrations, eq(db.registrations.eventId, db.events.id))
-    .where(and(eq(db.registrations.userId, userId), eq(db.questionOptions.id, optionId)))
-    .limit(1);
+    .selectDistinct({
+      user: db.registrations.userId,
+    })
+    .from(db.registrations)
+    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'ACCEPTED')));
 
   if (!res.length) {
-    return false;
-  }
-
-  if (res[0]?.registrations?.status !== 'ACCEPTED') {
     return false;
   }
 
