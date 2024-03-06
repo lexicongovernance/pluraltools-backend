@@ -1,7 +1,7 @@
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
-import { eq } from 'drizzle-orm';
+import { and, eq, ne, or } from 'drizzle-orm';
 import { insertUserSchema } from '../types/users';
 import { overwriteUsersToGroups } from './usersToGroups';
 import { upsertUserAttributes } from './userAttributes';
@@ -77,25 +77,57 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     // update user
-    const user = await dbPool
-      .update(db.users)
-      .set({
-        email: body.data.email,
-        username: body.data.username,
-        name: body.data.name,
-        updatedAt: new Date(),
-      })
-      .where(eq(db.users.id, userId))
-      .returning();
+    try {
+      // check if username or email already exists and is not the current user
+      if (body.data.email || body.data.username) {
+        const existingUser = await dbPool
+          .select()
+          .from(db.users)
+          .where(
+            or(
+              and(eq(db.users.email, body.data.email ?? ''), ne(db.users.id, userId)),
+              and(eq(db.users.username, body.data.username ?? ''), ne(db.users.id, userId)),
+            ),
+          );
 
-    const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+        if (existingUser.length > 0) {
+          const errors = [];
 
-    const updatedUserAttributes = await upsertUserAttributes(
-      dbPool,
-      userId,
-      body.data.userAttributes,
-    );
+          if (existingUser[0]?.email === body.data.email) {
+            errors.push('Email already exists');
+          }
 
-    return res.json({ data: { user, updatedGroups, updatedUserAttributes } });
+          if (existingUser[0]?.username === body.data.username) {
+            errors.push('Username already exists');
+          }
+
+          return res.status(400).json({ errors });
+        }
+      }
+
+      const user = await dbPool
+        .update(db.users)
+        .set({
+          email: body.data.email,
+          username: body.data.username,
+          name: body.data.name,
+          updatedAt: new Date(),
+        })
+        .where(eq(db.users.id, userId))
+        .returning();
+
+      const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+
+      const updatedUserAttributes = await upsertUserAttributes(
+        dbPool,
+        userId,
+        body.data.userAttributes,
+      );
+
+      return res.json({ data: { user, updatedGroups, updatedUserAttributes } });
+    } catch (e) {
+      console.error(`[ERROR] ${JSON.stringify(e)}`);
+      return res.sendStatus(500);
+    }
   };
 }
