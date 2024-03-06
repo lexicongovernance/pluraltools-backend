@@ -146,7 +146,7 @@ export async function fetchRegistrationFields(
  * @param registrationFields - An array of registration fields.
  * @returns Filtered registration data.
  */
-function filterRegistrationData(
+export function filterRegistrationData(
   registrationData: {
     id: string;
     registrationFieldId: string;
