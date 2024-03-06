@@ -14,10 +14,7 @@ const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 describe('service: registrationData', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
-  let questionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
   let registrationField: db.RegistrationField | undefined;
-  let user: db.User | undefined;
   let registration: db.Registration | undefined;
   let testRegistration: z.infer<typeof insertRegistrationSchema>;
 
@@ -27,12 +24,8 @@ describe('service: registrationData', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { events, users, questionOptions, forumQuestions, registrationFields } =
-      await seed(dbPool);
-    // Insert registration fields for the user
-    questionOption = questionOptions[0];
-    forumQuestion = forumQuestions[0];
-    user = users[0];
+    const { events, users, registrationFields } = await seed(dbPool);
+    // insert registration fields
     registrationField = registrationFields[0];
 
     testRegistration = {
