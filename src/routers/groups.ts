@@ -6,6 +6,6 @@ import { isLoggedIn } from '../middleware/isLoggedIn';
 const router = express.Router();
 
 export function groupsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
-  router.get('/', isLoggedIn(), getGroups(dbPool));
+  router.get('/', isLoggedIn(dbPool), getGroups(dbPool));
   return router;
 }
