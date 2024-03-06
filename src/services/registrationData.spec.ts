@@ -6,7 +6,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { upsertRegistrationData } from './registrationData';
+import { upsertRegistrationData, fetchRegistrationFields } from './registrationData';
 import { sendRegistrationData } from './registrations';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -15,8 +15,10 @@ describe('service: registrationData', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let registrationField: db.RegistrationField | undefined;
+  let otherRegistrationField: db.RegistrationField | undefined;
   let registration: db.Registration | undefined;
   let testRegistration: z.infer<typeof insertRegistrationSchema>;
+  let forumQuestion: db.ForumQuestion | undefined;
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -24,9 +26,12 @@ describe('service: registrationData', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { events, users, registrationFields } = await seed(dbPool);
-    // insert registration fields
+    const { events, users, forumQuestions, registrationFields } = await seed(dbPool);
+
+    // Define data
+    forumQuestion = forumQuestions[0];
     registrationField = registrationFields[0];
+    otherRegistrationField = registrationFields[1];
 
     testRegistration = {
       userId: users[0]?.id ?? '',
@@ -35,12 +40,17 @@ describe('service: registrationData', () => {
       registrationData: [
         {
           registrationFieldId: registrationFields[0]?.id ?? '',
-          value: 'something',
+          value: 'title',
+        },
+        {
+          registrationFieldId: registrationFields[1]?.id ?? '',
+          value: 'sub title',
         },
       ],
     };
 
     // Add test registration data to the db
+    await dbPool.update(db.registrationFields).set({ questionId: forumQuestion?.id ?? '' });
     registration = await sendRegistrationData(dbPool, testRegistration, testRegistration.userId);
   });
 
@@ -50,7 +60,6 @@ describe('service: registrationData', () => {
     const registrationFieldId = registrationField?.id ?? '';
     const updatedValue = 'updated';
 
-    console.log('testRegistration', testRegistration);
     const registrationTestData = [
       {
         registrationFieldId: registrationFieldId,
@@ -63,7 +72,6 @@ describe('service: registrationData', () => {
       registrationId: registrationId,
       registrationData: registrationTestData,
     });
-    console.log('updatedData', updatedData);
 
     // Assert that the updated data array is not empty
     expect(updatedData).toBeDefined();
@@ -102,6 +110,23 @@ describe('service: registrationData', () => {
 
     // Assert that the function returns null when an error occurs
     expect(updatedData).toBeNull();
+  });
+
+  test('should fetch registration fields from the database', async () => {
+    // Fetch registration fields from the database and call the function
+    const registrationFieldIds = [registrationField?.id ?? '', otherRegistrationField?.id ?? ''];
+    const result = await fetchRegistrationFields(dbPool, registrationFieldIds);
+
+    // Assert that the result is an array and not empty
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+
+    // Assert that each item in the result array has the expected properties
+    result.forEach((item) => {
+      expect(item).toHaveProperty('registrationFieldId');
+      expect(item).toHaveProperty('questionId');
+      expect(item).toHaveProperty('questionOptionType');
+    });
   });
 
   afterAll(async () => {
