@@ -88,6 +88,29 @@ describe('service: registrationData', () => {
     }
   });
 
+  test('should return null when an error occurs', async () => {
+    // Provide an invalid registration id to trigger the error
+    const registrationId = '';
+    const registrationFieldId = registrationField?.id ?? '';
+    const updatedValue = 'updated';
+
+    const registrationTestData = [
+      {
+        registrationFieldId: registrationFieldId,
+        value: updatedValue,
+      },
+    ];
+
+    const updatedData = await upsertRegistrationData({
+      dbPool,
+      registrationId: registrationId,
+      registrationData: registrationTestData,
+    });
+
+    // Assert that the function returns null when an error occurs
+    expect(updatedData).toBeNull();
+  });
+
   afterAll(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
