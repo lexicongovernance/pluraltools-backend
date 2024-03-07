@@ -3,7 +3,6 @@ import * as db from '../db';
 import { eq, and, isNotNull, inArray } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 
-/* istanbul ignore next */
 export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const eventId = req.params.eventId;
