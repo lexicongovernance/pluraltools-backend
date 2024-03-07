@@ -93,11 +93,11 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
         if (existingUser.length > 0) {
           const errors = [];
 
-          if (existingUser[0]?.email === body.data.email) {
+          if (existingUser[0]?.email && existingUser[0].email === body.data.email) {
             errors.push('Email already exists');
           }
 
-          if (existingUser[0]?.username === body.data.username) {
+          if (existingUser[0]?.email && existingUser[0].username === body.data.username) {
             errors.push('Username already exists');
           }
 
