@@ -49,7 +49,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'Bump to version ${{ steps.pkg.outputs.version }}'
           base: ${{ github.event.pull_request.base.ref }}
-          title: 'Prerelease ${{ steps.pkg.outputs.version }}'
+          title: 'Release ${{ steps.pkg.outputs.version }}'
           body: 'The scope of this PR is to create the contents of the new release ${{ steps.pkg.outputs.version }}'
           branch: bot/open-${{ steps.pkg.outputs.version }}-release
           delete-branch: true
