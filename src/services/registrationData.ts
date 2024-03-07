@@ -108,7 +108,7 @@ export async function upsertRegistrationData({
  * @param registrationFieldIds - Array of registration field IDs.
  * @returns An array of registration fields.
  */
-async function fetchRegistrationFields(
+export async function fetchRegistrationFields(
   dbPool: PostgresJsDatabase<typeof db>,
   registrationFieldIds: string[],
 ): Promise<
@@ -146,7 +146,7 @@ async function fetchRegistrationFields(
  * @param registrationFields - An array of registration fields.
  * @returns Filtered registration data.
  */
-function filterRegistrationData(
+export function filterRegistrationData(
   registrationData: {
     id: string;
     registrationFieldId: string;
