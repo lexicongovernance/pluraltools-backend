@@ -13,7 +13,8 @@ import { usersToNotifications } from './usersToNotifications';
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   username: varchar('username', { length: 256 }).unique(),
-  name: varchar('name'),
+  firstName: varchar('first_name'),
+  lastName: varchar('last_name'),
   email: varchar('email', { length: 256 }).unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
