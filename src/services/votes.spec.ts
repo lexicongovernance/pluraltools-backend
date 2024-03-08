@@ -44,7 +44,7 @@ describe('service: votes', () => {
   it('should save vote', async () => {
     // accept user registration
     await dbPool.insert(db.registrations).values({
-      status: 'ACCEPTED',
+      status: 'APPROVED',
       userId: user!.id ?? '',
       eventId: cycle!.eventId ?? '',
     });
