@@ -102,6 +102,8 @@ export async function GetCycleByIdFromDB(dbPool: PostgresJsDatabase<typeof db>, 
             registrationId: option.registrationId,
             user: {
               username: option.user?.username,
+              firstName: option.user?.firstName,
+              lastName: option.user?.lastName,
               group: option.user?.usersToGroups[0]?.group,
             },
             createdAt: option.createdAt,
