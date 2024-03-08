@@ -271,13 +271,13 @@ export async function userCanVote(
   if (!optionId) {
     return false;
   }
-  // check if user has an accepted registration
+  // check if user has an approved registration
   const res = await dbPool
     .selectDistinct({
       user: db.registrations.userId,
     })
     .from(db.registrations)
-    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'ACCEPTED')));
+    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'APPROVED')));
 
   if (!res.length) {
     return false;
