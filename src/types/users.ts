@@ -16,6 +16,7 @@ export const insertUserSchema = createInsertSchema(users)
       ...data,
       email: data.email || null,
       username: data.username || null,
-      name: data.name || null,
+      firstName: data.firstName || null,
+      lastName: data.lastName || null,
     };
   });
