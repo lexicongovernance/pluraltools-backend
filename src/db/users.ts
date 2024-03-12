@@ -5,6 +5,7 @@ import { comments } from './comments';
 import { likes } from './likes';
 import { questionOptions } from './questionOptions';
 import { registrations } from './registrations';
+import { registrationData } from './registrationData';
 import { userAttributes } from './userAttributes';
 import { usersToGroups } from './usersToGroups';
 import { votes } from './votes';
@@ -22,6 +23,7 @@ export const users = pgTable('users', {
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   registrations: many(registrations),
+  registrationData: many(registrationData),
   votes: many(votes),
   usersToGroups: many(usersToGroups),
   userAttributes: many(userAttributes),

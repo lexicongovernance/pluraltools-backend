@@ -1,5 +1,5 @@
 {
-  "id": "74f80976-44e1-4679-99cf-589e07409bc0",
+  "id": "5d03e68a-2e3b-4be7-9952-c6b82d22ef56",
   "prevId": "9f611c3c-bc9b-4a90-869b-29d66dcabaa3",
   "version": "5",
   "dialect": "pg",
@@ -1005,6 +1005,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "registration_id": {
           "name": "registration_id",
           "type": "uuid",
@@ -1040,6 +1046,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "registration_data_user_id_users_id_fk": {
+          "name": "registration_data_user_id_users_id_fk",
+          "tableFrom": "registration_data",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "registration_data_registration_id_registrations_id_fk": {
           "name": "registration_data_registration_id_registrations_id_fk",
           "tableFrom": "registration_data",

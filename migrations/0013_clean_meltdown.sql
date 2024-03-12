@@ -7,8 +7,15 @@ CREATE TABLE IF NOT EXISTS "group_category" (
 );
 --> statement-breakpoint
 ALTER TABLE "registration_fields" ADD COLUMN "group_category_label_id" uuid;--> statement-breakpoint
+ALTER TABLE "registration_data" ADD COLUMN "user_id" uuid;--> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "registration_fields" ADD CONSTRAINT "registration_fields_group_category_label_id_group_category_id_fk" FOREIGN KEY ("group_category_label_id") REFERENCES "group_category"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "registration_data" ADD CONSTRAINT "registration_data_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
