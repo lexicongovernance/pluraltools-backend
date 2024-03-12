@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { boolean, integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { events, forumQuestions, registrationData, registrationFieldOptions } from '.';
+import { groupCategories } from './groupCategories';
 
 export const registrationFields = pgTable('registration_fields', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -15,6 +16,7 @@ export const registrationFields = pgTable('registration_fields', {
   questionId: uuid('question_id').references(() => forumQuestions.id),
   // CAN BE: NULL, TITLE, OR SUBTITLE
   questionOptionType: varchar('question_option_type'),
+  groupCategoryLabelId: uuid('group_category_label_id').references(() => groupCategories.id),
   fieldDisplayRank: integer('fields_display_rank'),
   characterLimit: integer('character_limit').default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -29,6 +31,10 @@ export const registrationFieldsRelations = relations(registrationFields, ({ one,
   forumQuestion: one(forumQuestions, {
     fields: [registrationFields.questionId],
     references: [forumQuestions.id],
+  }),
+  groupCategory: one(groupCategories, {
+    fields: [registrationFields.groupCategoryLabelId],
+    references: [groupCategories.id],
   }),
   registrationFieldOptions: many(registrationFieldOptions),
   registrationData: many(registrationData),
