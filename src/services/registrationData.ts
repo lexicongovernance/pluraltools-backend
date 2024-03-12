@@ -38,6 +38,7 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
  * Upserts the registration data for a given registrationId.
  * Updates existing records and inserts new ones if necessary.
  * @param dbPool - The database pool instance of type `PostgresJsDatabase<typeof db>`.
+ * @param userId - The ID of the user to overwrite data for.
  * @param registrationId - The ID of the registration to overwrite data for.
  * @param registrationData - An array of objects representing registration data.
  *   Each object should have the properties:
@@ -47,10 +48,12 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
  */
 export async function upsertRegistrationData({
   dbPool,
-  registrationData,
+  userId,
   registrationId,
+  registrationData,
 }: {
   dbPool: PostgresJsDatabase<typeof db>;
+  userId: string;
   registrationId: string;
   registrationData: {
     registrationFieldId: string;
@@ -83,6 +86,7 @@ export async function upsertRegistrationData({
         const insertedRecord = await dbPool
           .insert(db.registrationData)
           .values({
+            userId,
             registrationId,
             registrationFieldId: data.registrationFieldId,
             value: data.value,
