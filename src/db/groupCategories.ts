@@ -1,5 +1,6 @@
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { events } from './events';
+import { groups } from './groups';
 import { relations } from 'drizzle-orm';
 
 export const groupCategories = pgTable('group_category', {
@@ -10,11 +11,12 @@ export const groupCategories = pgTable('group_category', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const groupCategoriesRelations = relations(groupCategories, ({ one }) => ({
+export const groupCategoriesRelations = relations(groupCategories, ({ one, many }) => ({
   event: one(events, {
     fields: [groupCategories.eventId],
     references: [events.id],
   }),
+  group: many(groups),
 }));
 
 export type GroupCategory = typeof groupCategories.$inferSelect;

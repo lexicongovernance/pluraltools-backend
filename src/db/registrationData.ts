@@ -2,11 +2,9 @@ import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { registrationFields } from './registrationFields';
 import { registrations } from './registrations';
 import { relations } from 'drizzle-orm';
-import { users } from './users';
 
 export const registrationData = pgTable('registration_data', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id),
   registrationId: uuid('registration_id')
     .references(() => registrations.id)
     .notNull(),
@@ -19,10 +17,6 @@ export const registrationData = pgTable('registration_data', {
 });
 
 export const registrationDataRelations = relations(registrationData, ({ one }) => ({
-  user: one(users, {
-    fields: [registrationData.userId],
-    references: [users.id],
-  }),
   registration: one(registrations, {
     fields: [registrationData.registrationId],
     references: [registrations.id],

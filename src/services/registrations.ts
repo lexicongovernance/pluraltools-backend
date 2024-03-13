@@ -112,7 +112,6 @@ export async function sendRegistrationData(
 
   const updatedRegistrationData = await upsertRegistrationData({
     dbPool,
-    userId: newRegistration.userId,
     registrationId: newRegistration.id,
     registrationData: data.registrationData,
   });
