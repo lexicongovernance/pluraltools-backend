@@ -3,7 +3,7 @@ import { events } from './events';
 import { groups } from './groups';
 import { relations } from 'drizzle-orm';
 
-export const groupCategories = pgTable('group_category', {
+export const groupCategories = pgTable('group_categories', {
   id: uuid('id').primaryKey().defaultRandom(),
   groupLabel: varchar('group_label'),
   eventId: uuid('event_id').references(() => events.id),
