@@ -54,6 +54,64 @@ export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+async function checkExistingUserData(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  userData: any,
+) {
+  if (userData.email || userData.username) {
+    const existingUser = await dbPool
+      .select()
+      .from(db.users)
+      .where(
+        or(
+          and(eq(db.users.email, userData.email ?? ''), ne(db.users.id, userId)),
+          and(eq(db.users.username, userData.username ?? ''), ne(db.users.id, userId)),
+        ),
+      );
+
+    if (existingUser.length > 0) {
+      const errors = [];
+
+      if (existingUser[0]?.email && existingUser[0].email === userData.email) {
+        errors.push('Email already exists');
+      }
+
+      if (existingUser[0]?.username && existingUser[0].username === userData.username) {
+        errors.push('Username already exists');
+      }
+
+      return errors;
+    }
+  }
+
+  return null;
+}
+
+async function updateUserInDatabase(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  userData: any,
+) {
+  try {
+    const user = await dbPool
+      .update(db.users)
+      .set({
+        email: userData.email,
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        updatedAt: new Date(),
+      })
+      .where(eq(db.users.id, userId))
+      .returning();
+
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input
@@ -78,44 +136,13 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
 
     // update user
     try {
-      // check if username or email already exists and is not the current user
-      if (body.data.email || body.data.username) {
-        const existingUser = await dbPool
-          .select()
-          .from(db.users)
-          .where(
-            or(
-              and(eq(db.users.email, body.data.email ?? ''), ne(db.users.id, userId)),
-              and(eq(db.users.username, body.data.username ?? ''), ne(db.users.id, userId)),
-            ),
-          );
+      const existingUserErrors = await checkExistingUserData(dbPool, userId, body.data);
 
-        if (existingUser.length > 0) {
-          const errors = [];
-
-          if (existingUser[0]?.email && existingUser[0].email === body.data.email) {
-            errors.push('Email already exists');
-          }
-
-          if (existingUser[0]?.username && existingUser[0].username === body.data.username) {
-            errors.push('Username already exists');
-          }
-
-          return res.status(400).json({ errors });
-        }
+      if (existingUserErrors) {
+        return res.status(400).json({ errors: existingUserErrors });
       }
 
-      const user = await dbPool
-        .update(db.users)
-        .set({
-          email: body.data.email,
-          username: body.data.username,
-          firstName: body.data.firstName,
-          lastName: body.data.lastName,
-          updatedAt: new Date(),
-        })
-        .where(eq(db.users.id, userId))
-        .returning();
+      const user = await updateUserInDatabase(dbPool, userId, body.data);
 
       const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
 
