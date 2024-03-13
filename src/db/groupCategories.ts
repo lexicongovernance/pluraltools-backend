@@ -4,7 +4,7 @@ import { relations } from 'drizzle-orm';
 
 export const groupCategories = pgTable('group_category', {
   id: uuid('id').primaryKey().defaultRandom(),
-  groupCategoryLabel: varchar('group_category_label'),
+  groupLabel: varchar('group_label'),
   eventId: uuid('event_id').references(() => events.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

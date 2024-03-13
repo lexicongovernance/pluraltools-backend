@@ -16,7 +16,7 @@ export const registrationFields = pgTable('registration_fields', {
   questionId: uuid('question_id').references(() => forumQuestions.id),
   // CAN BE: NULL, TITLE, OR SUBTITLE
   questionOptionType: varchar('question_option_type'),
-  groupCategoryLabelId: uuid('group_category_label_id').references(() => groupCategories.id),
+  groupLabelId: uuid('group_label_id').references(() => groupCategories.id),
   fieldDisplayRank: integer('fields_display_rank'),
   characterLimit: integer('character_limit').default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -33,7 +33,7 @@ export const registrationFieldsRelations = relations(registrationFields, ({ one,
     references: [forumQuestions.id],
   }),
   groupCategory: one(groupCategories, {
-    fields: [registrationFields.groupCategoryLabelId],
+    fields: [registrationFields.groupLabelId],
     references: [groupCategories.id],
   }),
   registrationFieldOptions: many(registrationFieldOptions),

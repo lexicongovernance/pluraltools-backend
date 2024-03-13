@@ -1,5 +1,5 @@
 {
-  "id": "5d03e68a-2e3b-4be7-9952-c6b82d22ef56",
+  "id": "969fddcc-afbe-4e12-9a49-4fdbe88e88a6",
   "prevId": "9f611c3c-bc9b-4a90-869b-29d66dcabaa3",
   "version": "5",
   "dialect": "pg",
@@ -357,8 +357,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "group_category_label": {
-          "name": "group_category_label",
+        "group_label": {
+          "name": "group_label",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -915,8 +915,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "group_category_label_id": {
-          "name": "group_category_label_id",
+        "group_label_id": {
+          "name": "group_label_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -977,12 +977,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "registration_fields_group_category_label_id_group_category_id_fk": {
-          "name": "registration_fields_group_category_label_id_group_category_id_fk",
+        "registration_fields_group_label_id_group_category_id_fk": {
+          "name": "registration_fields_group_label_id_group_category_id_fk",
           "tableFrom": "registration_fields",
           "tableTo": "group_category",
           "columnsFrom": [
-            "group_category_label_id"
+            "group_label_id"
           ],
           "columnsTo": [
             "id"
