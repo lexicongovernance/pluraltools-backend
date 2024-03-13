@@ -20,3 +20,5 @@ export const insertUserSchema = createInsertSchema(users)
       lastName: data.lastName || null,
     };
   });
+
+export type UserData = z.infer<typeof insertUserSchema>;

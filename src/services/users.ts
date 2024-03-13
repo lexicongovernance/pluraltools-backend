@@ -2,7 +2,7 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
 import { and, eq, ne, or } from 'drizzle-orm';
-import { insertUserSchema } from '../types/users';
+import { UserData, insertUserSchema } from '../types/users';
 import { overwriteUsersToGroups } from './usersToGroups';
 import { upsertUserAttributes } from './userAttributes';
 
@@ -57,7 +57,7 @@ export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
 async function checkExistingUserData(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
-  userData: any,
+  userData: UserData,
 ) {
   if (userData.email || userData.username) {
     const existingUser = await dbPool
@@ -91,7 +91,7 @@ async function checkExistingUserData(
 async function updateUserInDatabase(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
-  userData: any,
+  userData: UserData,
 ) {
   try {
     const user = await dbPool
@@ -108,7 +108,7 @@ async function updateUserInDatabase(
 
     return user;
   } catch (error) {
-    throw error;
+    console.error('Failed to update user data:', error);
   }
 }
 
