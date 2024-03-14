@@ -1,6 +1,6 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { overwriteUsersToGroups } from './usersToGroups';
+import { upsertUsersToGroups } from './usersToGroups';
 import { eq } from 'drizzle-orm';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
@@ -33,7 +33,7 @@ describe('service: usersToGroups', function () {
       where: eq(db.users.username, 'NewUser'),
     });
 
-    await overwriteUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[0]?.id ?? '']);
+    await upsertUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[0]?.id ?? '']);
 
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
@@ -45,7 +45,7 @@ describe('service: usersToGroups', function () {
   });
 
   test('can overwrite old user groups', async function () {
-    await overwriteUsersToGroups(dbPool, user?.id ?? '', [defaultGroups[1]?.id ?? '']);
+    await upsertUsersToGroups(dbPool, user?.id ?? '', [defaultGroups[1]?.id ?? '']);
     const group = await dbPool.query.usersToGroups.findFirst({
       where: eq(db.usersToGroups.groupId, defaultGroups[1]?.id ?? ''),
     });
@@ -55,7 +55,7 @@ describe('service: usersToGroups', function () {
 
   test('handles non-existent group IDs', async function () {
     const nonExistentGroupId = 'non-existent-group-id';
-    const result = await overwriteUsersToGroups(dbPool, user?.id ?? '', [nonExistentGroupId]);
+    const result = await upsertUsersToGroups(dbPool, user?.id ?? '', [nonExistentGroupId]);
     expect(result).toBeNull();
   });
 

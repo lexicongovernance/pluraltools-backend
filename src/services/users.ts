@@ -3,7 +3,7 @@ import * as db from '../db';
 import type { Request, Response } from 'express';
 import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
-import { overwriteUsersToGroups } from './usersToGroups';
+import { upsertUsersToGroups } from './usersToGroups';
 import { upsertUserAttributes } from './userAttributes';
 
 /**
@@ -171,7 +171,7 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
 
       const user = await upsertUserData(dbPool, userId, body.data);
 
-      const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+      const updatedGroups = await upsertUsersToGroups(dbPool, userId, body.data.groupIds);
 
       const updatedUserAttributes = await upsertUserAttributes(
         dbPool,

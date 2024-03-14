@@ -3,14 +3,14 @@ import * as db from '../db';
 import { eq, and } from 'drizzle-orm';
 
 /**
- * Overwrites the user-to-groups associations in the database for a given user.
+ * Upserts the user-to-groups associations in the database for a given user.
  * If a user-to-group association already exists, it updates it. Otherwise, it inserts a new association.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user for whom the associations should be overwritten.
  * @param {string[]} newGroupIds - An array to associate with the user.
  * @returns {Promise<db.UsersToGroups[] | null>} - A promise resolving to an array of the new user-to-groups associations or null if there was an error.
  */
-export async function overwriteUsersToGroups(
+export async function upsertUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   newGroupIds: string[],
