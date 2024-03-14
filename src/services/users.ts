@@ -6,6 +6,11 @@ import { UserData, insertUserSchema } from '../types/users';
 import { overwriteUsersToGroups } from './usersToGroups';
 import { upsertUserAttributes } from './userAttributes';
 
+/**
+ * Retrieves user data from the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @returns {Function} - Express middleware function to handle the request.
+ */
 export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
@@ -26,6 +31,11 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+/**
+ * Retrieves user attributes from the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @returns {Function} - Express middleware function to handle the request.
+ */
 export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
@@ -54,7 +64,14 @@ export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-async function checkExistingUserData(
+/**
+ * Checks user data for existing entries in the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {string} userId - The ID of the user to check.
+ * @param {UserData} userData - The user data to check.
+ * @returns {Promise<Array<string> | null>} - An array of errors if user data conflicts, otherwise null.
+ */
+async function checkUserData(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   userData: UserData,
@@ -88,7 +105,14 @@ async function checkExistingUserData(
   return null;
 }
 
-async function updateUserInDatabase(
+/**
+ * Upserts user data in the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {string} userId - The ID of the user to update.
+ * @param {UserData} userData - The updated user data.
+ * @returns {Promise<any>} - A promise resolving to the updated user data.
+ */
+async function upsertUserData(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   userData: UserData,
@@ -112,9 +136,13 @@ async function updateUserInDatabase(
   }
 }
 
+/**
+ * Updates user data in the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @returns {Function} - Express middleware function to handle the request.
+ */
 export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    // parse input
     const queryUserId = req.params.userId;
     const userId = req.session.userId;
 
@@ -134,15 +162,14 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.errors });
     }
 
-    // update user
     try {
-      const existingUserErrors = await checkExistingUserData(dbPool, userId, body.data);
+      const existingUserErrors = await checkUserData(dbPool, userId, body.data);
 
       if (existingUserErrors) {
         return res.status(400).json({ errors: existingUserErrors });
       }
 
-      const user = await updateUserInDatabase(dbPool, userId, body.data);
+      const user = await upsertUserData(dbPool, userId, body.data);
 
       const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
 
