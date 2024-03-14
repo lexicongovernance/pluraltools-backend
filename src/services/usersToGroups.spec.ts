@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { overwriteUsersToGroups } from './usersToGroups';
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
 import { runMigrations } from '../utils/db/runMigrations';
@@ -23,9 +23,28 @@ describe('service: usersToGroups', function () {
     const { users, groups } = await seed(dbPool);
     user = users[0];
     defaultGroups = groups;
+    // insert user without group assignment
+    await dbPool.insert(db.users).values({ username: 'NewUser', email: 'SomeEmail' });
   });
 
-  test('can overwrite old groups', async function () {
+  test('can save initial groups', async function () {
+    // Get the newly inserted user
+    const newUser = await dbPool.query.users.findFirst({
+      where: eq(db.users.username, 'NewUser'),
+    });
+
+    await overwriteUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[0]?.id ?? '']);
+
+    // Find the userToGroup relationship for the newUser and the chosen group
+    const newUserGroup = await dbPool.query.usersToGroups.findFirst({
+      where: eq(db.usersToGroups.userId, newUser?.id ?? ''),
+    });
+
+    expect(newUserGroup).toBeDefined();
+    expect(newUserGroup?.userId).toBe(newUser?.id);
+  });
+
+  test('can overwrite old user groups', async function () {
     await overwriteUsersToGroups(dbPool, user?.id ?? '', [defaultGroups[1]?.id ?? '']);
     const group = await dbPool.query.usersToGroups.findFirst({
       where: eq(db.usersToGroups.groupId, defaultGroups[1]?.id ?? ''),
