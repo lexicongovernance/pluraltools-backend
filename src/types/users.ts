@@ -2,12 +2,7 @@ import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { users } from '../db';
 
-export const groupIdsSchema = z
-  .object({
-    groupId: z.string(),
-    groupLabelId: z.string(),
-  })
-  .array();
+export const groupIdsSchema = z.string().array();
 
 export const userAttributesSchema = z.record(z.string());
 

@@ -7,31 +7,47 @@ import { eq, and } from 'drizzle-orm';
  * If a user-to-group association already exists, it updates it. Otherwise, it inserts a new association.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user for whom the associations should be overwritten.
- * @param {string[]} newGroupIds - An array of group IDs and group Label Ids to associate with the user.
+ * @param {string[]} newGroupIds - An array to associate with the user.
  * @returns {Promise<db.UsersToGroups[] | null>} - A promise resolving to an array of the new user-to-groups associations or null if there was an error.
  */
 export async function overwriteUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
-  newGroupIds: { groupId: string; groupLabelId: string }[],
+  newGroupIds: string[],
 ): Promise<db.UsersToGroups[] | null> {
   try {
-    for (const { groupId, groupLabelId } of newGroupIds) {
-      const existingEntry = await dbPool.query.usersToGroups.findFirst({
+    for (const groupId of newGroupIds) {
+      const group = await dbPool.query.groups.findFirst({
+        where: eq(db.groups.id, groupId),
+      });
+
+      if (!group) {
+        console.error('Group not found with ID:', groupId);
+        continue;
+      }
+
+      const groupLabelId = group.groupLabelId ?? null;
+
+      if (groupLabelId === null) {
+        console.error('Group label ID is null for group with ID:', groupId);
+        continue;
+      }
+
+      const existingAssociation = await dbPool.query.usersToGroups.findFirst({
         where: and(
           eq(db.usersToGroups.userId, userId),
-          eq(db.usersToGroups.groupLabelId, groupLabelId),
+          eq(db.usersToGroups.groupLabelId, groupLabelId!),
         ),
       });
 
-      if (existingEntry) {
+      if (existingAssociation) {
         await dbPool
           .update(db.usersToGroups)
           .set({ userId, groupId, groupLabelId, updatedAt: new Date() })
           .where(
             and(
               eq(db.usersToGroups.userId, userId),
-              eq(db.usersToGroups.groupLabelId, groupLabelId),
+              eq(db.usersToGroups.groupLabelId, groupLabelId!),
             ),
           );
       } else {
@@ -44,7 +60,7 @@ export async function overwriteUsersToGroups(
     });
     return newUserGroups;
   } catch (error) {
-    console.log('Error upserting user groups: ' + JSON.stringify(error));
+    console.error('Error upserting user groups: ' + JSON.stringify(error));
     return null;
   }
 }
