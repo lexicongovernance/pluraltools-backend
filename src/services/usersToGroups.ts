@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 export async function overwriteUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
-  newGroupIds: string[],
+  newGroupIds: { id: string; categoryLabel: string }[],
 ): Promise<db.UsersToGroups[] | null> {
   // delete all groups that previously existed
   try {
@@ -17,7 +17,7 @@ export async function overwriteUsersToGroups(
   // save the new ones
   const newUsersToGroups = await dbPool
     .insert(db.usersToGroups)
-    .values(newGroupIds.map((groupId) => ({ groupId, userId })))
+    .values(newGroupIds.map(({ id }) => ({ groupId: id, userId })))
     .returning();
 
   // return new user groups
