@@ -53,6 +53,12 @@ describe('service: usersToGroups', function () {
     expect(group?.userId).toBe(user?.id);
   });
 
+  test('handles non-existent group IDs', async function () {
+    const nonExistentGroupId = 'non-existent-group-id';
+    const result = await overwriteUsersToGroups(dbPool, user?.id ?? '', [nonExistentGroupId]);
+    expect(result).toBeNull();
+  });
+
   afterAll(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
