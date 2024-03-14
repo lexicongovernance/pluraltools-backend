@@ -4,8 +4,8 @@ import { users } from '../db';
 
 export const groupIdsSchema = z
   .object({
-    id: z.string(),
-    categoryLabel: z.string(),
+    groupId: z.string(),
+    groupLabelId: z.string(),
   })
   .array();
 
