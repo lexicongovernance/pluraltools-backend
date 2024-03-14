@@ -184,7 +184,7 @@ async function createUsersToGroups(
   // assign users to random groups
   const usersToGroups = userIds.map((userId) => ({
     userId,
-    groupId: groupIds[Math.floor(Math.random() * groupIds.length)]!,
+    groupId: groupIds[0]!,
     groupLabelId,
   }));
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
