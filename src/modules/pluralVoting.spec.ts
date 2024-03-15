@@ -1,4 +1,4 @@
-import { PluralVoting } from './plural_voting';
+import { PluralVoting } from './pluralVoting';
 
 // Define instance outside the tests
 const groups: Record<string, string[]> = {
