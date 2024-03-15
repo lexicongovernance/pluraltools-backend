@@ -113,13 +113,29 @@ describe('arraysEqual', () => {
 
 // Test remove duplicate groups
 describe('removeDuplicateGroups', () => {
-  test('removes duplicate groups correctly', () => {
+  test('removes duplicate groups', () => {
     const groups: Record<string, string[]> = {
       group0: ['user0'],
       group1: ['user1'],
       group2: ['user1'],
       group3: ['user1', 'user2'],
       group4: ['user2', 'user1'],
+    };
+    const result = pluralVoting.removeDuplicateGroups(groups);
+    expect(result).toEqual({
+      group0: ['user0'],
+      group1: ['user1'],
+      group3: ['user1', 'user2'],
+    });
+  });
+
+  test('removes duplicate groups and returns correctly sorted group', () => {
+    const groups: Record<string, string[]> = {
+      group0: ['user0'],
+      group1: ['user1'],
+      group2: ['user1'],
+      group3: ['user2', 'user1'],
+      group4: ['user1', 'user2'],
     };
     const result = pluralVoting.removeDuplicateGroups(groups);
     expect(result).toEqual({
