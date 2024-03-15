@@ -129,7 +129,7 @@ describe('removeDuplicateGroups', () => {
     });
   });
 
-  test('removes duplicate groups and returns correctly sorted group', () => {
+  test('removes duplicate groups and returns correctly sorted groups', () => {
     const groups: Record<string, string[]> = {
       group0: ['user0'],
       group1: ['user1'],

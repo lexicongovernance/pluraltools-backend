@@ -149,7 +149,7 @@ export class PluralVoting {
     let result = 0;
 
     // Calculate the first term of connection-oriented cluster match
-    for (const [_, members] of Object.entries(uniqueGroups)) {
+    for (const [, members] of Object.entries(uniqueGroups)) {
       for (const agent of members) {
         const contributionsI = contributions[agent];
         const membershipsI = groupMemberships[agent];
@@ -163,9 +163,9 @@ export class PluralVoting {
     }
 
     // Calculate the interaction term of connection-oriented cluster match
-    for (const [_, group1] of Object.entries(uniqueGroups)) {
-      for (const [_, group2] of Object.entries(uniqueGroups)) {
-        if (this.arraysEqual(group1, group2)) continue; // skip groups if they are the same (same in terms of group members)
+    for (const [group1Index, group1] of Object.entries(uniqueGroups)) {
+      for (const [group2Index, group2] of Object.entries(uniqueGroups)) {
+        if (group1Index === group2Index) continue; // skip groups if they have the same index
 
         let term1 = 0;
         for (const agent of group1) {
