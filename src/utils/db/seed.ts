@@ -163,6 +163,9 @@ async function createGroups(
         name: randCompanyName(),
         groupLabelId: groupIdTwo,
       },
+      {
+        name: randCompanyName(),
+      },
     ])
     .returning();
 }
@@ -181,7 +184,7 @@ async function createUsersToGroups(
   groupIds: string[],
   groupLabelId: string | undefined,
 ) {
-  // assign users to random groups
+  // assign users to groups
   const usersToGroups = userIds.map((userId) => ({
     userId,
     groupId: groupIds[0]!,
