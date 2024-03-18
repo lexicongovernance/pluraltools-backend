@@ -3,7 +3,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { votes } from '../db/votes';
-import { PluralVoting } from '../modules/plural_voting';
+import { PluralVoting } from '../modules/pluralVoting';
 import { insertVotesSchema } from '../types';
 import { CycleStatusType } from '../types/cycles';
 import { z } from 'zod';
