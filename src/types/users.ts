@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { users } from '../db';
 
 export const groupIdsSchema = z.string().array();
+
 export const userAttributesSchema = z.record(z.string());
 
 export const insertUserSchema = createInsertSchema(users)
@@ -20,3 +21,5 @@ export const insertUserSchema = createInsertSchema(users)
       lastName: data.lastName || null,
     };
   });
+
+export type UserData = z.infer<typeof insertUserSchema>;

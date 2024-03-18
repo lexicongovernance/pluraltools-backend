@@ -16,3 +16,4 @@ export * from './comments';
 export * from './likes';
 export * from './notificationTypes';
 export * from './usersToNotifications';
+export * from './groupCategories';
