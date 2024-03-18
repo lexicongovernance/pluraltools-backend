@@ -132,11 +132,11 @@ async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, even
     .insert(db.groupCategories)
     .values([
       {
-        groupLabel: 'Category A',
+        groupCategory: 'Category A',
         eventId: eventId,
       },
       {
-        groupLabel: 'Category B',
+        groupCategory: 'Category B',
         eventId: eventId,
       },
     ])
@@ -153,15 +153,15 @@ async function createGroups(
     .values([
       {
         name: randCompanyName(),
-        groupLabelId: groupIdOne,
+        groupCategoryId: groupIdOne,
       },
       {
         name: randCompanyName(),
-        groupLabelId: groupIdOne,
+        groupCategoryId: groupIdOne,
       },
       {
         name: randCompanyName(),
-        groupLabelId: groupIdTwo,
+        groupCategoryId: groupIdTwo,
       },
       {
         name: randCompanyName(),
@@ -182,13 +182,13 @@ async function createUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userIds: string[],
   groupIds: string[],
-  groupLabelId: string | undefined,
+  groupCategoryId: string | undefined,
 ) {
   // assign users to groups
   const usersToGroups = userIds.map((userId) => ({
     userId,
     groupId: groupIds[0]!,
-    groupLabelId,
+    groupCategoryId,
   }));
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
 }

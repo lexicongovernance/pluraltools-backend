@@ -1,5 +1,5 @@
 {
-  "id": "1d215c30-de5f-40aa-a428-b4e5570c0af3",
+  "id": "5840cc57-71c6-4c9d-a85d-10b6296c5b02",
   "prevId": "1db4f3b2-0501-4f15-af0b-649c20dd33f5",
   "version": "5",
   "dialect": "pg",
@@ -357,8 +357,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "group_label": {
-          "name": "group_label",
+        "group_category": {
+          "name": "group_category",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -426,8 +426,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "group_label_id": {
-          "name": "group_label_id",
+        "group_category_id": {
+          "name": "group_category_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -449,12 +449,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "groups_group_label_id_group_categories_id_fk": {
-          "name": "groups_group_label_id_group_categories_id_fk",
+        "groups_group_category_id_group_categories_id_fk": {
+          "name": "groups_group_category_id_group_categories_id_fk",
           "tableFrom": "groups",
           "tableTo": "group_categories",
           "columnsFrom": [
-            "group_label_id"
+            "group_category_id"
           ],
           "columnsTo": [
             "id"
@@ -1094,8 +1094,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "group_label_id": {
-          "name": "group_label_id",
+        "group_category_id": {
+          "name": "group_category_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -1143,12 +1143,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "users_to_groups_group_label_id_group_categories_id_fk": {
-          "name": "users_to_groups_group_label_id_group_categories_id_fk",
+        "users_to_groups_group_category_id_group_categories_id_fk": {
+          "name": "users_to_groups_group_category_id_group_categories_id_fk",
           "tableFrom": "users_to_groups",
           "tableTo": "group_categories",
           "columnsFrom": [
-            "group_label_id"
+            "group_category_id"
           ],
           "columnsTo": [
             "id"

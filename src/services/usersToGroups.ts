@@ -26,32 +26,32 @@ export async function upsertUsersToGroups(
         continue;
       }
 
-      const groupLabelId = group.groupLabelId ?? null;
+      const groupCategoryId = group.groupCategoryId ?? null;
 
-      if (groupLabelId === null) {
+      if (groupCategoryId === null) {
         await overwriteUsersToGroups(dbPool, userId, groupId);
       } else {
         const existingAssociation = await dbPool.query.usersToGroups.findFirst({
           where: and(
             eq(db.usersToGroups.userId, userId),
-            eq(db.usersToGroups.groupLabelId, groupLabelId!),
+            eq(db.usersToGroups.groupCategoryId, groupCategoryId!),
           ),
         });
 
         if (existingAssociation) {
           await dbPool
             .update(db.usersToGroups)
-            .set({ userId, groupId, groupLabelId, updatedAt: new Date() })
+            .set({ userId, groupId, groupCategoryId, updatedAt: new Date() })
             .where(
               and(
                 eq(db.usersToGroups.userId, userId),
-                eq(db.usersToGroups.groupLabelId, groupLabelId!),
+                eq(db.usersToGroups.groupCategoryId, groupCategoryId!),
               ),
             );
         } else {
           await dbPool
             .insert(db.usersToGroups)
-            .values({ userId, groupId, groupLabelId })
+            .values({ userId, groupId, groupCategoryId })
             .returning();
         }
       }
@@ -67,18 +67,18 @@ export async function upsertUsersToGroups(
   }
 }
 
-// Handle cases where label ID is zero. This function and its references will be deleted once we require
-// group label ids to be mandatory in the group table.
+// Handle cases where Category ID is zero. This function and its references will be deleted once we require
+// group Category ids to be mandatory in the group table.
 export async function overwriteUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   newGroupId: string,
 ): Promise<db.UsersToGroups[] | null> {
-  // delete all groups with label id zero that previously existed
+  // delete all groups with Category id zero that previously existed
   try {
     await dbPool
       .delete(db.usersToGroups)
-      .where(and(eq(db.usersToGroups.userId, userId), isNull(db.usersToGroups.groupLabelId)));
+      .where(and(eq(db.usersToGroups.userId, userId), isNull(db.usersToGroups.groupCategoryId)));
   } catch (e) {
     console.log('error deleting user groups ' + JSON.stringify(e));
     return null;

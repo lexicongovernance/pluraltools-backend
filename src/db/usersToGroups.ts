@@ -12,7 +12,7 @@ export const usersToGroups = pgTable('users_to_groups', {
   groupId: uuid('group_id')
     .notNull()
     .references(() => groups.id),
-  groupLabelId: uuid('group_label_id').references(() => groupCategories.id),
+  groupCategoryId: uuid('group_category_id').references(() => groupCategories.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -27,7 +27,7 @@ export const usersToGroupsRelations = relations(usersToGroups, ({ one }) => ({
     references: [users.id],
   }),
   groupCategory: one(groupCategories, {
-    fields: [usersToGroups.groupLabelId],
+    fields: [usersToGroups.groupCategoryId],
     references: [groupCategories.id],
   }),
 }));

@@ -16,23 +16,23 @@ export function getGroups(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 /**
- * Retrieves groups by a specified group label ID.
+ * Retrieves groups by a specified group Category ID.
  * @param dbPool The database connection pool.
  * @returns An asynchronous function that handles the HTTP request and response.
  */
-export function getGroupsByLabelId(dbPool: PostgresJsDatabase<typeof db>) {
+export function getGroupsByCategoryId(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const groupLabelId = req.params.groupLabelId;
-    if (!groupLabelId) {
-      return res.status(400).json({ error: 'groupLabelId parameter is missing' });
+    const groupCategoryId = req.params.groupCategoryId;
+    if (!groupCategoryId) {
+      return res.status(400).json({ error: 'groupCategoryId parameter is missing' });
     }
     try {
-      const groupByLabelId = await dbPool.query.groups.findMany({
-        where: eq(db.groups.groupLabelId, groupLabelId),
+      const groupByCategoryId = await dbPool.query.groups.findMany({
+        where: eq(db.groups.groupCategoryId, groupCategoryId),
       });
-      return res.json({ data: groupByLabelId });
+      return res.json({ data: groupByCategoryId });
     } catch (e) {
-      console.error('error getting groups by label id ' + JSON.stringify(e));
+      console.error('error getting groups by Category id ' + JSON.stringify(e));
       return res.status(500).json({ error: 'internal server error' });
     }
   };
@@ -67,21 +67,21 @@ export function getGroupsPerUser(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 /**
- * Retrieves groups associated with a specific user filtered by a group label ID.
+ * Retrieves groups associated with a specific user filtered by a group Category ID.
  * @param dbPool The database connection pool.
  * @returns An asynchronous function that handles the HTTP request and response.
  */
-export function getGroupsPerUserByLabelId(dbPool: PostgresJsDatabase<typeof db>) {
+export function getGroupsPerUserByCategoryId(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const paramsUserId = req.params.userId;
     const userId = req.session.userId;
-    const groupLabelId = req.params.groupLabelId;
+    const groupCategoryId = req.params.groupCategoryId;
 
     if (paramsUserId !== userId) {
       return res.status(403).json({ errors: ['forbidden'] });
     }
-    if (!groupLabelId) {
-      return res.status(400).json({ error: 'groupLabelId parameter is missing' });
+    if (!groupCategoryId) {
+      return res.status(400).json({ error: 'groupCategoryId parameter is missing' });
     }
 
     try {
@@ -93,17 +93,17 @@ export function getGroupsPerUserByLabelId(dbPool: PostgresJsDatabase<typeof db>)
         where: eq(db.usersToGroups.userId, userId),
       });
 
-      // Filter groups by groupLabelId
-      const groupsWithLabelId = userGroups.filter(
-        (group) => group.group.groupLabelId === groupLabelId,
+      // Filter groups by groupCategoryId
+      const groupsWithCategoryId = userGroups.filter(
+        (group) => group.group.groupCategoryId === groupCategoryId,
       );
 
       // Extract the group objects
-      const out = groupsWithLabelId.map((r) => r.group);
+      const out = groupsWithCategoryId.map((r) => r.group);
 
       return res.json({ data: out });
     } catch (e) {
-      console.log('error getting groups per user by label id ' + JSON.stringify(e));
+      console.log('error getting groups per user by Category id ' + JSON.stringify(e));
       return res.status(500).json({ error: 'internal server error' });
     }
   };
