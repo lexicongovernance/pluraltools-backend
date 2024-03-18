@@ -12,7 +12,7 @@ export function getLikes(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     const likes = await dbPool.query.likes.findMany({
-      where: and(eq(db.comments.id, commentId)),
+      where: eq(db.likes.commentId, commentId),
     });
 
     return res.json({ data: likes });
@@ -29,7 +29,7 @@ export function saveLike(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     const like = await dbPool.query.likes.findFirst({
-      where: and(eq(db.comments.id, commentId), eq(db.comments.userId, userId)),
+      where: and(eq(db.likes.commentId, commentId), eq(db.likes.userId, userId)),
     });
 
     if (like) {
@@ -63,7 +63,7 @@ export function deleteLike(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     const like = await dbPool.query.likes.findFirst({
-      where: and(eq(db.comments.id, commentId), eq(db.comments.userId, userId)),
+      where: and(eq(db.likes.commentId, commentId), eq(db.likes.userId, userId)),
     });
 
     if (!like) {
