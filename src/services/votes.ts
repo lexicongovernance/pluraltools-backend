@@ -127,6 +127,16 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
     `),
   );
 
+  // Query multipliers by user
+  const multiplierArray = await dbPool.execute<{ userId: string; multiplier: number }>(
+    sql.raw(`
+      SELECT user_id AS "userId", multiplier
+      FROM users_to_multipliers AS utm
+      LEFT JOIN multipliers
+      ON utm."multiplier_id" = multipliers."id"
+    `),
+  );
+
   // Check if there is at least one value greater than 0 in voteArray
   const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
 

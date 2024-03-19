@@ -186,13 +186,14 @@ async function createMultipliers(dbPool: PostgresJsDatabase<typeof db>) {
     .values([
       {
         label: 'Credentail 1',
-        multiplier: '1.5',
+        multiplier: '2',
       },
       {
         label: 'Credentail 2',
+        multiplier: '1.5',
       },
       {
-        label: 'Credentail 1',
+        label: 'Credentail 3',
       },
     ])
     .returning();
