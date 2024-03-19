@@ -9,13 +9,8 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id);
   const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
   const groupCategories = await createGroupCategories(dbPool, events[0]?.id);
-  const multiplierCategories = await createMultiplierCategories(dbPool, events[0]?.id);
   const groups = await createGroups(dbPool, groupCategories[0]?.id, groupCategories[1]?.id);
-  const multipliers = await createMultipliers(
-    dbPool,
-    multiplierCategories[0]?.id,
-    multiplierCategories[1]?.id,
-  );
+  const multipliers = await createMultipliers(dbPool);
   const users = await createUsers(dbPool);
   const usersToGroups = await createUsersToGroups(
     dbPool,
@@ -27,7 +22,6 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     dbPool,
     users.map((u) => u.id!),
     multipliers.map((g) => g.id!),
-    multiplierCategories[0]?.id,
   );
 
   return {
@@ -36,7 +30,6 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     forumQuestions,
     questionOptions,
     groupCategories,
-    multiplierCategories,
     groups,
     multipliers,
     users,
@@ -59,7 +52,6 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.groups);
   await dbPool.delete(db.multipliers);
   await dbPool.delete(db.groupCategories);
-  await dbPool.delete(db.multiplierCategories);
   await dbPool.delete(db.questionOptions);
   await dbPool.delete(db.forumQuestions);
   await dbPool.delete(db.cycles);
@@ -188,45 +180,19 @@ async function createGroups(
     .returning();
 }
 
-async function createMultiplierCategories(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
-  if (eventId === undefined) {
-    throw new Error('Event ID is undefined.');
-  }
-
-  return dbPool
-    .insert(db.multiplierCategories)
-    .values([
-      {
-        multiplierCategory: 'Category A',
-        eventId: eventId,
-      },
-      {
-        multiplierCategory: 'Category B',
-        eventId: eventId,
-      },
-    ])
-    .returning();
-}
-
-async function createMultipliers(
-  dbPool: PostgresJsDatabase<typeof db>,
-  multiplierIdOne?: string,
-  multiplierIdTwo?: string,
-) {
+async function createMultipliers(dbPool: PostgresJsDatabase<typeof db>) {
   return dbPool
     .insert(db.multipliers)
     .values([
       {
         label: 'Credentail 1',
-        multiplierCategoryId: multiplierIdOne,
+        multiplier: '1.5',
       },
       {
         label: 'Credentail 2',
-        multiplierCategoryId: multiplierIdOne,
       },
       {
         label: 'Credentail 1',
-        multiplierCategoryId: multiplierIdTwo,
       },
     ])
     .returning();
@@ -259,13 +225,11 @@ async function createUsersToMultipliers(
   dbPool: PostgresJsDatabase<typeof db>,
   userIds: string[],
   multiplierIds: string[],
-  multiplierCategoryId: string | undefined,
 ) {
   // assign users to groups
   const usersToMultipliers = userIds.map((userId) => ({
     userId,
     multiplierId: multiplierIds[0]!,
-    multiplierCategoryId,
   }));
   return dbPool.insert(db.usersToMultipliers).values(usersToMultipliers).returning();
 }

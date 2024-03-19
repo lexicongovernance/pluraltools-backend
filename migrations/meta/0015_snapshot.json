@@ -1,5 +1,5 @@
 {
-  "id": "3de50c9c-a8c0-4fe8-9331-6b12cd0a88b4",
+  "id": "5c3080a5-1fd3-4af1-82a5-e56b7f1d84e9",
   "prevId": "5840cc57-71c6-4c9d-a85d-10b6296c5b02",
   "version": "5",
   "dialect": "pg",
@@ -1408,63 +1408,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "multiplier_categories": {
-      "name": "multiplier_categories",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "multiplier_category": {
-          "name": "multiplier_category",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "multiplier_categories_event_id_events_id_fk": {
-          "name": "multiplier_categories_event_id_events_id_fk",
-          "tableFrom": "multiplier_categories",
-          "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "multipliers": {
       "name": "multipliers",
       "schema": "",
@@ -1489,12 +1432,6 @@
           "notNull": true,
           "default": "'1.0'"
         },
-        "multiplier_category_id": {
-          "name": "multiplier_category_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -1511,21 +1448,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "multipliers_multiplier_category_id_multiplier_categories_id_fk": {
-          "name": "multipliers_multiplier_category_id_multiplier_categories_id_fk",
-          "tableFrom": "multipliers",
-          "tableTo": "multiplier_categories",
-          "columnsFrom": [
-            "multiplier_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -1551,12 +1474,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "multiplier_category_id": {
-          "name": "multiplier_category_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1594,19 +1511,6 @@
           "tableTo": "multipliers",
           "columnsFrom": [
             "multiplier_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "users_to_multipliers_multiplier_category_id_multiplier_categories_id_fk": {
-          "name": "users_to_multipliers_multiplier_category_id_multiplier_categories_id_fk",
-          "tableFrom": "users_to_multipliers",
-          "tableTo": "multiplier_categories",
-          "columnsFrom": [
-            "multiplier_category_id"
           ],
           "columnsTo": [
             "id"

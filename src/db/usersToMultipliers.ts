@@ -2,7 +2,6 @@ import { pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { multipliers } from './multipliers';
 import { relations } from 'drizzle-orm';
-import { multiplierCategories } from './multiplierCategories';
 
 export const usersToMultipliers = pgTable('users_to_multipliers', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -12,7 +11,6 @@ export const usersToMultipliers = pgTable('users_to_multipliers', {
   multiplierId: uuid('multiplier_id')
     .notNull()
     .references(() => multipliers.id),
-  multiplierCategoryId: uuid('multiplier_category_id').references(() => multiplierCategories.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -25,10 +23,6 @@ export const usersTomultipliersRelations = relations(usersToMultipliers, ({ one 
   user: one(users, {
     fields: [usersToMultipliers.userId],
     references: [users.id],
-  }),
-  multiplierCategory: one(multiplierCategories, {
-    fields: [usersToMultipliers.multiplierCategoryId],
-    references: [multiplierCategories.id],
   }),
 }));
 
