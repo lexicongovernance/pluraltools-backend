@@ -1,5 +1,5 @@
 {
-  "id": "44943ef2-15aa-4bfe-a9ab-af1298e0cbca",
+  "id": "ace2d3ff-341c-48bb-ad95-1717ddf908a7",
   "prevId": "5840cc57-71c6-4c9d-a85d-10b6296c5b02",
   "version": "5",
   "dialect": "pg",
@@ -1423,7 +1423,7 @@
           "name": "multiplier_category",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "event_id": {
           "name": "event_id",
@@ -1478,15 +1478,16 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(256)",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
-          "type": "varchar(256)",
+        "multiplier": {
+          "name": "multiplier",
+          "type": "numeric",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'0.0'"
         },
         "multiplier_category_id": {
           "name": "multiplier_category_id",

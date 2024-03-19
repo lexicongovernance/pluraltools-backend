@@ -6,7 +6,7 @@ import { relations } from 'drizzle-orm';
 
 export const multiplierCategories = pgTable('multiplier_categories', {
   id: uuid('id').primaryKey().defaultRandom(),
-  multiplierCategory: varchar('multiplier_category'),
+  multiplierCategory: varchar('multiplier_category').notNull(),
   eventId: uuid('event_id').references(() => events.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
