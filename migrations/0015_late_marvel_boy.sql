@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS "multiplier_categories" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "multipliers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"name" varchar NOT NULL,
-	"multiplier" numeric DEFAULT '0.0' NOT NULL,
+	"label" varchar NOT NULL,
+	"multiplier" numeric DEFAULT '1.0' NOT NULL,
 	"multiplier_category_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL

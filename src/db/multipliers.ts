@@ -5,8 +5,8 @@ import { multiplierCategories } from './multiplierCategories';
 
 export const multipliers = pgTable('multipliers', {
   id: uuid('id').primaryKey().defaultRandom(),
-  label: varchar('name').notNull(),
-  multiplier: numeric('multiplier').notNull().default('0.0'),
+  label: varchar('label').notNull(),
+  multiplier: numeric('multiplier').notNull().default('1.0'),
   multiplierCategoryId: uuid('multiplier_category_id').references(() => multiplierCategories.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

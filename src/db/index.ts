@@ -17,3 +17,6 @@ export * from './likes';
 export * from './notificationTypes';
 export * from './usersToNotifications';
 export * from './groupCategories';
+export * from './multiplierCategories';
+export * from './multipliers';
+export * from './usersToMultipliers';

@@ -1,5 +1,5 @@
 {
-  "id": "ace2d3ff-341c-48bb-ad95-1717ddf908a7",
+  "id": "3de50c9c-a8c0-4fe8-9331-6b12cd0a88b4",
   "prevId": "5840cc57-71c6-4c9d-a85d-10b6296c5b02",
   "version": "5",
   "dialect": "pg",
@@ -1476,8 +1476,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "name": {
-          "name": "name",
+        "label": {
+          "name": "label",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
@@ -1487,7 +1487,7 @@
           "type": "numeric",
           "primaryKey": false,
           "notNull": true,
-          "default": "'0.0'"
+          "default": "'1.0'"
         },
         "multiplier_category_id": {
           "name": "multiplier_category_id",
