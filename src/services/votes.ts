@@ -112,7 +112,17 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
+export async function updateVoteScore(
+  dbPool: PostgresJsDatabase<typeof db>,
+  optionId: string,
+): Promise<{
+  voteArray: { userId: string; numOfVotes: number }[];
+  multiplierArray: { userId: string; multiplier: string | null }[];
+  voteMultiplierArray: { userId: string; numOfVotes: number; multiplierVotes: number }[];
+  numOfVotesDictionary: Record<string, number>;
+  groupArray: { groupId: string; userIds: string[] }[];
+  groupsDictionary: Record<string, string[]>;
+}> {
   // Query num_of_votes and user_id for a specific option_id
   const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
     sql.raw(`
@@ -207,6 +217,15 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
       updatedAt: new Date(),
     })
     .where(eq(db.questionOptions.id, optionId));
+
+  return {
+    voteArray,
+    multiplierArray,
+    voteMultiplierArray,
+    numOfVotesDictionary,
+    groupArray,
+    groupsDictionary,
+  };
 }
 
 async function validateAndSaveVote(
