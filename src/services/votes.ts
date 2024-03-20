@@ -137,6 +137,16 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
     `),
   );
 
+  // Combine the arrays beforehand
+const combinedArray = voteArray.map((vote) => {
+  const multiplierItem = multiplierArray.find((multiplier) => multiplier.userId === vote.userId);
+  const multiplier = multiplierItem ? multiplierItem.multiplier : 1; // default multiplier to 1 if not found
+  return {
+    userId: vote.userId,
+    totalVotes: vote.numOfVotes * multiplier
+  };
+});
+
   // Check if there is at least one value greater than 0 in voteArray
   const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
 
