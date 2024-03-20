@@ -138,23 +138,24 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
   );
 
   // Combine the arrays beforehand
-const combinedArray = voteArray.map((vote) => {
-  const multiplierItem = multiplierArray.find((multiplier) => multiplier.userId === vote.userId);
-  const multiplier = multiplierItem ? multiplierItem.multiplier : 1; // default multiplier to 1 if not found
-  return {
-    userId: vote.userId,
-    totalVotes: vote.numOfVotes * multiplier
-  };
-});
+  const voteMultiplierArray = voteArray.map((vote) => {
+    const multiplierItem = multiplierArray.find((multiplier) => multiplier.userId === vote.userId);
+    const multiplier = multiplierItem ? multiplierItem.multiplier : 1; // default multiplier to 1 if not found
+    return {
+      userId: vote.userId,
+      numOfVotes: vote.numOfVotes,
+      multiplierVotes: vote.numOfVotes * multiplier,
+    };
+  });
 
   // Check if there is at least one value greater than 0 in voteArray
-  const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
+  const hasNonZeroValue = voteMultiplierArray.some((vote) => vote.numOfVotes > 0);
 
   // Extract the dictionary of numOfVotes with userId as the key
-  const numOfVotesDictionary = voteArray.reduce(
+  const numOfVotesDictionary = voteMultiplierArray.reduce(
     (acc, vote) => {
       if (!hasNonZeroValue || vote.numOfVotes !== 0) {
-        acc[vote.userId] = vote.numOfVotes;
+        acc[vote.userId] = vote.multiplierVotes;
       }
       return acc;
     },
