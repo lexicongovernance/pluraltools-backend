@@ -127,6 +127,7 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
     `),
   );
 
+  /*
   // Query multipliers by user
   const multiplierArray = await dbPool.execute<{ userId: string; multiplier: number }>(
     sql.raw(`
@@ -136,15 +137,25 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
       ON utm."multiplier_id" = multipliers."id"
     `),
   );
+  */
+
+  // Perform the query using Drizzle ORM
+  const multiplierArray = await dbPool
+    .select({
+      userId: db.usersToMultipliers.userId,
+      multiplier: db.multipliers.multiplier,
+    })
+    .from(db.usersToMultipliers)
+    .leftJoin(db.multipliers, eq(db.usersToMultipliers.multiplierId, db.multipliers.id));
 
   // Combine the arrays beforehand
   const voteMultiplierArray = voteArray.map((vote) => {
     const multiplierItem = multiplierArray.find((multiplier) => multiplier.userId === vote.userId);
-    const multiplier = multiplierItem ? multiplierItem.multiplier : 1; // default multiplier to 1 if not found
+    const multiplier = multiplierItem ? multiplierItem.multiplier ?? 1 : 1; // default multiplier to 1 if not found
     return {
       userId: vote.userId,
       numOfVotes: vote.numOfVotes,
-      multiplierVotes: vote.numOfVotes * multiplier,
+      multiplierVotes: vote.numOfVotes * Number(multiplier),
     };
   });
 
