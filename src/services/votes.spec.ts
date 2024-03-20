@@ -129,21 +129,52 @@ describe('service: votes', () => {
 
   test('should calculate multiplier adjusted votes correctly', async () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-    const { voteMultiplierArray } = await updateVoteScore(dbPool, questionOption?.id ?? '');
-    console.log('voteMultiplierArray', voteMultiplierArray);
+    const { voteArray, multiplierArray, voteMultiplierArray, numOfVotesDictionary } =
+      await updateVoteScore(dbPool, questionOption?.id ?? '');
+
+    // test voteArray
+    expect(voteArray).toBeDefined();
+    expect(voteArray).toHaveLength(2);
+
+    voteArray?.forEach((vote) => {
+      expect(vote).toHaveProperty('userId');
+      expect(vote).toHaveProperty('numOfVotes');
+      expect(typeof vote.numOfVotes).toBe('number');
+    });
+
+    expect(voteArray[0]?.numOfVotes).toBe(10);
+    expect(voteArray[1]?.numOfVotes).toBe(10);
+
+    // test multiplierArray
+    expect(multiplierArray).toBeDefined();
+    expect(multiplierArray).toHaveLength(2);
+
+    multiplierArray?.forEach((multiplier) => {
+      expect(multiplier).toHaveProperty('userId');
+      expect(multiplier).toHaveProperty('multiplier');
+      expect(typeof multiplier.multiplier).toBe('string');
+    });
+
+    expect(multiplierArray[0]?.multiplier).toBe('2');
+    expect(multiplierArray[1]?.multiplier).toBe('2');
+
+    // test voteMultiplierArray
     expect(voteMultiplierArray).toBeDefined();
     expect(voteMultiplierArray).toHaveLength(2);
 
-    // test properties
     voteMultiplierArray?.forEach((vote) => {
       expect(vote).toHaveProperty('userId');
       expect(vote).toHaveProperty('numOfVotes');
       expect(vote).toHaveProperty('multiplierVotes');
       expect(typeof vote.multiplierVotes).toBe('number');
     });
-    // test output
-    expect(voteMultiplierArray[0]?.multiplierVotes).toBe(20);
+
     expect(voteMultiplierArray[0]?.numOfVotes).toBe(10);
+    expect(voteMultiplierArray[0]?.multiplierVotes).toBe(20);
+
+    // test numOfVotesDictionary
+    expect(numOfVotesDictionary).toBeDefined();
+    expect(Object.keys(numOfVotesDictionary)).toHaveLength(2);
   });
 
   afterAll(async () => {

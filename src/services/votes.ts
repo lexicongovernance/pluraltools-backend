@@ -137,19 +137,7 @@ export async function updateVoteScore(
     `),
   );
 
-  /*
-  // Query multipliers by user
-  const multiplierArray = await dbPool.execute<{ userId: string; multiplier: number }>(
-    sql.raw(`
-      SELECT user_id AS "userId", multiplier
-      FROM users_to_multipliers AS utm
-      LEFT JOIN multipliers
-      ON utm."multiplier_id" = multipliers."id"
-    `),
-  );
-  */
-
-  // Perform the query using Drizzle ORM
+  // Query multipliers
   const multiplierArray = await dbPool
     .select({
       userId: db.usersToMultipliers.userId,
