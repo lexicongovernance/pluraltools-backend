@@ -6,7 +6,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { saveVote, getVotesForCycleByUser } from './votes';
+import { saveVote, getVotesForCycleByUser, updateVoteScore } from './votes';
 import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -41,7 +41,7 @@ describe('service: votes', () => {
     };
   });
 
-  it('should save vote', async () => {
+  test('should save vote', async () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     // Call the saveVote function
     const { data: response } = await saveVote(dbPool, testData);
@@ -57,7 +57,7 @@ describe('service: votes', () => {
     expect(response?.updatedAt).toEqual(expect.any(Date));
   });
 
-  it('should not save vote if cycle is closed', async () => {
+  test('should not save vote if cycle is closed', async () => {
     // update cycle to closed state
     await dbPool.update(db.cycles).set({ status: 'CLOSED' }).where(eq(db.cycles.id, cycle!.id));
     // Call the saveVote function
@@ -70,7 +70,7 @@ describe('service: votes', () => {
     expect(errors).toBeDefined();
   });
 
-  it('should not save vote if cycle is upcoming', async () => {
+  test('should not save vote if cycle is upcoming', async () => {
     // update cycle to closed state
     await dbPool.update(db.cycles).set({ status: 'UPCOMING' }).where(eq(db.cycles.id, cycle!.id));
     // Call the saveVote function
@@ -83,7 +83,7 @@ describe('service: votes', () => {
     expect(errors).toBeDefined();
   });
 
-  it('should get votes latest votes related to user', async function () {
+  test('should get votes latest votes related to user', async function () {
     // create vote in db
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,
@@ -126,8 +126,58 @@ describe('service: votes', () => {
     // no votes have otherUser's id in array
     expect(votes.filter((vote) => vote.userId === otherUser?.id).length).toBe(0);
   });
+
+  test('should calculate multiplier adjusted votes correctly', async () => {
+    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    const { voteArray, multiplierArray, voteMultiplierArray, numOfVotesDictionary } =
+      await updateVoteScore(dbPool, questionOption?.id ?? '');
+
+    // test voteArray
+    expect(voteArray).toBeDefined();
+    expect(voteArray).toHaveLength(2);
+
+    voteArray?.forEach((vote) => {
+      expect(vote).toHaveProperty('userId');
+      expect(vote).toHaveProperty('numOfVotes');
+      expect(typeof vote.numOfVotes).toBe('number');
+    });
+
+    expect(voteArray[0]?.numOfVotes).toBe(10);
+    expect(voteArray[1]?.numOfVotes).toBe(10);
+
+    // test multiplierArray
+    expect(multiplierArray).toBeDefined();
+    expect(multiplierArray).toHaveLength(2);
+
+    multiplierArray?.forEach((multiplier) => {
+      expect(multiplier).toHaveProperty('userId');
+      expect(multiplier).toHaveProperty('multiplier');
+      expect(typeof multiplier.multiplier).toBe('string');
+    });
+
+    expect(multiplierArray[0]?.multiplier).toBe('2');
+    expect(multiplierArray[1]?.multiplier).toBe('2');
+
+    // test voteMultiplierArray
+    expect(voteMultiplierArray).toBeDefined();
+    expect(voteMultiplierArray).toHaveLength(2);
+
+    voteMultiplierArray?.forEach((vote) => {
+      expect(vote).toHaveProperty('userId');
+      expect(vote).toHaveProperty('numOfVotes');
+      expect(vote).toHaveProperty('multiplierVotes');
+      expect(typeof vote.multiplierVotes).toBe('number');
+    });
+
+    expect(voteMultiplierArray[0]?.numOfVotes).toBe(10);
+    expect(voteMultiplierArray[0]?.multiplierVotes).toBe(20);
+
+    // test numOfVotesDictionary
+    expect(numOfVotesDictionary).toBeDefined();
+    expect(Object.keys(numOfVotesDictionary)).toHaveLength(2);
+  });
+
   afterAll(async () => {
-    // Delete registration data
     await cleanup(dbPool);
     await dbConnection.end();
   });

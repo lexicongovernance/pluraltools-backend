@@ -112,7 +112,17 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
+export async function updateVoteScore(
+  dbPool: PostgresJsDatabase<typeof db>,
+  optionId: string,
+): Promise<{
+  voteArray: { userId: string; numOfVotes: number }[];
+  multiplierArray: { userId: string; multiplier: string | null }[];
+  voteMultiplierArray: { userId: string; numOfVotes: number; multiplierVotes: number }[];
+  numOfVotesDictionary: Record<string, number>;
+  groupArray: { groupId: string; userIds: string[] }[];
+  groupsDictionary: Record<string, string[]>;
+}> {
   // Query num_of_votes and user_id for a specific option_id
   const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
     sql.raw(`
@@ -127,14 +137,34 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
     `),
   );
 
+  // Query multipliers
+  const multiplierArray = await dbPool
+    .select({
+      userId: db.usersToMultipliers.userId,
+      multiplier: db.multipliers.multiplier,
+    })
+    .from(db.usersToMultipliers)
+    .leftJoin(db.multipliers, eq(db.usersToMultipliers.multiplierId, db.multipliers.id));
+
+  // Combine the arrays beforehand
+  const voteMultiplierArray = voteArray.map((vote) => {
+    const multiplierItem = multiplierArray.find((multiplier) => multiplier.userId === vote.userId);
+    const multiplier = multiplierItem ? multiplierItem.multiplier ?? 1 : 1; // default multiplier to 1 if not found
+    return {
+      userId: vote.userId,
+      numOfVotes: vote.numOfVotes,
+      multiplierVotes: vote.numOfVotes * Number(multiplier),
+    };
+  });
+
   // Check if there is at least one value greater than 0 in voteArray
-  const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
+  const hasNonZeroValue = voteMultiplierArray.some((vote) => vote.numOfVotes > 0);
 
   // Extract the dictionary of numOfVotes with userId as the key
-  const numOfVotesDictionary = voteArray.reduce(
+  const numOfVotesDictionary = voteMultiplierArray.reduce(
     (acc, vote) => {
       if (!hasNonZeroValue || vote.numOfVotes !== 0) {
-        acc[vote.userId] = vote.numOfVotes;
+        acc[vote.userId] = vote.multiplierVotes;
       }
       return acc;
     },
@@ -175,6 +205,15 @@ async function updateVoteScore(dbPool: PostgresJsDatabase<typeof db>, optionId: 
       updatedAt: new Date(),
     })
     .where(eq(db.questionOptions.id, optionId));
+
+  return {
+    voteArray,
+    multiplierArray,
+    voteMultiplierArray,
+    numOfVotesDictionary,
+    groupArray,
+    groupsDictionary,
+  };
 }
 
 async function validateAndSaveVote(
