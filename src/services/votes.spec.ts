@@ -13,6 +13,7 @@ import {
   queryMultiplierData,
   voteMultiplierArray,
   numOfVotesDictionary,
+  calculatePluralScore,
 } from './votes';
 import { eq } from 'drizzle-orm';
 
@@ -226,6 +227,52 @@ describe('service: votes', () => {
       user1: 0,
       user2: 0,
     });
+  });
+
+  test('should calculate the plural score correctly', () => {
+    // Mock groups dictionary
+    const groupsDictionary = {
+      group0: ['user0', 'user1'],
+      group1: ['user1', 'user2', 'user3'],
+      group2: ['user0', 'user2'],
+    };
+
+    // Mock number of votes dictionary
+    const numOfVotesDictionary = {
+      user0: 1,
+      user1: 2,
+      user2: 3,
+      user3: 4,
+    };
+
+    // Call the function with mock data
+    const result = calculatePluralScore(groupsDictionary, numOfVotesDictionary);
+
+    // Assert the result
+    expect(result).toBe(4.597873224984399);
+  });
+
+  test('plural score should be 0 when every user vote is zero', () => {
+    // Mock groups dictionary
+    const groupsDictionary = {
+      group0: ['user0', 'user1'],
+      group1: ['user1', 'user2', 'user3'],
+      group2: ['user0', 'user2'],
+    };
+
+    // Mock number of votes dictionary
+    const numOfVotesDictionary = {
+      user0: 0,
+      user1: 0,
+      user2: 0,
+      user3: 0,
+    };
+
+    // Call the function with mock data
+    const result = calculatePluralScore(groupsDictionary, numOfVotesDictionary);
+
+    // Assert the result
+    expect(result).toBe(0);
   });
 
   afterAll(async () => {

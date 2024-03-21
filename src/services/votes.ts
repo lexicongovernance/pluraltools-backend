@@ -250,7 +250,7 @@ Calculates the plural score based on the provided groups dictionary and number o
 @param {Record<string, number>} numOfVotesDictionary - A dictionary where keys are user IDs and values are the corresponding multiplied votes.
 @returns The calculated plural score.
 */
-function calculatePluralScore(
+export function calculatePluralScore(
   groupsDictionary: Record<string, string[]>,
   numOfVotesDictionary: Record<string, number>,
 ) {
