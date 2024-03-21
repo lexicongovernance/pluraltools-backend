@@ -6,7 +6,14 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { saveVote, getVotesForCycleByUser, updateVoteScore } from './votes';
+import {
+  saveVote,
+  getVotesForCycleByUser,
+  queryVoteData,
+  queryMultiplierData,
+  voteMultiplierArray,
+  numOfVotesDictionary,
+} from './votes';
 import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -127,10 +134,9 @@ describe('service: votes', () => {
     expect(votes.filter((vote) => vote.userId === otherUser?.id).length).toBe(0);
   });
 
-  test('should calculate multiplier adjusted votes correctly', async () => {
+  test('should fetch vote data correctly', async () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-    const { voteArray, multiplierArray, voteMultiplierArray, numOfVotesDictionary } =
-      await updateVoteScore(dbPool, questionOption?.id ?? '');
+    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
 
     // test voteArray
     expect(voteArray).toBeDefined();
@@ -144,6 +150,11 @@ describe('service: votes', () => {
 
     expect(voteArray[0]?.numOfVotes).toBe(10);
     expect(voteArray[1]?.numOfVotes).toBe(10);
+  });
+
+  test('should fetch multiplier data correctly', async () => {
+    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    const multiplierArray = await queryMultiplierData(dbPool);
 
     // test multiplierArray
     expect(multiplierArray).toBeDefined();
@@ -157,24 +168,64 @@ describe('service: votes', () => {
 
     expect(multiplierArray[0]?.multiplier).toBe('2');
     expect(multiplierArray[1]?.multiplier).toBe('2');
+  });
 
-    // test voteMultiplierArray
-    expect(voteMultiplierArray).toBeDefined();
-    expect(voteMultiplierArray).toHaveLength(2);
+  test('should combine vote and multiplier data correctly', () => {
+    // Mock vote array
+    const voteArray = [
+      { userId: 'user1', numOfVotes: 10 },
+      { userId: 'user2', numOfVotes: 15 },
+    ];
 
-    voteMultiplierArray?.forEach((vote) => {
-      expect(vote).toHaveProperty('userId');
-      expect(vote).toHaveProperty('numOfVotes');
-      expect(vote).toHaveProperty('multiplierVotes');
-      expect(typeof vote.multiplierVotes).toBe('number');
+    // Mock multiplier array
+    const multiplierArray = [
+      { userId: 'user1', multiplier: '2' },
+      { userId: 'user2', multiplier: '1' },
+    ];
+
+    // Call the function with mock data
+    const result = voteMultiplierArray(voteArray, multiplierArray);
+
+    // Assert the result
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ userId: 'user1', numOfVotes: 10, multiplierVotes: 20 });
+    expect(result[1]).toEqual({ userId: 'user2', numOfVotes: 15, multiplierVotes: 15 });
+  });
+
+  test('should filter and transform voteMultiplierArray correctly', () => {
+    // Mock voteMultiplierArray
+    const voteMultiplierArray = [
+      { userId: 'user1', numOfVotes: 10, multiplierVotes: 20 },
+      { userId: 'user2', numOfVotes: 0, multiplierVotes: 0 },
+      { userId: 'user3', numOfVotes: 5, multiplierVotes: 5 },
+      { userId: 'user4', numOfVotes: 0, multiplierVotes: 0 },
+    ];
+
+    // Call the function with mock data
+    const result = numOfVotesDictionary(voteMultiplierArray);
+
+    // Assert the result
+    expect(result).toEqual({
+      user1: 20,
+      user3: 5,
     });
+  });
 
-    expect(voteMultiplierArray[0]?.numOfVotes).toBe(10);
-    expect(voteMultiplierArray[0]?.multiplierVotes).toBe(20);
+  test('should include users with zero votes if there are no non-zero votes', () => {
+    // Mock voteMultiplierArray with all zero votes
+    const voteMultiplierArray = [
+      { userId: 'user1', numOfVotes: 0, multiplierVotes: 0 },
+      { userId: 'user2', numOfVotes: 0, multiplierVotes: 0 },
+    ];
 
-    // test numOfVotesDictionary
-    expect(numOfVotesDictionary).toBeDefined();
-    expect(Object.keys(numOfVotesDictionary)).toHaveLength(2);
+    // Call the function with mock data
+    const result = numOfVotesDictionary(voteMultiplierArray);
+
+    // Assert the result
+    expect(result).toEqual({
+      user1: 0,
+      user2: 0,
+    });
   });
 
   afterAll(async () => {

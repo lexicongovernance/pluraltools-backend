@@ -140,7 +140,7 @@ Queries lastest vote data by users for a specified option ID.
 @param {string} optionId - The ID of the option for which to query vote data.
 @returns {Promise<{ userId: string; numOfVotes: number }[]>} A Promise resolving to an array of vote data objects, each containing the user ID and number of votes.
 */
-async function queryVoteData(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
+export async function queryVoteData(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
   const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
     sql.raw(`
           SELECT user_id AS "userId", num_of_votes AS "numOfVotes" 
@@ -161,7 +161,7 @@ Queries multiplier data from the database by user.
 @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
 @returns {Promise<{ userId: string; multiplier: string | null }[]>} A Promise resolving to an array of multiplier data objects, each containing the user ID and multiplier value.
 */
-async function queryMultiplierData(dbPool: PostgresJsDatabase<typeof db>) {
+export async function queryMultiplierData(dbPool: PostgresJsDatabase<typeof db>) {
   const multiplierArray = await dbPool
     .select({
       userId: db.usersToMultipliers.userId,
@@ -178,7 +178,7 @@ async function queryMultiplierData(dbPool: PostgresJsDatabase<typeof db>) {
  * @param {Array<{ userId: string; multiplier: string | null }>} multiplierArray - An array of multiplier data objects, each containing the user ID and multiplier value.
  * @returns {Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>} An array of combined data objects, each containing the user ID, number of votes, and multiplied votes.
  */
-function voteMultiplierArray(
+export function voteMultiplierArray(
   voteArray: Array<{ userId: string; numOfVotes: number }>,
   multiplierArray: Array<{ userId: string; multiplier: string | null }>,
 ): Array<{ userId: string; numOfVotes: number; multiplierVotes: number }> {
@@ -200,7 +200,7 @@ Filters and transforms the voteMultiplierArray into a dictionary of user IDs map
 @param {Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>} voteMultiplierArray - An array of combined data objects, each containing the user ID, number of votes, and multiplied votes.
 @returns {{ [userId: string]: number }} A dictionary where keys are user IDs and values are the corresponding multiplied votes, filtered to exclude users with zero votes unless there are no non-zero votes.
 */
-function numOfVotesDictionary(
+export function numOfVotesDictionary(
   voteMultiplierArray: Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>,
 ) {
   const hasNonZeroValue = voteMultiplierArray.some((vote) => vote.numOfVotes > 0);
