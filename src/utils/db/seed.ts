@@ -32,13 +32,13 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.userAttributes);
   await dbPool.delete(db.votes);
   await dbPool.delete(db.federatedCredentials);
+  await dbPool.delete(db.questionOptions);
   await dbPool.delete(db.registrationData);
   await dbPool.delete(db.registrationFields);
   await dbPool.delete(db.registrations);
   await dbPool.delete(db.usersToGroups);
   await dbPool.delete(db.users);
   await dbPool.delete(db.groups);
-  await dbPool.delete(db.questionOptions);
   await dbPool.delete(db.forumQuestions);
   await dbPool.delete(db.cycles);
   await dbPool.delete(db.events);
@@ -60,12 +60,28 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
 
   return dbPool
     .insert(db.registrationFields)
-    .values({
-      name: 'proposal title',
-      type: 'TEXT',
-      required: true,
-      eventId,
-    })
+    .values([
+      {
+        name: 'proposal title',
+        type: 'TEXT',
+        required: true,
+        eventId,
+        questionOptionType: 'TITLE',
+      },
+      {
+        name: 'proposal description',
+        type: 'TEXT',
+        required: true,
+        eventId,
+        questionOptionType: 'SUBTITLE',
+      },
+      {
+        name: 'other field',
+        type: 'TEXT',
+        required: false,
+        eventId,
+      },
+    ])
     .returning();
 }
 
