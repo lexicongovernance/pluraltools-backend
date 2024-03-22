@@ -7,7 +7,6 @@ import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import { executeResultQueries } from './statistics';
-import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -16,7 +15,6 @@ describe('service: statistics', () => {
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let userTestData: z.infer<typeof insertVotesSchema>;
   let otherUserTestData: z.infer<typeof insertVotesSchema>;
-  let cycle: db.Cycle | undefined;
   let questionOption: db.QuestionOption | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
   let user: db.User | undefined;
@@ -28,13 +26,12 @@ describe('service: statistics', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { users, questionOptions, forumQuestions, cycles } = await seed(dbPool);
+    const { users, questionOptions, forumQuestions } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
     forumQuestion = forumQuestions[0];
     user = users[0];
     otherUser = users[1];
-    cycle = cycles[0];
     userTestData = {
       numOfVotes: 2,
       optionId: questionOption?.id ?? '',
