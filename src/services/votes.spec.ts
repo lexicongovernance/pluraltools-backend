@@ -13,6 +13,7 @@ import {
   queryMultiplierData,
   voteMultiplierArray,
   numOfVotesDictionary,
+  groupsDictionary,
   calculatePluralScore,
   calculateQuadraticScore,
 } from './votes';
@@ -26,9 +27,11 @@ describe('service: votes', () => {
   let testData: z.infer<typeof insertVotesSchema>;
   let cycle: db.Cycle | undefined;
   let questionOption: db.QuestionOption | undefined;
+  let otherQuestionOption: db.QuestionOption | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
   let user: db.User | undefined;
-  let otherUser: db.User | undefined;
+  let secondUser: db.User | undefined;
+  let thirdUser: db.User | undefined;
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
     await runMigrations(DB_CONNECTION_URL);
@@ -38,9 +41,11 @@ describe('service: votes', () => {
     const { users, questionOptions, forumQuestions, cycles } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
+    otherQuestionOption = questionOptions[1];
     forumQuestion = forumQuestions[0];
     user = users[0];
-    otherUser = users[1];
+    secondUser = users[1];
+    thirdUser = users[2];
     cycle = cycles[0];
     testData = {
       numOfVotes: 1,
@@ -119,25 +124,24 @@ describe('service: votes', () => {
       numOfVotes: 2,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
-      userId: otherUser!.id,
+      userId: secondUser!.id,
     });
     // create second interaction with option
     await dbPool.insert(db.votes).values({
       numOfVotes: 10,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
-      userId: otherUser!.id,
+      userId: secondUser!.id,
     });
 
     // user 1 gets votes but it should not include otherUser votes
     const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
 
     // no votes have otherUser's id in array
-    expect(votes.filter((vote) => vote.userId === otherUser?.id).length).toBe(0);
+    expect(votes.filter((vote) => vote.userId === secondUser?.id).length).toBe(0);
   });
 
   test('should fetch vote data correctly', async () => {
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
 
     expect(voteArray).toBeDefined();
@@ -154,11 +158,10 @@ describe('service: votes', () => {
   });
 
   test('should fetch multiplier data correctly', async () => {
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     const multiplierArray = await queryMultiplierData(dbPool);
 
     expect(multiplierArray).toBeDefined();
-    expect(multiplierArray).toHaveLength(2);
+    expect(multiplierArray).toHaveLength(3);
 
     multiplierArray?.forEach((multiplier) => {
       expect(multiplier).toHaveProperty('userId');
@@ -218,6 +221,40 @@ describe('service: votes', () => {
       user1: 0,
       user2: 0,
     });
+  });
+
+  test('vote dictionary should not contain users voting for another option', async () => {
+    // create vote for another question option
+    await dbPool.insert(db.votes).values({
+      numOfVotes: 5,
+      optionId: otherQuestionOption!.id,
+      questionId: forumQuestion!.id,
+      userId: thirdUser!.id,
+    });
+
+    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
+    const multiplierArray = await queryMultiplierData(dbPool);
+    const getVoteMultiplierArray = await voteMultiplierArray(voteArray, multiplierArray);
+    const result = await numOfVotesDictionary(getVoteMultiplierArray);
+
+    expect(result.hasOwnProperty(user!.id)).toBe(true);
+    expect(result.hasOwnProperty(secondUser!.id)).toBe(true);
+    expect(result.hasOwnProperty(thirdUser!.id)).toBe(false);
+  });
+
+  test('only return groups for users who voted for the option', async () => {
+    // Get vote data required for groups
+    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
+    const multiplierArray = await queryMultiplierData(dbPool);
+    const getVoteMultiplierArray = await voteMultiplierArray(voteArray, multiplierArray);
+    const votesDictionary = await numOfVotesDictionary(getVoteMultiplierArray);
+    const groups = await groupsDictionary(dbPool, votesDictionary);
+
+    expect(groups).toBeDefined();
+    expect(groups['unexpectedKey']).toBeUndefined();
+    expect(typeof groups).toBe('object');
+    expect(Object.keys(groups).length).toEqual(1);
+    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
   });
 
   test('should calculate the plural score correctly', () => {

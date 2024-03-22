@@ -221,7 +221,10 @@ export function numOfVotesDictionary(
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Promise<Record<string, string[]>>} A Promise resolving to a dictionary where keys are group IDs and values are arrays of associated user IDs.
  */
-async function groupsDictionary(dbPool: PostgresJsDatabase<typeof db>) {
+export async function groupsDictionary(
+  dbPool: PostgresJsDatabase<typeof db>,
+  numOfVotesDictionary: Record<string, number>,
+) {
   const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
     sql.raw(`
       SELECT group_id AS "groupId", json_agg(user_id) AS "userIds"
@@ -314,7 +317,7 @@ export async function updateVoteScore(
   const votesDictionary = await numOfVotesDictionary(combinedVoteMultiplierArray);
 
   // Query group data
-  const groupArray = await groupsDictionary(dbPool);
+  const groupArray = await groupsDictionary(dbPool, votesDictionary);
 
   // Perform plural voting calculation
   const score = await calculatePluralScore(groupArray, votesDictionary);
