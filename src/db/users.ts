@@ -16,6 +16,7 @@ export const users = pgTable('users', {
   firstName: varchar('first_name'),
   lastName: varchar('last_name'),
   email: varchar('email', { length: 256 }).unique(),
+  telegram: varchar('telegram', { length: 256 }).unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
