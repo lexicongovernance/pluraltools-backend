@@ -112,6 +112,7 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
           username: body.data.username,
           firstName: body.data.firstName,
           lastName: body.data.lastName,
+          telegram: body.data.telegram,
           updatedAt: new Date(),
         })
         .where(eq(db.users.id, userId))
