@@ -200,7 +200,7 @@ async function createMultipliers(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 async function createUsers(dbPool: PostgresJsDatabase<typeof db>) {
-  const fakeUsers = [randUser(), randUser()];
+  const fakeUsers = [randUser(), randUser(), randUser()];
   return dbPool
     .insert(db.users)
     .values(fakeUsers.map((fUser) => ({ email: fUser.email, username: fUser.username })))
@@ -214,9 +214,9 @@ async function createUsersToGroups(
   groupCategoryId: string | undefined,
 ) {
   // assign users to groups
-  const usersToGroups = userIds.map((userId) => ({
+  const usersToGroups = userIds.map((userId, index) => ({
     userId,
-    groupId: groupIds[0]!,
+    groupId: index < 2 ? groupIds[0]! : groupIds[1]!,
     groupCategoryId,
   }));
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();

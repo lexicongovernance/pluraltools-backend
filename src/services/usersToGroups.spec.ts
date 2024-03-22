@@ -63,9 +63,9 @@ describe('service: usersToGroups', function () {
   });
 
   test('can overwrite old user groups', async function () {
-    await upsertUsersToGroups(dbPool, user?.id ?? '', [defaultGroups[1]?.id ?? '']);
+    await upsertUsersToGroups(dbPool, user?.id ?? '', [defaultGroups[2]?.id ?? '']);
     const group = await dbPool.query.usersToGroups.findFirst({
-      where: eq(db.usersToGroups.groupId, defaultGroups[1]?.id ?? ''),
+      where: eq(db.usersToGroups.groupId, defaultGroups[2]?.id ?? ''),
     });
     expect(group?.userId).toBeDefined;
     expect(group?.userId).toBe(user?.id);
