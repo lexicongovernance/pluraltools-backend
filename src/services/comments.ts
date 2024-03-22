@@ -19,6 +19,12 @@ export function saveComment(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
+    const canComment = await userCanComment(dbPool, userId, body.data.questionOptionId);
+
+    if (!canComment) {
+      return res.status(403).json({ errors: [{ message: 'User cannot comment on this option' }] });
+    }
+
     try {
       const out = await insertComment(dbPool, body.data, userId);
       return res.json({ data: out });
@@ -137,4 +143,35 @@ export function getCommentsForOption(dbPool: PostgresJsDatabase<typeof db>) {
       return res.sendStatus(500);
     }
   };
+}
+
+/**
+ * Checks whether a user can comment based on their registration status.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param {string} userId - The ID of the user attempting to comment.
+ * @param {string | undefined | null} optionId - The ID of the option for which the user is attempting to comment.
+ * @returns {Promise<boolean>} A promise that resolves to true if the user can comment, false otherwise.
+ */
+async function userCanComment(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  optionId: string | undefined | null,
+) {
+  if (!optionId) {
+    return false;
+  }
+
+  // check if user has an approved registration
+  const res = await dbPool
+    .selectDistinct({
+      user: db.registrations.userId,
+    })
+    .from(db.registrations)
+    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'APPROVED')));
+
+  if (!res.length) {
+    return false;
+  }
+
+  return true;
 }

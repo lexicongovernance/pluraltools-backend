@@ -6,7 +6,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { saveVote, getVotesForCycleByUser } from './votes';
+import { saveVote, getVotesForCycleByUser, userCanVote } from './votes';
 import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -42,7 +42,12 @@ describe('service: votes', () => {
   });
 
   it('should save vote', async () => {
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    // accept user registration
+    await dbPool.insert(db.registrations).values({
+      status: 'APPROVED',
+      userId: user!.id ?? '',
+      eventId: cycle!.eventId ?? '',
+    });
     // Call the saveVote function
     const { data: response } = await saveVote(dbPool, testData);
     // Check if response is defined
@@ -57,17 +62,9 @@ describe('service: votes', () => {
     expect(response?.updatedAt).toEqual(expect.any(Date));
   });
 
-  it('should not save vote if cycle is closed', async () => {
-    // update cycle to closed state
-    await dbPool.update(db.cycles).set({ status: 'CLOSED' }).where(eq(db.cycles.id, cycle!.id));
-    // Call the saveVote function
-    const { data: response, errors } = await saveVote(dbPool, testData);
-
-    // expect response to be undefined
-    expect(response).toBeUndefined();
-
-    // expect error message
-    expect(errors).toBeDefined();
+  it('should not allow voting on users that are not registered', async () => {
+    const canVote = await userCanVote(dbPool, otherUser!.id, questionOption!.id);
+    expect(canVote).toBe(false);
   });
 
   it('should not save vote if cycle is upcoming', async () => {

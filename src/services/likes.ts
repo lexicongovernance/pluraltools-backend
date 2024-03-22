@@ -28,6 +28,12 @@ export function saveLike(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: ['commentId is required'] });
     }
 
+    const canLike = await userCanLike(dbPool, userId, commentId);
+
+    if (!canLike) {
+      return res.status(403).json({ errors: [{ message: 'User cannot like this comment' }] });
+    }
+
     const like = await dbPool.query.likes.findFirst({
       where: and(eq(db.likes.commentId, commentId), eq(db.likes.userId, userId)),
     });
@@ -79,4 +85,35 @@ export function deleteLike(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(500).json({ errors: ['Failed to delete like'] });
     }
   };
+}
+
+/**
+ * Checks whether a user can like a comment based on their registration status.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param {string} userId - The ID of the user attempting to like the comment.
+ * @param {string} commentId - The ID of the comment to be liked.
+ * @returns {Promise<boolean>} A promise that resolves to true if the user can like the comment, false otherwise.
+ */
+async function userCanLike(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  commentId: string,
+) {
+  if (!commentId) {
+    return false;
+  }
+
+  // check if user has an approved registration
+  const res = await dbPool
+    .selectDistinct({
+      user: db.registrations.userId,
+    })
+    .from(db.registrations)
+    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'APPROVED')));
+
+  if (!res.length) {
+    return false;
+  }
+
+  return true;
 }

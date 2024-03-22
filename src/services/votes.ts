@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
@@ -207,6 +207,12 @@ async function validateAndSaveVote(
     return { data: null, error: body.error.errors[0]?.message };
   }
 
+  // check if user can vote
+  const canVote = await userCanVote(dbPool, userId, vote.optionId);
+  if (!canVote) {
+    return { data: null, error: 'User cannot vote' };
+  }
+
   const newVote = await saveVote(dbPool, insertVoteBody);
 
   if (newVote.errors) {
@@ -248,4 +254,34 @@ export async function saveVote(
     .returning();
 
   return { data: newVote[0] };
+}
+
+/**
+ * Checks whether a user can vote on an option based on their registration status.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param {string} userId - The ID of the user attempting to vote.
+ * @param {string} optionId - The ID of the option to be voted on.
+ * @returns {Promise<boolean>} A promise that resolves to true if the user can vote on the option, false otherwise.
+ */
+export async function userCanVote(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  optionId: string,
+) {
+  if (!optionId) {
+    return false;
+  }
+  // check if user has an approved registration
+  const res = await dbPool
+    .selectDistinct({
+      user: db.registrations.userId,
+    })
+    .from(db.registrations)
+    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'APPROVED')));
+
+  if (!res.length) {
+    return false;
+  }
+
+  return true;
 }
