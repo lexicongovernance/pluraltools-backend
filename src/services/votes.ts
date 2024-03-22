@@ -278,7 +278,7 @@ Updates the vote score for a specific option in the database.
 @param {number} score - The new vote score to be set.
 @returns {Promise<void>} A Promise resolving once the vote score has been updated in the database.
 */
-async function updateVoteScoreInDatabase(
+export async function updateVoteScoreInDatabase(
   dbPool: PostgresJsDatabase<typeof db>,
   optionId: string,
   score: number,

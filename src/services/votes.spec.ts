@@ -16,6 +16,8 @@ import {
   groupsDictionary,
   calculatePluralScore,
   calculateQuadraticScore,
+  updateVoteScoreInDatabase,
+  updateVoteScore,
 } from './votes';
 import { eq } from 'drizzle-orm';
 
@@ -308,6 +310,25 @@ describe('service: votes', () => {
 
     const result = calculateQuadraticScore(numOfVotesDictionary);
     expect(result).toBe(10);
+  });
+
+  test('update vote score in database', async () => {
+    // update db with dummy score
+    const score = 100;
+    await updateVoteScoreInDatabase(dbPool, questionOption?.id ?? '', score);
+
+    // query updated score in db
+    const updatedDbScore = await dbPool.query.questionOptions.findFirst({
+      where: eq(db.questionOptions.id, questionOption?.id ?? ''),
+    });
+
+    expect(updatedDbScore?.voteScore).toBe('100');
+  });
+
+  test('full integration test of the update vote functionality', async () => {
+    // Get vote data required for groups
+    const score = await updateVoteScore(dbPool, questionOption?.id ?? '');
+    expect(score).toBe(Math.sqrt(40));
   });
 
   afterAll(async () => {
