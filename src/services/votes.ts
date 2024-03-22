@@ -263,7 +263,7 @@ Calculates the quadratic score based on the provided number of votes dictionary.
 @param {Record<string, number>} numOfVotesDictionary - A dictionary where keys are user IDs and values are the corresponding multiplied votes.
 @returns The calculated quadratic score.
 */
-function calculateQuadraticScore(numOfVotesDictionary: Record<string, number>) {
+export function calculateQuadraticScore(numOfVotesDictionary: Record<string, number>) {
   const [, score] = quadraticVoting(numOfVotesDictionary);
   return score;
 }
@@ -318,6 +318,9 @@ export async function updateVoteScore(
 
   // Perform plural voting calculation
   const score = await calculatePluralScore(groupArray, votesDictionary);
+
+  // Perform quadratic score calculation
+  // const score = await calculateQuadraticScore(votesDictionary);
 
   // Update vote score in the database
   await updateVoteScoreInDatabase(dbPool, optionId, score);

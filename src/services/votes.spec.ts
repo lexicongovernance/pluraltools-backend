@@ -14,6 +14,7 @@ import {
   voteMultiplierArray,
   numOfVotesDictionary,
   calculatePluralScore,
+  calculateQuadraticScore,
 } from './votes';
 import { eq } from 'drizzle-orm';
 
@@ -139,7 +140,6 @@ describe('service: votes', () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
 
-    // test voteArray
     expect(voteArray).toBeDefined();
     expect(voteArray).toHaveLength(2);
 
@@ -157,7 +157,6 @@ describe('service: votes', () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
     const multiplierArray = await queryMultiplierData(dbPool);
 
-    // test multiplierArray
     expect(multiplierArray).toBeDefined();
     expect(multiplierArray).toHaveLength(2);
 
@@ -184,10 +183,8 @@ describe('service: votes', () => {
       { userId: 'user2', multiplier: '1' },
     ];
 
-    // Call the function with mock data
     const result = voteMultiplierArray(voteArray, multiplierArray);
 
-    // Assert the result
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({ userId: 'user1', numOfVotes: 10, multiplierVotes: 20 });
     expect(result[1]).toEqual({ userId: 'user2', numOfVotes: 15, multiplierVotes: 15 });
@@ -202,10 +199,7 @@ describe('service: votes', () => {
       { userId: 'user4', numOfVotes: 0, multiplierVotes: 0 },
     ];
 
-    // Call the function with mock data
     const result = numOfVotesDictionary(voteMultiplierArray);
-
-    // Assert the result
     expect(result).toEqual({
       user1: 20,
       user3: 5,
@@ -219,10 +213,7 @@ describe('service: votes', () => {
       { userId: 'user2', numOfVotes: 0, multiplierVotes: 0 },
     ];
 
-    // Call the function with mock data
     const result = numOfVotesDictionary(voteMultiplierArray);
-
-    // Assert the result
     expect(result).toEqual({
       user1: 0,
       user2: 0,
@@ -245,10 +236,7 @@ describe('service: votes', () => {
       user3: 4,
     };
 
-    // Call the function with mock data
     const result = calculatePluralScore(groupsDictionary, numOfVotesDictionary);
-
-    // Assert the result
     expect(result).toBe(4.597873224984399);
   });
 
@@ -268,11 +256,21 @@ describe('service: votes', () => {
       user3: 0,
     };
 
-    // Call the function with mock data
     const result = calculatePluralScore(groupsDictionary, numOfVotesDictionary);
-
-    // Assert the result
     expect(result).toBe(0);
+  });
+
+  test('test quadratic score calculation', () => {
+    // Mock number of votes dictionary
+    const numOfVotesDictionary = {
+      user0: 4,
+      user1: 4,
+      user2: 9,
+      user3: 9,
+    };
+
+    const result = calculateQuadraticScore(numOfVotesDictionary);
+    expect(result).toBe(10);
   });
 
   afterAll(async () => {
