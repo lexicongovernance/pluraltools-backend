@@ -237,9 +237,9 @@ describe('service: votes', () => {
     const getVoteMultiplierArray = await voteMultiplierArray(voteArray, multiplierArray);
     const result = await numOfVotesDictionary(getVoteMultiplierArray);
 
-    expect(result.hasOwnProperty(user!.id)).toBe(true);
-    expect(result.hasOwnProperty(secondUser!.id)).toBe(true);
-    expect(result.hasOwnProperty(thirdUser!.id)).toBe(false);
+    expect(user!.id in result).toBe(true);
+    expect(secondUser!.id in result).toBe(true);
+    expect(thirdUser!.id in result).toBe(false);
   });
 
   test('only return groups for users who voted for the option', async () => {
