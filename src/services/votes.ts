@@ -14,7 +14,6 @@ import { quadraticVoting } from '../modules/quadraticVoting';
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
- * @returns {Promise<void>} A Promise resolving to void.
  */
 export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -42,7 +41,6 @@ export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user.
  * @param {string} cycleId - The ID of the cycle.
- * @returns {Promise<any[]>} A Promise resolving to an array of votes.
  */
 export async function getVotesForCycleByUser(
   dbPool: PostgresJsDatabase<typeof db>,
@@ -86,7 +84,6 @@ export async function getVotesForCycleByUser(
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {Request} req - The Express request object containing the user's submitted votes.
  * @param {Response} res - The Express response object to send the result.
- * @returns {Promise<void>} A Promise resolving to void.
  */
 export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -138,7 +135,6 @@ export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
 Queries lastest vote data by users for a specified option ID.
 @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to query vote data.
-@returns {Promise<{ userId: string; numOfVotes: number }[]>} A Promise resolving to an array of vote data objects, each containing the user ID and number of votes.
 */
 export async function queryVoteData(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
   const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
@@ -159,7 +155,6 @@ export async function queryVoteData(dbPool: PostgresJsDatabase<typeof db>, optio
 /**
 Queries multiplier data from the database by user.
 @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
-@returns {Promise<{ userId: string; multiplier: string | null }[]>} A Promise resolving to an array of multiplier data objects, each containing the user ID and multiplier value.
 */
 export async function queryMultiplierData(dbPool: PostgresJsDatabase<typeof db>) {
   const multiplierArray = await dbPool
@@ -176,7 +171,6 @@ export async function queryMultiplierData(dbPool: PostgresJsDatabase<typeof db>)
  * Combines vote and multiplier data into a single array of combined data objects.
  * @param {Array<{ userId: string; numOfVotes: number }>} voteArray - An array of vote data objects, each containing the user ID and number of votes.
  * @param {Array<{ userId: string; multiplier: string | null }>} multiplierArray - An array of multiplier data objects, each containing the user ID and multiplier value.
- * @returns {Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>} An array of combined data objects, each containing the user ID, number of votes, and multiplied votes.
  */
 export function voteMultiplierArray(
   voteArray: Array<{ userId: string; numOfVotes: number }>,
@@ -198,7 +192,6 @@ export function voteMultiplierArray(
 /**
 Filters and transforms the voteMultiplierArray into a dictionary of user IDs mapped to their corresponding multiplied votes.
 @param {Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>} voteMultiplierArray - An array of combined data objects, each containing the user ID, number of votes, and multiplied votes.
-@returns {{ [userId: string]: number }} A dictionary where keys are user IDs and values are the corresponding multiplied votes, filtered to exclude users with zero votes unless there are no non-zero votes.
 */
 export function numOfVotesDictionary(
   voteMultiplierArray: Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>,
@@ -219,7 +212,6 @@ export function numOfVotesDictionary(
 /**
  * Queries group data and creates group dictionary based on user IDs and option ID.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
- * @returns {Promise<Record<string, string[]>>} A Promise resolving to a dictionary where keys are group IDs and values are arrays of associated user IDs.
  */
 export async function groupsDictionary(
   dbPool: PostgresJsDatabase<typeof db>,
@@ -251,7 +243,6 @@ export async function groupsDictionary(
 Calculates the plural score based on the provided groups dictionary and number of votes dictionary.
 @param {Record<string, string[]>} groupsDictionary - A dictionary where keys are group IDs and values are arrays of user IDs belonging to each group.
 @param {Record<string, number>} numOfVotesDictionary - A dictionary where keys are user IDs and values are the corresponding multiplied votes.
-@returns The calculated plural score.
 */
 export function calculatePluralScore(
   groupsDictionary: Record<string, string[]>,
@@ -264,7 +255,6 @@ export function calculatePluralScore(
 /**
 Calculates the quadratic score based on the provided number of votes dictionary.
 @param {Record<string, number>} numOfVotesDictionary - A dictionary where keys are user IDs and values are the corresponding multiplied votes.
-@returns The calculated quadratic score.
 */
 export function calculateQuadraticScore(numOfVotesDictionary: Record<string, number>) {
   const [, score] = quadraticVoting(numOfVotesDictionary);
@@ -276,7 +266,6 @@ Updates the vote score for a specific option in the database.
 @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to update the vote score.
 @param {number} score - The new vote score to be set.
-@returns {Promise<void>} A Promise resolving once the vote score has been updated in the database.
 */
 export async function updateVoteScoreInDatabase(
   dbPool: PostgresJsDatabase<typeof db>,
@@ -302,7 +291,6 @@ export async function updateVoteScoreInDatabase(
  *
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} optionId - The ID of the option for which to update the vote score.
- * @returns {Promise<number>} A Promise resolving to the calculated vote score.
  */
 export async function updateVoteScore(
   dbPool: PostgresJsDatabase<typeof db>,
@@ -340,10 +328,6 @@ export async function updateVoteScore(
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {{ optionId: string; numOfVotes: number }} vote - The vote object containing option ID and number of votes.
  * @param {string} userId - The ID of the user who is voting.
- * @returns {Promise<{ data: db.Vote | null | undefined; error: string | null | undefined }>}
- * A Promise resolving to an object containing either the saved vote data or an error message.
- * - `data`: The saved vote data if successful, otherwise null or undefined.
- * - `error`: An error message if the operation fails, otherwise null or undefined.
  */
 async function validateAndSaveVote(
   dbPool: PostgresJsDatabase<typeof db>,
@@ -396,10 +380,6 @@ async function validateAndSaveVote(
  *
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {z.infer<typeof insertVotesSchema>} vote - The vote data to be saved.
- * @returns {Promise<{ data: db.Vote | null | undefined; errors: { message: string }[] | undefined }>}
- * A Promise resolving to an object containing either the saved vote data or an array of errors.
- * - `data`: The saved vote data if successful, otherwise null or undefined.
- * - `errors`: An array of error objects if the operation fails, otherwise undefined.
  */
 export async function saveVote(
   dbPool: PostgresJsDatabase<typeof db>,
