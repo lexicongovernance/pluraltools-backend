@@ -74,12 +74,28 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
 
   return dbPool
     .insert(db.registrationFields)
-    .values({
-      name: 'proposal title',
-      type: 'TEXT',
-      required: true,
-      eventId,
-    })
+    .values([
+      {
+        name: 'proposal title',
+        type: 'TEXT',
+        required: true,
+        eventId,
+        questionOptionType: 'TITLE',
+      },
+      {
+        name: 'proposal description',
+        type: 'TEXT',
+        required: true,
+        eventId,
+        questionOptionType: 'SUBTITLE',
+      },
+      {
+        name: 'other field',
+        type: 'TEXT',
+        required: false,
+        eventId,
+      },
+    ])
     .returning();
 }
 

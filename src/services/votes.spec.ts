@@ -18,6 +18,7 @@ import {
   calculateQuadraticScore,
   updateVoteScoreInDatabase,
   updateVoteScore,
+  userCanVote,
 } from './votes';
 import { eq } from 'drizzle-orm';
 
@@ -59,6 +60,12 @@ describe('service: votes', () => {
 
   test('should save vote', async () => {
     await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    // accept user registration
+    await dbPool.insert(db.registrations).values({
+      status: 'APPROVED',
+      userId: user!.id ?? '',
+      eventId: cycle!.eventId ?? '',
+    });
     // Call the saveVote function
     const { data: response } = await saveVote(dbPool, testData);
     // Check if response is defined
@@ -86,6 +93,11 @@ describe('service: votes', () => {
     expect(errors).toBeDefined();
   });
 
+  test('should not allow voting on users that are not registered', async () => {
+    const canVote = await userCanVote(dbPool, otherUser!.id, questionOption!.id);
+    expect(canVote).toBe(false);
+  });
+
   test('should not save vote if cycle is upcoming', async () => {
     // update cycle to closed state
     await dbPool.update(db.cycles).set({ status: 'UPCOMING' }).where(eq(db.cycles.id, cycle!.id));
@@ -99,7 +111,7 @@ describe('service: votes', () => {
     expect(errors).toBeDefined();
   });
 
-  test('should get votes latest votes related to user', async function () {
+  test('should get latest votes related to user', async function () {
     // create vote in db
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,

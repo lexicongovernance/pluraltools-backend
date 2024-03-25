@@ -125,6 +125,7 @@ async function upsertUserData(
         username: userData.username,
         firstName: userData.firstName,
         lastName: userData.lastName,
+        telegram: body.data.telegram,
         updatedAt: new Date(),
       })
       .where(eq(db.users.id, userId))

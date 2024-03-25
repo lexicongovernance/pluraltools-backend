@@ -1,5 +1,5 @@
 {
-  "id": "1db4f3b2-0501-4f15-af0b-649c20dd33f5",
+  "id": "ebfd597a-67a1-464c-9424-f27d10d3e153",
   "prevId": "9f611c3c-bc9b-4a90-869b-29d66dcabaa3",
   "version": "5",
   "dialect": "pg",
@@ -346,63 +346,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "group_categories": {
-      "name": "group_categories",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "group_label": {
-          "name": "group_label",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "group_categories_event_id_events_id_fk": {
-          "name": "group_categories_event_id_events_id_fk",
-          "tableFrom": "group_categories",
-          "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "groups": {
       "name": "groups",
       "schema": "",
@@ -426,12 +369,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "group_label_id": {
-          "name": "group_label_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -448,21 +385,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "groups_group_label_id_group_categories_id_fk": {
-          "name": "groups_group_label_id_group_categories_id_fk",
-          "tableFrom": "groups",
-          "tableTo": "group_categories",
-          "columnsFrom": [
-            "group_label_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -501,6 +424,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "telegram": {
+          "name": "telegram",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -532,6 +461,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "email"
+          ]
+        },
+        "users_telegram_unique": {
+          "name": "users_telegram_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "telegram"
           ]
         }
       }
