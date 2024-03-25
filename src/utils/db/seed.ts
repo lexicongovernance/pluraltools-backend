@@ -43,6 +43,7 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.userAttributes);
   await dbPool.delete(db.votes);
   await dbPool.delete(db.federatedCredentials);
+  await dbPool.delete(db.questionOptions);
   await dbPool.delete(db.registrationData);
   await dbPool.delete(db.registrationFields);
   await dbPool.delete(db.registrations);
@@ -52,7 +53,6 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.groups);
   await dbPool.delete(db.multipliers);
   await dbPool.delete(db.groupCategories);
-  await dbPool.delete(db.questionOptions);
   await dbPool.delete(db.forumQuestions);
   await dbPool.delete(db.cycles);
   await dbPool.delete(db.events);

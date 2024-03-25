@@ -94,7 +94,7 @@ describe('service: votes', () => {
   });
 
   test('should not allow voting on users that are not registered', async () => {
-    const canVote = await userCanVote(dbPool, otherUser!.id, questionOption!.id);
+    const canVote = await userCanVote(dbPool, secondUser!.id, questionOption!.id);
     expect(canVote).toBe(false);
   });
 
