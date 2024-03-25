@@ -183,10 +183,6 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
         body.data.userAttributes,
       );
 
-      console.log('updatedGroups', updatedGroups);
-      console.log('updatedMultiplier', updatedMultiplier);
-      console.log('updatedUserAttributes', updatedUserAttributes);
-
       return res.json({ data: { user, updatedGroups, updatedMultiplier, updatedUserAttributes } });
     } catch (e) {
       console.error(`[ERROR] ${JSON.stringify(e)}`);
