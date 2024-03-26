@@ -5,6 +5,7 @@ import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
 import { upsertUsersToGroups } from './usersToGroups';
 import { upsertUserAttributes } from './userAttributes';
+import { upsertUsersToMultipliers } from './usersToMultipliers';
 
 /**
  * Retrieves user data from the database.
@@ -174,13 +175,15 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
 
       const updatedGroups = await upsertUsersToGroups(dbPool, userId, body.data.groupIds);
 
+      const updatedMultiplier = await upsertUsersToMultipliers(dbPool, userId);
+
       const updatedUserAttributes = await upsertUserAttributes(
         dbPool,
         userId,
         body.data.userAttributes,
       );
 
-      return res.json({ data: { user, updatedGroups, updatedUserAttributes } });
+      return res.json({ data: { user, updatedGroups, updatedMultiplier, updatedUserAttributes } });
     } catch (e) {
       console.error(`[ERROR] ${JSON.stringify(e)}`);
       return res.sendStatus(500);
