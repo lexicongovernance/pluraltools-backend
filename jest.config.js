@@ -14,4 +14,8 @@ module.exports = {
     'src/modules/**/*.ts',
     'src/services/**/*.ts',
   ],
+  coveragePathIgnorePatterns: [
+    '/src/services/auth/',
+  ],
+  silent: true, // surpress console output for passing tests 
 };

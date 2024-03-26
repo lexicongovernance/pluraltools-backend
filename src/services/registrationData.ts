@@ -47,8 +47,8 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
  */
 export async function upsertRegistrationData({
   dbPool,
-  registrationData,
   registrationId,
+  registrationData,
 }: {
   dbPool: PostgresJsDatabase<typeof db>;
   registrationId: string;

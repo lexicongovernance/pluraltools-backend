@@ -4,6 +4,7 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
     root: true,
+    ignorePatterns: ['dist', '.eslintrc.cjs', 'drizzle.config.js', 'jest.config.js'],
     rules: {
         '@typescript-eslint/ban-ts-comment': 'warn',
         '@typescript-eslint/no-var-requires': 'off',

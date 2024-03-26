@@ -2,10 +2,16 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
 import { and, eq, ne, or } from 'drizzle-orm';
-import { insertUserSchema } from '../types/users';
-import { overwriteUsersToGroups } from './usersToGroups';
+import { UserData, insertUserSchema } from '../types/users';
+import { upsertUsersToGroups } from './usersToGroups';
 import { upsertUserAttributes } from './userAttributes';
+import { upsertUsersToMultipliers } from './usersToMultipliers';
 
+/**
+ * Retrieves user data from the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @returns {Function} - Express middleware function to handle the request.
+ */
 export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
@@ -26,6 +32,11 @@ export function getUser(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+/**
+ * Retrieves user attributes from the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @returns {Function} - Express middleware function to handle the request.
+ */
 export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
@@ -54,9 +65,86 @@ export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
+/**
+ * Checks user data for existing entries in the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {string} userId - The ID of the user to check.
+ * @param {UserData} userData - The user data to check.
+ * @returns {Promise<Array<string> | null>} - An array of errors if user data conflicts, otherwise null.
+ */
+async function checkUserData(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  userData: UserData,
+) {
+  if (userData.email || userData.username) {
+    const existingUser = await dbPool
+      .select()
+      .from(db.users)
+      .where(
+        or(
+          and(eq(db.users.email, userData.email ?? ''), ne(db.users.id, userId)),
+          and(eq(db.users.username, userData.username ?? ''), ne(db.users.id, userId)),
+        ),
+      );
+
+    if (existingUser.length > 0) {
+      const errors = [];
+
+      if (existingUser[0]?.email && existingUser[0].email === userData.email) {
+        errors.push('Email already exists');
+      }
+
+      if (existingUser[0]?.username && existingUser[0].username === userData.username) {
+        errors.push('Username already exists');
+      }
+
+      return errors;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Upserts user data in the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {string} userId - The ID of the user to update.
+ * @param {UserData} userData - The updated user data.
+ * @returns {Promise<any>} - A promise resolving to the updated user data.
+ */
+async function upsertUserData(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  userData: UserData,
+) {
+  try {
+    const user = await dbPool
+      .update(db.users)
+      .set({
+        email: userData.email,
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        telegram: userData.telegram,
+        updatedAt: new Date(),
+      })
+      .where(eq(db.users.id, userId))
+      .returning();
+
+    return user;
+  } catch (error) {
+    console.error('Failed to update user data:', error);
+  }
+}
+
+/**
+ * Updates user data in the database.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @returns {Function} - Express middleware function to handle the request.
+ */
 export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    // parse input
     const queryUserId = req.params.userId;
     const userId = req.session.userId;
 
@@ -76,49 +164,18 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.errors });
     }
 
-    // update user
     try {
-      // check if username or email already exists and is not the current user
-      if (body.data.email || body.data.username) {
-        const existingUser = await dbPool
-          .select()
-          .from(db.users)
-          .where(
-            or(
-              and(eq(db.users.email, body.data.email ?? ''), ne(db.users.id, userId)),
-              and(eq(db.users.username, body.data.username ?? ''), ne(db.users.id, userId)),
-            ),
-          );
+      const existingUserErrors = await checkUserData(dbPool, userId, body.data);
 
-        if (existingUser.length > 0) {
-          const errors = [];
-
-          if (existingUser[0]?.email && existingUser[0].email === body.data.email) {
-            errors.push('Email already exists');
-          }
-
-          if (existingUser[0]?.username && existingUser[0].username === body.data.username) {
-            errors.push('Username already exists');
-          }
-
-          return res.status(400).json({ errors });
-        }
+      if (existingUserErrors) {
+        return res.status(400).json({ errors: existingUserErrors });
       }
 
-      const user = await dbPool
-        .update(db.users)
-        .set({
-          email: body.data.email,
-          username: body.data.username,
-          firstName: body.data.firstName,
-          lastName: body.data.lastName,
-          telegram: body.data.telegram,
-          updatedAt: new Date(),
-        })
-        .where(eq(db.users.id, userId))
-        .returning();
+      const user = await upsertUserData(dbPool, userId, body.data);
 
-      const updatedGroups = await overwriteUsersToGroups(dbPool, userId, body.data.groupIds);
+      const updatedGroups = await upsertUsersToGroups(dbPool, userId, body.data.groupIds);
+
+      const updatedMultiplier = await upsertUsersToMultipliers(dbPool, userId);
 
       const updatedUserAttributes = await upsertUserAttributes(
         dbPool,
@@ -126,7 +183,7 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
         body.data.userAttributes,
       );
 
-      return res.json({ data: { user, updatedGroups, updatedUserAttributes } });
+      return res.json({ data: { user, updatedGroups, updatedMultiplier, updatedUserAttributes } });
     } catch (e) {
       console.error(`[ERROR] ${JSON.stringify(e)}`);
       return res.sendStatus(500);

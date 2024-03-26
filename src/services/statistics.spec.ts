@@ -26,7 +26,7 @@ describe('service: statistics', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { users, questionOptions, forumQuestions, cycles } = await seed(dbPool);
+    const { users, questionOptions, forumQuestions } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
     forumQuestion = forumQuestions[0];
