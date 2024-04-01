@@ -17,6 +17,7 @@ export const insertUserSchema = createInsertSchema(users)
       email: data.email || null,
       username: data.username || null,
       firstName: data.firstName || null,
+      telegram: data.telegram || null,
       lastName: data.lastName || null,
     };
   });
