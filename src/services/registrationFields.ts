@@ -1,25 +1,36 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 
-export function getRegistrationFields(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const eventId = req.params.eventId;
-    if (!eventId) {
-      return res.status(400).json({ errors: ['eventId is required'] });
-    }
+export async function validateRequiredRegistrationFields(
+  dbPool: PostgresJsDatabase<typeof db>,
+  data: {
+    eventId: string;
+    registrationData: {
+      registrationFieldId: string;
+      value: string;
+    }[];
+  },
+) {
+  // check if all required fields are filled
+  const event = await dbPool.query.events.findFirst({
+    with: {
+      registrationFields: true,
+    },
+    where: (event, { eq }) => eq(event.id, data.eventId),
+  });
+  const requiredFields = event?.registrationFields.filter((field) => field.required);
 
-    const event = await dbPool.query.events.findFirst({
-      with: {
-        registrationFields: {
-          with: {
-            registrationFieldOptions: true,
-          },
-        },
-      },
-      where: (fields, { eq }) => eq(fields.id, eventId),
-    });
+  if (!requiredFields) {
+    return [];
+  }
 
-    return res.json({ data: event?.registrationFields });
-  };
+  // loop through required fields and check if they are filled
+  const missingFields = requiredFields.filter(
+    (field) => !data.registrationData.some((data) => data.registrationFieldId === field.id),
+  );
+
+  return missingFields.map((field) => ({
+    field: field.name,
+    message: 'missing required field',
+  }));
 }

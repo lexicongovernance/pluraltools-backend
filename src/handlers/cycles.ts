@@ -23,7 +23,7 @@ export function getActiveCyclesHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function getCycleByIdHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getCycleHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const { cycleId } = req.params;
 
