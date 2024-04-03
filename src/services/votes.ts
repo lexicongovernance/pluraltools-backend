@@ -10,125 +10,37 @@ import { z } from 'zod';
 import { quadraticVoting } from '../modules/quadraticVoting';
 
 /**
- * Handler to receive the votes for a specific cycle and user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- */
-export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const userId = req.session.userId;
-    const cycleId = req.params.cycleId;
-
-    if (!cycleId) {
-      return res.status(400).json({
-        errors: [
-          {
-            message: 'Expected cycleId in query params',
-          },
-        ],
-      });
-    }
-
-    const votesRow = await getVotesForCycleByUser(dbPool, userId, cycleId);
-
-    return res.json({ data: votesRow });
-  };
-}
-
-/**
- * Retrieves the votes for a specific cycle and user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
- * @param {string} userId - The ID of the user.
- * @param {string} cycleId - The ID of the cycle.
- */
-export async function getVotesForCycleByUser(
-  dbPool: PostgresJsDatabase<typeof db>,
-  userId: string,
-  cycleId: string,
-) {
-  const response = await dbPool.query.cycles.findMany({
-    with: {
-      forumQuestions: {
-        with: {
-          questionOptions: {
-            with: {
-              votes: {
-                where: ({ optionId }) =>
-                  sql`${db.votes.createdAt} = (
-                    SELECT MAX(created_at) FROM (
-                        SELECT created_at, user_id FROM votes 
-                        WHERE user_id = ${userId} AND option_id = ${optionId}
-                    ) as ranked
-                  )`,
-              },
-            },
-          },
-        },
-      },
-    },
-    where: eq(db.cycles.id, cycleId),
-  });
-
-  const out = response.flatMap((cycle) =>
-    cycle.forumQuestions.flatMap((question) =>
-      question.questionOptions.flatMap((option) => option.votes),
-    ),
-  );
-
-  return out;
-}
-
-/**
  * Handler function that saves votes submitted by a user.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {Request} req - The Express request object containing the user's submitted votes.
  * @param {Response} res - The Express response object to send the result.
  */
-export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const userId = req.session.userId;
-    const out: db.Vote[] = [];
-    const errors = [];
+export async function saveVotes(
+  dbPool: PostgresJsDatabase<typeof db>,
+  data: { optionId: string; numOfVotes: number }[],
+  userId: string,
+): Promise<{ data: db.Vote[]; errors: string[] }> {
+  const out: db.Vote[] = [];
+  const errors: string[] = [];
 
-    const reqBody = z
-      .array(
-        z.object({
-          optionId: z.string(),
-          numOfVotes: z.number().min(0),
-        }),
-      )
-      .safeParse(req.body);
-
-    if (!reqBody.success) {
-      return res.status(400).json({ errors: reqBody.error.errors });
+  for (const vote of data) {
+    const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
+    if (data) {
+      out.push(data);
     }
-
-    // Insert votes
-    try {
-      for (const vote of req.body) {
-        const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
-        if (data) {
-          out.push(data);
-        }
-        if (error) {
-          errors.push({ message: error });
-        }
-      }
-
-      const uniqueOptionIds = new Set(out.map((vote) => vote.optionId));
-
-      // Update the vote count for each option
-      for (const optionId of uniqueOptionIds) {
-        await updateVoteScore(dbPool, optionId);
-      }
-
-      return res.json({ data: out, errors });
-    } catch (e) {
-      console.error(`[ERROR] ${e}`);
-      return res.status(500).json({ errors: e });
+    if (error) {
+      errors.push(error);
     }
-  };
+  }
+
+  const uniqueOptionIds = new Set(out.map((vote) => vote.optionId));
+
+  // Update the vote count for each option
+  for (const optionId of uniqueOptionIds) {
+    await updateVoteScore(dbPool, optionId);
+  }
+
+  return { data: out, errors };
 }
 
 /**
