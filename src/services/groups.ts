@@ -4,18 +4,6 @@ import type { Request, Response } from 'express';
 import { eq } from 'drizzle-orm';
 
 /**
- * Retrieves all groups from the database.
- * @param dbPool The database connection pool.
- * @returns An asynchronous function that handles the HTTP request and response.
- */
-export function getGroups(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const groups = await dbPool.query.groups.findMany();
-    return res.json({ data: groups });
-  };
-}
-
-/**
  * Retrieves groups by a specified group Category ID.
  * @param dbPool The database connection pool.
  * @returns An asynchronous function that handles the HTTP request and response.
