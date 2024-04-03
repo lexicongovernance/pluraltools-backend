@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS "group_categories" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"group_category" varchar,
+	"name" varchar,
 	"event_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "events" ADD COLUMN "event_link" varchar;--> statement-breakpoint
+ALTER TABLE "events" ADD COLUMN "link" varchar;--> statement-breakpoint
 ALTER TABLE "groups" ADD COLUMN "group_category_id" uuid;--> statement-breakpoint
 ALTER TABLE "users_to_groups" ADD COLUMN "group_category_id" uuid;--> statement-breakpoint
 DO $$ BEGIN
