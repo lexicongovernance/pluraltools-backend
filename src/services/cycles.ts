@@ -1,6 +1,5 @@
-import { and, eq, gte, lte, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
 import * as db from '../db';
 
 export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleId: string) {
