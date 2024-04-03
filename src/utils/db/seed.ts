@@ -10,18 +10,12 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
   const groupCategories = await createGroupCategories(dbPool, events[0]?.id);
   const groups = await createGroups(dbPool, groupCategories[0]?.id, groupCategories[1]?.id);
-  const multipliers = await createMultipliers(dbPool);
   const users = await createUsers(dbPool);
   const usersToGroups = await createUsersToGroups(
     dbPool,
     users.map((u) => u.id!),
     groups.map((g) => g.id!),
     groupCategories[0]?.id,
-  );
-  const usersToMultipliers = await createUsersToMultipliers(
-    dbPool,
-    users.map((u) => u.id!),
-    multipliers.map((g) => g.id!),
   );
 
   return {
@@ -31,11 +25,9 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     questionOptions,
     groupCategories,
     groups,
-    multipliers,
     users,
     usersToGroups,
     registrationFields,
-    usersToMultipliers,
   };
 }
 
@@ -48,10 +40,8 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.registrationFields);
   await dbPool.delete(db.registrations);
   await dbPool.delete(db.usersToGroups);
-  await dbPool.delete(db.usersToMultipliers);
   await dbPool.delete(db.users);
   await dbPool.delete(db.groups);
-  await dbPool.delete(db.multipliers);
   await dbPool.delete(db.groupCategories);
   await dbPool.delete(db.forumQuestions);
   await dbPool.delete(db.cycles);
@@ -196,25 +186,6 @@ async function createGroups(
     .returning();
 }
 
-async function createMultipliers(dbPool: PostgresJsDatabase<typeof db>) {
-  return dbPool
-    .insert(db.multipliers)
-    .values([
-      {
-        label: 'Credentail 1',
-        multiplier: '2',
-      },
-      {
-        label: 'Credentail 2',
-        multiplier: '1.5',
-      },
-      {
-        label: 'Credentail 3',
-      },
-    ])
-    .returning();
-}
-
 async function createUsers(dbPool: PostgresJsDatabase<typeof db>) {
   const fakeUsers = [randUser(), randUser(), randUser()];
   return dbPool
@@ -236,19 +207,6 @@ async function createUsersToGroups(
     groupCategoryId,
   }));
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
-}
-
-async function createUsersToMultipliers(
-  dbPool: PostgresJsDatabase<typeof db>,
-  userIds: string[],
-  multiplierIds: string[],
-) {
-  // assign users to groups
-  const usersToMultipliers = userIds.map((userId) => ({
-    userId,
-    multiplierId: multiplierIds[0]!,
-  }));
-  return dbPool.insert(db.usersToMultipliers).values(usersToMultipliers).returning();
 }
 
 export { seed, cleanup };

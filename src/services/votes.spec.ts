@@ -10,8 +10,6 @@ import {
   saveVote,
   getVotesForCycleByUser,
   queryVoteData,
-  queryMultiplierData,
-  voteMultiplierArray,
   numOfVotesDictionary,
   groupsDictionary,
   calculatePluralScore,
@@ -171,66 +169,30 @@ describe('service: votes', () => {
     expect(voteArray[1]?.numOfVotes).toBe(10);
   });
 
-  test('should fetch multiplier data correctly', async () => {
-    const multiplierArray = await queryMultiplierData(dbPool);
-
-    expect(multiplierArray).toBeDefined();
-    expect(multiplierArray).toHaveLength(3);
-
-    multiplierArray?.forEach((multiplier) => {
-      expect(multiplier).toHaveProperty('userId');
-      expect(multiplier).toHaveProperty('multiplier');
-      expect(typeof multiplier.multiplier).toBe('string');
-    });
-
-    expect(multiplierArray[0]?.multiplier).toBe('2');
-    expect(multiplierArray[1]?.multiplier).toBe('2');
-  });
-
-  test('should combine vote and multiplier data correctly', () => {
-    // Mock vote array
+  test('should transform voteArray correctly', () => {
+    // Mock voteMultiplierArray
     const voteArray = [
       { userId: 'user1', numOfVotes: 10 },
-      { userId: 'user2', numOfVotes: 15 },
+      { userId: 'user2', numOfVotes: 0 },
+      { userId: 'user3', numOfVotes: 5 },
+      { userId: 'user4', numOfVotes: 0 },
     ];
 
-    // Mock multiplier array
-    const multiplierArray = [
-      { userId: 'user1', multiplier: '2' },
-      { userId: 'user2', multiplier: '1' },
-    ];
-
-    const result = voteMultiplierArray(voteArray, multiplierArray);
-
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({ userId: 'user1', numOfVotes: 10, multiplierVotes: 20 });
-    expect(result[1]).toEqual({ userId: 'user2', numOfVotes: 15, multiplierVotes: 15 });
-  });
-
-  test('should filter and transform voteMultiplierArray correctly', () => {
-    // Mock voteMultiplierArray
-    const voteMultiplierArray = [
-      { userId: 'user1', numOfVotes: 10, multiplierVotes: 20 },
-      { userId: 'user2', numOfVotes: 0, multiplierVotes: 0 },
-      { userId: 'user3', numOfVotes: 5, multiplierVotes: 5 },
-      { userId: 'user4', numOfVotes: 0, multiplierVotes: 0 },
-    ];
-
-    const result = numOfVotesDictionary(voteMultiplierArray);
+    const result = numOfVotesDictionary(voteArray);
     expect(result).toEqual({
-      user1: 20,
+      user1: 10,
       user3: 5,
     });
   });
 
   test('should include users with zero votes if there are no non-zero votes', () => {
     // Mock voteMultiplierArray with all zero votes
-    const voteMultiplierArray = [
-      { userId: 'user1', numOfVotes: 0, multiplierVotes: 0 },
-      { userId: 'user2', numOfVotes: 0, multiplierVotes: 0 },
+    const voteArray = [
+      { userId: 'user1', numOfVotes: 0 },
+      { userId: 'user2', numOfVotes: 0 },
     ];
 
-    const result = numOfVotesDictionary(voteMultiplierArray);
+    const result = numOfVotesDictionary(voteArray);
     expect(result).toEqual({
       user1: 0,
       user2: 0,
@@ -247,9 +209,7 @@ describe('service: votes', () => {
     });
 
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
-    const multiplierArray = await queryMultiplierData(dbPool);
-    const getVoteMultiplierArray = await voteMultiplierArray(voteArray, multiplierArray);
-    const result = await numOfVotesDictionary(getVoteMultiplierArray);
+    const result = await numOfVotesDictionary(voteArray);
 
     expect(user!.id in result).toBe(true);
     expect(secondUser!.id in result).toBe(true);
@@ -259,9 +219,7 @@ describe('service: votes', () => {
   test('only return groups for users who voted for the option', async () => {
     // Get vote data required for groups
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
-    const multiplierArray = await queryMultiplierData(dbPool);
-    const getVoteMultiplierArray = await voteMultiplierArray(voteArray, multiplierArray);
-    const votesDictionary = await numOfVotesDictionary(getVoteMultiplierArray);
+    const votesDictionary = await numOfVotesDictionary(voteArray);
     const groups = await groupsDictionary(dbPool, votesDictionary);
 
     expect(groups).toBeDefined();
@@ -338,9 +296,9 @@ describe('service: votes', () => {
   });
 
   test('full integration test of the update vote functionality', async () => {
-    // Get vote data required for groups
+    // Test that the plurality score is correct if both users are in the same group
     const score = await updateVoteScore(dbPool, questionOption?.id ?? '');
-    expect(score).toBe(Math.sqrt(40));
+    expect(score).toBe(Math.sqrt(20));
   });
 
   afterAll(async () => {
