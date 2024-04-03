@@ -1,9 +1,16 @@
+import type { Request, Response } from 'express';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
-import * as db from '../../db';
-import { verifyUserSchema } from '../../types';
-import { createOrSignInPCD } from '../../services/auth';
+import * as db from '../db';
+import { createOrSignInPCD } from '../services/auth';
+import { verifyUserSchema } from '../types';
+
+export function destroySessionHandler() {
+  return function (req: Request, res: Response) {
+    req.session.destroy();
+    return res.status(204).clearCookie('forum_app_cookie', { path: '/' }).send();
+  };
+}
 
 export function verifyPCDHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
