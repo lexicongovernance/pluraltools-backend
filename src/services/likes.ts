@@ -1,90 +1,68 @@
-import type { Request, Response } from 'express';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { and, eq } from 'drizzle-orm';
 
-export function getLikes(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const commentId = req.params.commentId;
+export async function saveCommentLike(
+  dbPool: PostgresJsDatabase<typeof db>,
+  data: {
+    commentId: string;
+    userId: string;
+  },
+): Promise<{
+  data?: db.Like;
+  errors?: string[];
+}> {
+  const { commentId, userId } = data;
 
-    if (!commentId) {
-      return res.status(400).json({ errors: ['commentId is required'] });
-    }
+  const like = await dbPool.query.likes.findFirst({
+    where: and(eq(db.likes.commentId, commentId), eq(db.likes.userId, userId)),
+  });
 
-    const likes = await dbPool.query.likes.findMany({
-      where: eq(db.likes.commentId, commentId),
-    });
+  if (like) {
+    return { data: like, errors: ['like already exists'] };
+  }
 
-    return res.json({ data: likes });
-  };
+  try {
+    const newLike = await dbPool
+      .insert(db.likes)
+      .values({
+        commentId,
+        userId,
+      })
+      .returning();
+
+    return { data: newLike[0] };
+  } catch (e) {
+    return { errors: ['Failed to save like'] };
+  }
 }
 
-export function saveLike(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const commentId = req.params.commentId;
-    const userId = req.session.userId;
+export async function deleteCommentLike(
+  dbPool: PostgresJsDatabase<typeof db>,
+  data: {
+    commentId: string;
+    userId: string;
+  },
+): Promise<{
+  data?: db.Like;
+  errors?: string[];
+}> {
+  const { commentId, userId } = data;
 
-    if (!commentId) {
-      return res.status(400).json({ errors: ['commentId is required'] });
-    }
+  const like = await dbPool.query.likes.findFirst({
+    where: and(eq(db.likes.commentId, commentId), eq(db.likes.userId, userId)),
+  });
 
-    const canLike = await userCanLike(dbPool, userId, commentId);
+  if (!like) {
+    return { errors: ['like does not exist'] };
+  }
 
-    if (!canLike) {
-      return res.status(403).json({ errors: [{ message: 'User cannot like this comment' }] });
-    }
-
-    const like = await dbPool.query.likes.findFirst({
-      where: and(eq(db.likes.commentId, commentId), eq(db.likes.userId, userId)),
-    });
-
-    if (like) {
-      return res.status(400).json({ errors: ['like already exists'] });
-    }
-
-    try {
-      const newLike = await dbPool
-        .insert(db.likes)
-        .values({
-          commentId,
-          userId,
-        })
-        .returning();
-
-      return res.json({ data: newLike[0] });
-    } catch (e) {
-      console.error(e);
-      return res.status(500).json({ errors: ['Failed to save like'] });
-    }
-  };
-}
-
-export function deleteLike(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const commentId = req.params.commentId;
-    const userId = req.session.userId;
-
-    if (!commentId) {
-      return res.status(400).json({ errors: ['commentId is required'] });
-    }
-
-    const like = await dbPool.query.likes.findFirst({
-      where: and(eq(db.likes.commentId, commentId), eq(db.likes.userId, userId)),
-    });
-
-    if (!like) {
-      return res.status(404).json({ errors: ['like not found'] });
-    }
-
-    try {
-      const deletedLike = await dbPool.delete(db.likes).where(eq(db.likes.id, like.id)).returning();
-
-      return res.json({ data: deletedLike });
-    } catch (e) {
-      console.error(e);
-      return res.status(500).json({ errors: ['Failed to delete like'] });
-    }
-  };
+  try {
+    const deletedLike = await dbPool.delete(db.likes).where(eq(db.likes.id, like.id)).returning();
+    return { data: deletedLike[0] };
+  } catch (e) {
+    return { errors: ['Failed to delete like'] };
+  }
 }
 
 /**
@@ -94,7 +72,7 @@ export function deleteLike(dbPool: PostgresJsDatabase<typeof db>) {
  * @param {string} commentId - The ID of the comment to be liked.
  * @returns {Promise<boolean>} A promise that resolves to true if the user can like the comment, false otherwise.
  */
-async function userCanLike(
+export async function userCanLike(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   commentId: string,
