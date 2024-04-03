@@ -153,54 +153,15 @@ export async function queryVoteData(dbPool: PostgresJsDatabase<typeof db>, optio
 }
 
 /**
-Queries multiplier data from the database by user.
-@param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+Creates a dictionary of votes out of and array of votes.
+@param {Array<{ userId: string; numOfVotes: number }>} voteArray - An array of vote data containing the user ID and number of votes.
 */
-export async function queryMultiplierData(dbPool: PostgresJsDatabase<typeof db>) {
-  const multiplierArray = await dbPool
-    .select({
-      userId: db.usersToMultipliers.userId,
-      multiplier: db.multipliers.multiplier,
-    })
-    .from(db.usersToMultipliers)
-    .leftJoin(db.multipliers, eq(db.usersToMultipliers.multiplierId, db.multipliers.id));
-  return multiplierArray;
-}
-
-/**
- * Combines vote and multiplier data into a single array of combined data objects.
- * @param {Array<{ userId: string; numOfVotes: number }>} voteArray - An array of vote data objects, each containing the user ID and number of votes.
- * @param {Array<{ userId: string; multiplier: string | null }>} multiplierArray - An array of multiplier data objects, each containing the user ID and multiplier value.
- */
-export function voteMultiplierArray(
-  voteArray: Array<{ userId: string; numOfVotes: number }>,
-  multiplierArray: Array<{ userId: string; multiplier: string | null }>,
-): Array<{ userId: string; numOfVotes: number; multiplierVotes: number }> {
-  const voteMultiplierArray = voteArray.map((vote) => {
-    const multiplierItem = multiplierArray.find((multiplier) => multiplier.userId === vote.userId);
-    const multiplier = multiplierItem ? multiplierItem.multiplier ?? 1 : 1; // default multiplier to 1 if not found
-    const multiplierVotes = vote.numOfVotes * Number(multiplier);
-    return {
-      userId: vote.userId,
-      numOfVotes: vote.numOfVotes,
-      multiplierVotes: multiplierVotes,
-    };
-  });
-  return voteMultiplierArray;
-}
-
-/**
-Filters and transforms the voteMultiplierArray into a dictionary of user IDs mapped to their corresponding multiplied votes.
-@param {Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>} voteMultiplierArray - An array of combined data objects, each containing the user ID, number of votes, and multiplied votes.
-*/
-export function numOfVotesDictionary(
-  voteMultiplierArray: Array<{ userId: string; numOfVotes: number; multiplierVotes: number }>,
-) {
-  const hasNonZeroValue = voteMultiplierArray.some((vote) => vote.numOfVotes > 0);
-  const numOfVotesDictionary = voteMultiplierArray.reduce(
+export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVotes: number }>) {
+  const hasNonZeroValue = voteArray.some((vote) => vote.numOfVotes > 0);
+  const numOfVotesDictionary = voteArray.reduce(
     (acc, vote) => {
       if (!hasNonZeroValue || vote.numOfVotes !== 0) {
-        acc[vote.userId] = vote.multiplierVotes;
+        acc[vote.userId] = vote.numOfVotes;
       }
       return acc;
     },
@@ -242,7 +203,7 @@ export async function groupsDictionary(
 /**
 Calculates the plural score based on the provided groups dictionary and number of votes dictionary.
 @param {Record<string, string[]>} groupsDictionary - A dictionary where keys are group IDs and values are arrays of user IDs belonging to each group.
-@param {Record<string, number>} numOfVotesDictionary - A dictionary where keys are user IDs and values are the corresponding multiplied votes.
+@param {Record<string, number>} numOfVotesDictionary - A dictionary where keys are user IDs and values are the corresponding votes.
 */
 export function calculatePluralScore(
   groupsDictionary: Record<string, string[]>,
@@ -298,11 +259,9 @@ export async function updateVoteScore(
 ): Promise<number> {
   // Query vote data and multiplier from the database
   const voteArray = await queryVoteData(dbPool, optionId);
-  const multiplierArray = await queryMultiplierData(dbPool);
 
-  // Combine and trnasform data
-  const combinedVoteMultiplierArray = await voteMultiplierArray(voteArray, multiplierArray);
-  const votesDictionary = await numOfVotesDictionary(combinedVoteMultiplierArray);
+  // Transform data
+  const votesDictionary = await numOfVotesDictionary(voteArray);
 
   // Query group data
   const groupArray = await groupsDictionary(dbPool, votesDictionary);
