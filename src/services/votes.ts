@@ -1,6 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
 import * as db from '../db';
 import { votes } from '../db/votes';
 import { PluralVoting } from '../modules/pluralVoting';

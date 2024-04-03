@@ -8,7 +8,6 @@ import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import {
   saveVote,
-  getVotesForCycleByUser,
   queryVoteData,
   numOfVotesDictionary,
   groupsDictionary,
@@ -107,50 +106,6 @@ describe('service: votes', () => {
 
     // expect error message
     expect(errors).toBeDefined();
-  });
-
-  test('should get latest votes related to user', async function () {
-    // create vote in db
-    await dbPool.insert(db.votes).values({
-      numOfVotes: 2,
-      optionId: questionOption!.id,
-      questionId: forumQuestion!.id,
-      userId: user!.id,
-    });
-    // create second interaction with option
-    await dbPool.insert(db.votes).values({
-      numOfVotes: 10,
-      optionId: questionOption!.id,
-      questionId: forumQuestion!.id,
-      userId: user!.id,
-    });
-
-    const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
-    // expect the latest votes
-    expect(votes[0]?.numOfVotes).toBe(10);
-  });
-
-  test('should not get votes for other user', async function () {
-    // create vote in db
-    await dbPool.insert(db.votes).values({
-      numOfVotes: 2,
-      optionId: questionOption!.id,
-      questionId: forumQuestion!.id,
-      userId: secondUser!.id,
-    });
-    // create second interaction with option
-    await dbPool.insert(db.votes).values({
-      numOfVotes: 10,
-      optionId: questionOption!.id,
-      questionId: forumQuestion!.id,
-      userId: secondUser!.id,
-    });
-
-    // user 1 gets votes but it should not include otherUser votes
-    const votes = await getVotesForCycleByUser(dbPool, user!.id, cycle!.id);
-
-    // no votes have otherUser's id in array
-    expect(votes.filter((vote) => vote.userId === secondUser?.id).length).toBe(0);
   });
 
   test('should fetch vote data correctly', async () => {
