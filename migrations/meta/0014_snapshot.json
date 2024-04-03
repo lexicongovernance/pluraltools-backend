@@ -1,5 +1,5 @@
 {
-  "id": "df0a6139-e3d2-486e-b2be-9cb1c16ddbe8",
+  "id": "b824d5c6-87a7-4e43-bd9d-8ffd1a9ea983",
   "prevId": "ebfd597a-67a1-464c-9424-f27d10d3e153",
   "version": "5",
   "dialect": "pg",
@@ -169,6 +169,12 @@
         },
         "description": {
           "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_link": {
+          "name": "event_link",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -1410,120 +1416,6 @@
           "tableTo": "notification_types",
           "columnsFrom": [
             "notification_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "multipliers": {
-      "name": "multipliers",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "label": {
-          "name": "label",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "multiplier": {
-          "name": "multiplier",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'1.0'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "users_to_multipliers": {
-      "name": "users_to_multipliers",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "multiplier_id": {
-          "name": "multiplier_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "users_to_multipliers_user_id_users_id_fk": {
-          "name": "users_to_multipliers_user_id_users_id_fk",
-          "tableFrom": "users_to_multipliers",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "users_to_multipliers_multiplier_id_multipliers_id_fk": {
-          "name": "users_to_multipliers_multiplier_id_multipliers_id_fk",
-          "tableFrom": "users_to_multipliers",
-          "tableTo": "multipliers",
-          "columnsFrom": [
-            "multiplier_id"
           ],
           "columnsTo": [
             "id"
