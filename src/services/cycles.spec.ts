@@ -46,7 +46,7 @@ describe('service: cycles', () => {
     expect(response.updatedAt).toEqual(cycle?.updatedAt);
   });
 
-  test('should get latest votes related to user', async function () {
+  it('should get latest votes related to user', async function () {
     // create vote in db
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,
@@ -67,7 +67,7 @@ describe('service: cycles', () => {
     expect(votes[0]?.numOfVotes).toBe(10);
   });
 
-  test('should not get votes for other user', async function () {
+  it('should not get votes for other user', async function () {
     // create vote in db
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,

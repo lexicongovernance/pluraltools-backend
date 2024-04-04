@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { quadraticVoting } from '../modules/quadraticVoting';
 
 /**
- * Handler function that saves votes submitted by a user.
+ * Saves votes submitted by a user.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {Request} req - The Express request object containing the user's submitted votes.
  * @param {Response} res - The Express response object to send the result.
