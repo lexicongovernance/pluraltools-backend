@@ -43,7 +43,7 @@ export async function saveVotes(
 }
 
 /**
-Queries lastest vote data by users for a specified option ID.
+Queries latest vote data by users for a specified option ID.
 @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to query vote data.
 */

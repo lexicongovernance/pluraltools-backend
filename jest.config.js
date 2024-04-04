@@ -10,12 +10,7 @@ module.exports = {
   preset: 'ts-jest',
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
   collectCoverage: false,
-  collectCoverageFrom: [
-    'src/modules/**/*.ts',
-    'src/services/**/*.ts',
-  ],
-  coveragePathIgnorePatterns: [
-    '/src/services/auth/',
-  ],
-  silent: true, // surpress console output for passing tests 
+  collectCoverageFrom: ['src/modules/**/*.ts', 'src/services/**/*.ts'],
+  coveragePathIgnorePatterns: ['/src/handlers/'],
+  silent: true, // surpress console output for passing tests
 };

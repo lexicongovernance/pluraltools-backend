@@ -3,7 +3,7 @@ import * as db from '../db';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
 import { runMigrations } from '../utils/db/runMigrations';
-import { sendRegistrationData } from './registrations';
+import { saveEventRegistration } from './registrations';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
@@ -37,7 +37,7 @@ describe('service: registrations', () => {
   });
   test('send registration data', async function () {
     // Call the saveRegistration function
-    const response = await sendRegistrationData(dbPool, testData, testData.userId);
+    const response = await saveEventRegistration(dbPool, testData, testData.userId);
     // Check if response is defined
     expect(response).toBeDefined();
     // Check property existence and types
@@ -66,7 +66,7 @@ describe('service: registrations', () => {
       },
     ];
     // Call the saveRegistration function
-    const response = await sendRegistrationData(dbPool, testData, testData.userId);
+    const response = await saveEventRegistration(dbPool, testData, testData.userId);
     // Check if response is defined
     expect(response).toBeDefined();
     // Check property existence and types
