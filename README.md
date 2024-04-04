@@ -5,9 +5,10 @@
 1. [db](./src/db/) contains all the db models. A global overview can be found [here](./DATABASE.md)
 2. [routers](./src/routers/) contains all the api routers which map urls to the service.
 3. [services](./src/services/) contains all business logic for the routes.
-4. [middleware](./src/middleware/) contains all the middleware that is used in the routers before the code reaches the service.
-5. [modules](./src/modules/) contains all voting models implemented in the forum backend.
-6. [types](./src/types/) contains all the zod types that are needed for validation.
+4. [handlers](./src/handlers/) contains all request and response management.
+5. [middleware](./src/middleware/) contains all the middleware that is used in the routers before the code reaches the service.
+6. [modules](./src/modules/) contains all voting models implemented in the forum backend.
+7. [types](./src/types/) contains all the zod types that are needed for validation.
 
 ## For developers
 
