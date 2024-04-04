@@ -1,20 +1,28 @@
+/**
+ * Class that contains the functions to calculate a plural score for each project proposal.
+ * :param: groups: A dictionary of groups where the values are arrays of group members (users).
+ * :param: contributions: A dictionary representing the number of votes for each user.
+ */
 export class PluralVoting {
-  // Class that contains the functions to calculate a plural score for each project proposal.
-  // :param: groups (dict): a dictionary of groups as keys where the values are arrays of group members (users).
-  // :param: contributions (dict): the keys identify users and the values denote the votes for a given project proposal.
-  // :returns: plurality score
   public groups: Record<string, string[]>;
   public contributions: Record<string, number>;
 
+  /**
+   * Constructs a new PluralVoting instance.
+   * @param groups A dictionary of groups where the values are arrays of group members (users).
+   * @param contributions A dictionary representing the number of votes for each user.
+   */
   constructor(groups: Record<string, string[]>, contributions: Record<string, number>) {
     this.groups = groups;
     this.contributions = contributions;
   }
 
+  /**
+   * Defines group memberships for each participant.
+   * @param groups A dictionary of groups where the values are arrays of group members (users).
+   * @returns A dictionary of group memberships for each user.
+   */
   public createGroupMemberships(groups: Record<string, string[]>): Record<string, string[]> {
-    // Define group memberships for each participant.
-    // :param: groups (dict): a dictionary of groups as keys where the values are arrays of group members (users).
-    // :returns (dict): returns a dict of group memberships (value) for each user (key).
     const memberships: Record<string, string[]> = {};
 
     for (const [groupName, members] of Object.entries(groups)) {
@@ -26,16 +34,19 @@ export class PluralVoting {
     return memberships;
   }
 
+  /**
+   * Defines an identifier indicating whether two participants share the same group.
+   * @param agent1 The first participant.
+   * @param agent2 The second participant.
+   * @param groupMemberships A dictionary of group memberships for each user.
+   * @returns True if two participants share group memberships, false otherwise.
+   * @throws {Error} If group memberships for the specified agents are undefined.
+   */
   public commonGroup(
     agent1: string,
     agent2: string,
     groupMemberships: Record<string, string[]>,
   ): boolean {
-    // Define an identifier indicating whether two participants share the same group.
-    // :param: agent1: agent1 denotes a participant not equal to a participant called agent2.
-    // :param: agent2: agent2 denotes a participant not equal to a participant called agent1.
-    // :returns (bool): returns true if two participants share groups memberships according to the definition and false otherwise.
-
     const memberships_agent1 = groupMemberships[agent1];
     const memberships_agent2 = groupMemberships[agent2];
 
@@ -46,17 +57,21 @@ export class PluralVoting {
     throw new Error(`Group memberships for agent ${agent1} or ${agent2} are undefined.`);
   }
 
+  /**
+   * Defines the weighting function that attenuates the votes of an agent given different group memberships.
+   * @param agent The participant.
+   * @param otherGroup The group.
+   * @param groupMemberships A dictionary of group memberships for each user.
+   * @param contributions A dictionary representing the number of votes for each user.
+   * @returns The attenuated number of votes for a given project.
+   * @throws {Error} If contributions for the specified agent are undefined.
+   */
   public K(
     agent: string,
     otherGroup: string[],
     groupMemberships: Record<string, string[]>,
     contributions: Record<string, number>,
   ): number {
-    // Define the weighting function that attenuates the votes of an agent given different group memberships.
-    // :param: agent: denotes a participant.
-    // :param: otherGroup: denotes a group.
-    // :returns: attenuated number of votes for a given project.
-
     const contributions_agent = contributions[agent];
 
     if (contributions_agent !== undefined) {
@@ -72,16 +87,60 @@ export class PluralVoting {
     throw new Error(`Contributions for agent ${agent} are undefined.`);
   }
 
+  /**
+   * Checks whether two arrays have the same content.
+   * @param arr1 The first array.
+   * @param arr2 The second array.
+   * @returns True if the arrays have the same content, false otherwise.
+   */
+  public arraysEqual(arr1: string[], arr2: string[]): boolean {
+    const sortedArr1 = arr1.slice().sort();
+    const sortedArr2 = arr2.slice().sort();
+    return (
+      sortedArr1.length === sortedArr2.length &&
+      sortedArr1.every((value, index) => value === sortedArr2[index])
+    );
+  }
+
+  /**
+   * Removes duplicate groups from the input array of groups.
+   * @param inputGroups An array of groups (can contain duplicates).
+   * @returns An object representing unique groups.
+   */
+  public removeDuplicateGroups(inputGroups: Record<string, string[]>): Record<string, string[]> {
+    const uniqueGroups: Record<string, string[]> = {};
+
+    Object.entries(inputGroups).forEach(([groupName, users]) => {
+      // Sort the user arrays to ensure order doesn't matter
+      const sortedUsers = users.slice().sort();
+
+      // Check if the sorted array is not already in uniqueGroups
+      if (
+        !Object.values(uniqueGroups).some(
+          (existingGroup) =>
+            JSON.stringify(existingGroup.slice().sort()) === JSON.stringify(sortedUsers),
+        )
+      ) {
+        uniqueGroups[groupName] = sortedUsers;
+      }
+    });
+
+    return uniqueGroups;
+  }
+
+  /**
+   * Calculates the plurality score according to connection-oriented cluster match.
+   * @param groups A dictionary of groups where the values are arrays of group members (users).
+   * @param contributions A dictionary representing the number of votes for each user.
+   * @returns The plurality score.
+   * @throws {Error} If group memberships are undefined for any agent or contributions are undefined.
+   */
   public clusterMatch(
     groups: Record<string, string[]>,
     contributions: Record<string, number>,
   ): number {
-    // Calculates the plurality score according to connection-oriented cluster match.
-    // :param: groups (dict): a dictionary of groups as keys where the values are arrays of group members (users).
-    // :param: contributions (dict): the keys identify users and the values denote the votes for a given project proposal.
-    // :returns: number: plurality score
-
-    const groupMemberships: Record<string, string[]> = this.createGroupMemberships(groups);
+    const uniqueGroups = this.removeDuplicateGroups(groups);
+    const groupMemberships: Record<string, string[]> = this.createGroupMemberships(uniqueGroups);
 
     if (groupMemberships === undefined) {
       throw new Error('Group memberships are undefined.');
@@ -90,7 +149,7 @@ export class PluralVoting {
     let result = 0;
 
     // Calculate the first term of connection-oriented cluster match
-    for (const [, members] of Object.entries(groups)) {
+    for (const [, members] of Object.entries(uniqueGroups)) {
       for (const agent of members) {
         const contributionsI = contributions[agent];
         const membershipsI = groupMemberships[agent];
@@ -104,9 +163,9 @@ export class PluralVoting {
     }
 
     // Calculate the interaction term of connection-oriented cluster match
-    for (const [group1Name, group1] of Object.entries(groups)) {
-      for (const [group2Name, group2] of Object.entries(groups)) {
-        if (group1Name === group2Name) continue; // Only skip if the groups are the same group instance (but not if they contain the same content)
+    for (const [group1Index, group1] of Object.entries(uniqueGroups)) {
+      for (const [group2Index, group2] of Object.entries(uniqueGroups)) {
+        if (group1Index === group2Index) continue; // skip groups if they have the same index
 
         let term1 = 0;
         for (const agent of group1) {
@@ -144,9 +203,11 @@ export class PluralVoting {
     return Math.sqrt(result);
   }
 
-  public pluralScoreCalculation() // groups: Record<string, string[]>,
-  // contributions: Record<string, number>,
-  : number {
+  /**
+   * Calculates the plurality score.
+   * @returns The plurality score.
+   */
+  public pluralScoreCalculation(): number {
     const result: number = this.clusterMatch(this.groups, this.contributions);
 
     return result;

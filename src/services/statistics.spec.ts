@@ -26,20 +26,20 @@ describe('service: statistics', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { users, questionOptions, forumQuestions, cycles } = await seed(dbPool);
+    const { users, questionOptions, forumQuestions } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
     forumQuestion = forumQuestions[0];
     user = users[0];
     otherUser = users[1];
     userTestData = {
-      numOfVotes: 2,
+      numOfVotes: 4,
       optionId: questionOption?.id ?? '',
       questionId: forumQuestion?.id ?? '',
       userId: user?.id ?? '',
     };
     otherUserTestData = {
-      numOfVotes: 2,
+      numOfVotes: 4,
       optionId: questionOption?.id ?? '',
       questionId: forumQuestion?.id ?? '',
       userId: otherUser?.id ?? '',
@@ -59,7 +59,7 @@ describe('service: statistics', () => {
     // Test aggregate result statistics
     expect(result).toBeDefined();
     expect(result.numProposals).toEqual(2);
-    expect(result.sumNumOfHearts).toEqual(4);
+    expect(result.sumNumOfHearts).toEqual(8);
     expect(result.numOfParticipants).toEqual(2);
 
     // Test option stats
@@ -74,6 +74,7 @@ describe('service: statistics', () => {
       expect(optionStat?.pluralityScore).toBeDefined();
       expect(optionStat?.distinctUsers).toBeDefined();
       expect(optionStat?.allocatedHearts).toBeDefined();
+      expect(optionStat?.quadraticScore).toBeDefined();
       expect(optionStat?.distinctGroups).toBeDefined();
       expect(optionStat?.listOfGroupNames).toBeDefined();
 
@@ -81,7 +82,8 @@ describe('service: statistics', () => {
       if (optionId === questionOption?.id) {
         // Assuming this option belongs to the user
         expect(optionStat?.distinctUsers).toEqual(2);
-        expect(optionStat?.allocatedHearts).toEqual(4);
+        expect(optionStat?.allocatedHearts).toEqual(8);
+        expect(optionStat?.quadraticScore).toEqual('4');
         expect(optionStat?.distinctGroups).toEqual(1);
         const listOfGroupNames = optionStat?.listOfGroupNames;
         // Check if the array is not empty

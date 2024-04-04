@@ -1,4 +1,0 @@
-# exclude .js files from linting
-/dist/index.js
-drizzle.config.js
-jest.config.js

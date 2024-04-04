@@ -1,13 +1,16 @@
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { default as express } from 'express';
 import type * as db from '../db';
-import { getQuestionHearts } from '../services/forumQuestions';
-import { getResultStatistics } from '../services/statistics';
 import { isLoggedIn } from '../middleware/isLoggedIn';
+import { getQuestionHeartsHandler, getResultStatisticsHandler } from '../handlers/forumQuestions';
 const router = express.Router();
 
 export function forumQuestionsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
-  router.get('/:forumQuestionId/hearts', isLoggedIn(dbPool), getQuestionHearts(dbPool));
-  router.get('/:forumQuestionId/statistics', isLoggedIn(dbPool), getResultStatistics(dbPool));
+  router.get('/:forumQuestionId/hearts', isLoggedIn(dbPool), getQuestionHeartsHandler(dbPool));
+  router.get(
+    '/:forumQuestionId/statistics',
+    isLoggedIn(dbPool),
+    getResultStatisticsHandler(dbPool),
+  );
   return router;
 }
