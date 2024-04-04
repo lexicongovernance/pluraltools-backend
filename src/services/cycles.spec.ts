@@ -30,7 +30,7 @@ describe('service: cycles', () => {
     secondUser = users[1];
   });
 
-  it('should get cycle by id', async () => {
+  test('should get cycle by id', async () => {
     const response = await GetCycleById(dbPool, cycle?.id ?? '');
     expect(response).toBeDefined();
     expect(response).toHaveProperty('id');
@@ -46,7 +46,7 @@ describe('service: cycles', () => {
     expect(response.updatedAt).toEqual(cycle?.updatedAt);
   });
 
-  it('should get latest votes related to user', async function () {
+  test('should get latest votes related to user', async function () {
     // create vote in db
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,
@@ -67,7 +67,7 @@ describe('service: cycles', () => {
     expect(votes[0]?.numOfVotes).toBe(10);
   });
 
-  it('should not get votes for other user', async function () {
+  test('should not get votes for other user', async function () {
     // create vote in db
     await dbPool.insert(db.votes).values({
       numOfVotes: 2,
