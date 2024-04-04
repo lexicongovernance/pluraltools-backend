@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
 import { and } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
@@ -9,25 +8,6 @@ import {
   upsertRegistrationData,
   upsertQuestionOptionFromRegistrationData,
 } from './registrationData';
-
-export function getUserRegistrations(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    // parse input
-    const userId = req.session.userId;
-
-    try {
-      const out = await dbPool
-        .select()
-        .from(db.registrations)
-        .where(eq(db.registrations.userId, userId));
-
-      return res.json({ data: out });
-    } catch (e) {
-      console.log('error getting user registrations ' + e);
-      return res.sendStatus(500);
-    }
-  };
-}
 
 export async function saveEventRegistration(
   dbPool: PostgresJsDatabase<typeof db>,
