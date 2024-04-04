@@ -1,6 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
 import * as db from '../db';
 import { votes } from '../db/votes';
 import { PluralVoting } from '../modules/pluralVoting';
@@ -10,129 +9,38 @@ import { z } from 'zod';
 import { quadraticVoting } from '../modules/quadraticVoting';
 
 /**
- * Handler to receive the votes for a specific cycle and user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
+ * Saves votes submitted by a user.
  */
-export function getVotes(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const userId = req.session.userId;
-    const cycleId = req.params.cycleId;
-
-    if (!cycleId) {
-      return res.status(400).json({
-        errors: [
-          {
-            message: 'Expected cycleId in query params',
-          },
-        ],
-      });
-    }
-
-    const votesRow = await getVotesForCycleByUser(dbPool, userId, cycleId);
-
-    return res.json({ data: votesRow });
-  };
-}
-
-/**
- * Retrieves the votes for a specific cycle and user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
- * @param {string} userId - The ID of the user.
- * @param {string} cycleId - The ID of the cycle.
- */
-export async function getVotesForCycleByUser(
+export async function saveVotes(
   dbPool: PostgresJsDatabase<typeof db>,
+  data: { optionId: string; numOfVotes: number }[],
   userId: string,
-  cycleId: string,
-) {
-  const response = await dbPool.query.cycles.findMany({
-    with: {
-      forumQuestions: {
-        with: {
-          questionOptions: {
-            with: {
-              votes: {
-                where: ({ optionId }) =>
-                  sql`${db.votes.createdAt} = (
-                    SELECT MAX(created_at) FROM (
-                        SELECT created_at, user_id FROM votes 
-                        WHERE user_id = ${userId} AND option_id = ${optionId}
-                    ) as ranked
-                  )`,
-              },
-            },
-          },
-        },
-      },
-    },
-    where: eq(db.cycles.id, cycleId),
-  });
+): Promise<{ data: db.Vote[]; errors: string[] }> {
+  const out: db.Vote[] = [];
+  const errors: string[] = [];
 
-  const out = response.flatMap((cycle) =>
-    cycle.forumQuestions.flatMap((question) =>
-      question.questionOptions.flatMap((option) => option.votes),
-    ),
-  );
+  for (const vote of data) {
+    const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
+    if (data) {
+      out.push(data);
+    }
+    if (error) {
+      errors.push(error);
+    }
+  }
 
-  return out;
+  const uniqueOptionIds = new Set(out.map((vote) => vote.optionId));
+
+  // Update the vote count for each option
+  for (const optionId of uniqueOptionIds) {
+    await updateVoteScore(dbPool, optionId);
+  }
+
+  return { data: out, errors };
 }
 
 /**
- * Handler function that saves votes submitted by a user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
- * @param {Request} req - The Express request object containing the user's submitted votes.
- * @param {Response} res - The Express response object to send the result.
- */
-export function saveVotes(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const userId = req.session.userId;
-    const out: db.Vote[] = [];
-    const errors = [];
-
-    const reqBody = z
-      .array(
-        z.object({
-          optionId: z.string(),
-          numOfVotes: z.number().min(0),
-        }),
-      )
-      .safeParse(req.body);
-
-    if (!reqBody.success) {
-      return res.status(400).json({ errors: reqBody.error.errors });
-    }
-
-    // Insert votes
-    try {
-      for (const vote of req.body) {
-        const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
-        if (data) {
-          out.push(data);
-        }
-        if (error) {
-          errors.push({ message: error });
-        }
-      }
-
-      const uniqueOptionIds = new Set(out.map((vote) => vote.optionId));
-
-      // Update the vote count for each option
-      for (const optionId of uniqueOptionIds) {
-        await updateVoteScore(dbPool, optionId);
-      }
-
-      return res.json({ data: out, errors });
-    } catch (e) {
-      console.error(`[ERROR] ${e}`);
-      return res.status(500).json({ errors: e });
-    }
-  };
-}
-
-/**
-Queries lastest vote data by users for a specified option ID.
+Queries latest vote data by users for a specified option ID.
 @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to query vote data.
 */

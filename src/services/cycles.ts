@@ -1,67 +1,8 @@
-import { and, eq, gte, lte } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
 import * as db from '../db';
 
-export function getActiveCycles(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const activeCycles = await dbPool.query.cycles.findMany({
-      where: and(lte(db.cycles.startAt, new Date()), gte(db.cycles.endAt, new Date())),
-      with: {
-        forumQuestions: {
-          with: {
-            questionOptions: {
-              where: eq(db.questionOptions.accepted, true),
-            },
-          },
-        },
-      },
-    });
-
-    return res.json({ data: activeCycles });
-  };
-}
-
-export function getEventCycles(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const { eventId } = req.params;
-
-    if (!eventId) {
-      return res.status(400).json({ error: 'Missing eventId' });
-    }
-
-    const eventCycles = await dbPool.query.cycles.findMany({
-      where: eq(db.cycles.eventId, eventId),
-      with: {
-        forumQuestions: {
-          with: {
-            questionOptions: {
-              where: eq(db.questionOptions.accepted, true),
-            },
-          },
-        },
-      },
-    });
-
-    return res.json({ data: eventCycles });
-  };
-}
-
-export function getCycleById(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const { cycleId } = req.params;
-
-    if (!cycleId) {
-      return res.status(400).json({ error: 'Missing cycleId' });
-    }
-
-    const out = await GetCycleByIdFromDB(dbPool, cycleId);
-
-    return res.json({ data: out });
-  };
-}
-
-export async function GetCycleByIdFromDB(dbPool: PostgresJsDatabase<typeof db>, cycleId: string) {
+export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleId: string) {
   const cycle = await dbPool.query.cycles.findFirst({
     where: eq(db.cycles.id, cycleId),
     with: {
@@ -113,6 +54,49 @@ export async function GetCycleByIdFromDB(dbPool: PostgresJsDatabase<typeof db>, 
       };
     }),
   };
+
+  return out;
+}
+
+/**
+ * Retrieves the votes for a specific cycle and user.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {string} userId - The ID of the user.
+ * @param {string} cycleId - The ID of the cycle.
+ */
+export async function getCycleVotes(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  cycleId: string,
+) {
+  const response = await dbPool.query.cycles.findMany({
+    with: {
+      forumQuestions: {
+        with: {
+          questionOptions: {
+            with: {
+              votes: {
+                where: ({ optionId }) =>
+                  sql`${db.votes.createdAt} = (
+                    SELECT MAX(created_at) FROM (
+                        SELECT created_at, user_id FROM votes 
+                        WHERE user_id = ${userId} AND option_id = ${optionId}
+                    ) as ranked
+                  )`,
+              },
+            },
+          },
+        },
+      },
+    },
+    where: eq(db.cycles.id, cycleId),
+  });
+
+  const out = response.flatMap((cycle) =>
+    cycle.forumQuestions.flatMap((question) =>
+      question.questionOptions.flatMap((option) => option.votes),
+    ),
+  );
 
   return out;
 }

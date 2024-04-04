@@ -4,13 +4,17 @@ import * as db from '../db';
 import { createDbPool } from '../utils/db/createDbPool';
 import { runMigrations } from '../utils/db/runMigrations';
 import { cleanup, seed } from '../utils/db/seed';
-import { GetCycleByIdFromDB } from './cycles';
+import { GetCycleById, getCycleVotes } from './cycles';
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
 describe('service: cycles', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let cycle: db.Cycle | undefined;
+  let questionOption: db.QuestionOption | undefined;
+  let forumQuestion: db.ForumQuestion | undefined;
+  let user: db.User | undefined;
+  let secondUser: db.User | undefined;
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -18,12 +22,16 @@ describe('service: cycles', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // Seed the database
-    const { cycles } = await seed(dbPool);
+    const { cycles, questionOptions, forumQuestions, users } = await seed(dbPool);
     cycle = cycles[0];
+    questionOption = questionOptions[0];
+    forumQuestion = forumQuestions[0];
+    user = users[0];
+    secondUser = users[1];
   });
 
-  it('should get cycle by id', async () => {
-    const response = await GetCycleByIdFromDB(dbPool, cycle?.id ?? '');
+  test('should get cycle by id', async () => {
+    const response = await GetCycleById(dbPool, cycle?.id ?? '');
     expect(response).toBeDefined();
     expect(response).toHaveProperty('id');
     expect(response.id).toEqual(cycle?.id);
@@ -36,6 +44,50 @@ describe('service: cycles', () => {
     expect(response.createdAt).toEqual(cycle?.createdAt);
     expect(response).toHaveProperty('updatedAt');
     expect(response.updatedAt).toEqual(cycle?.updatedAt);
+  });
+
+  test('should get latest votes related to user', async function () {
+    // create vote in db
+    await dbPool.insert(db.votes).values({
+      numOfVotes: 2,
+      optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
+      userId: user!.id,
+    });
+    // create second interaction with option
+    await dbPool.insert(db.votes).values({
+      numOfVotes: 10,
+      optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
+      userId: user!.id,
+    });
+
+    const votes = await getCycleVotes(dbPool, user!.id, cycle!.id);
+    // expect the latest votes
+    expect(votes[0]?.numOfVotes).toBe(10);
+  });
+
+  test('should not get votes for other user', async function () {
+    // create vote in db
+    await dbPool.insert(db.votes).values({
+      numOfVotes: 2,
+      optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
+      userId: secondUser!.id,
+    });
+    // create second interaction with option
+    await dbPool.insert(db.votes).values({
+      numOfVotes: 10,
+      optionId: questionOption!.id,
+      questionId: forumQuestion!.id,
+      userId: secondUser!.id,
+    });
+
+    // user 1 gets votes but it should not include otherUser votes
+    const votes = await getCycleVotes(dbPool, user!.id, cycle!.id);
+
+    // no votes have otherUser's id in array
+    expect(votes.filter((vote) => vote.userId === secondUser?.id).length).toBe(0);
   });
 
   afterAll(async () => {
