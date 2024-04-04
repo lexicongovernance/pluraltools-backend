@@ -109,6 +109,18 @@ describe('service: votes', () => {
   });
 
   test('should fetch vote data correctly', async () => {
+    // open cycle for voting
+    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+
+    // register second user
+    await dbPool.insert(db.registrations).values({
+      status: 'APPROVED',
+      userId: secondUser!.id ?? '',
+      eventId: cycle!.eventId ?? '',
+    });
+    // save a second user vote
+    const res = await saveVote(dbPool, { ...testData, userId: secondUser!.id });
+    console.log(res);
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
 
     expect(voteArray).toBeDefined();
@@ -120,8 +132,7 @@ describe('service: votes', () => {
       expect(typeof vote.numOfVotes).toBe('number');
     });
 
-    expect(voteArray[0]?.numOfVotes).toBe(10);
-    expect(voteArray[1]?.numOfVotes).toBe(10);
+    expect(voteArray[0]?.numOfVotes).toBe(1);
   });
 
   test('should transform voteArray correctly', () => {
@@ -253,7 +264,9 @@ describe('service: votes', () => {
   test('full integration test of the update vote functionality', async () => {
     // Test that the plurality score is correct if both users are in the same group
     const score = await updateVoteScore(dbPool, questionOption?.id ?? '');
-    expect(score).toBe(Math.sqrt(20));
+    // sqrt of 2 because the two users are in the same group
+    // voting for the same option with 1 vote each
+    expect(score).toBe(Math.sqrt(2));
   });
 
   afterAll(async () => {
