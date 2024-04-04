@@ -7,7 +7,7 @@ export const events = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name').notNull(),
   description: varchar('description'),
-  eventLink: varchar('event_link'),
+  link: varchar('link'),
   registrationDescription: varchar('registration_description'),
   imageUrl: varchar('image_url'),
   eventDisplayRank: integer('event_display_rank'),
