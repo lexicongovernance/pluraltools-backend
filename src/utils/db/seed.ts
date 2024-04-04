@@ -148,11 +148,11 @@ async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, even
     .insert(db.groupCategories)
     .values([
       {
-        groupCategory: 'Category A',
+        name: 'Category A',
         eventId: eventId,
       },
       {
-        groupCategory: 'Category B',
+        name: 'Category B',
         eventId: eventId,
       },
     ])

@@ -71,7 +71,7 @@ export function getUserAttributes(dbPool: PostgresJsDatabase<typeof db>) {
  * @param {UserData} userData - The user data to check.
  * @returns {Promise<Array<string> | null>} - An array of errors if user data conflicts, otherwise null.
  */
-async function checkUserData(
+async function validateUserData(
   dbPool: PostgresJsDatabase<typeof db>,
   userId: string,
   userData: UserData,
@@ -110,7 +110,6 @@ async function checkUserData(
  * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user to update.
  * @param {UserData} userData - The updated user data.
- * @returns {Promise<any>} - A promise resolving to the updated user data.
  */
 async function upsertUserData(
   dbPool: PostgresJsDatabase<typeof db>,
@@ -164,7 +163,7 @@ export function updateUser(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     try {
-      const existingUserErrors = await checkUserData(dbPool, userId, body.data);
+      const existingUserErrors = await validateUserData(dbPool, userId, body.data);
 
       if (existingUserErrors) {
         return res.status(400).json({ errors: existingUserErrors });
