@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import type { Request, Response } from 'express';
 import { and } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
@@ -10,94 +9,7 @@ import {
   upsertQuestionOptionFromRegistrationData,
 } from './registrationData';
 
-export function saveRegistration(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    // parse input
-    const eventId = req.params.eventId;
-    const userId = req.session.userId;
-    req.body.userId = userId;
-    req.body.eventId = eventId;
-    const body = insertRegistrationSchema.safeParse(req.body);
-
-    if (!body.success) {
-      return res.status(400).json({ errors: body.error.issues });
-    }
-
-    // check if all required fields are filled
-    const event = await dbPool.query.events.findFirst({
-      with: {
-        registrationFields: true,
-      },
-      where: (event, { eq }) => eq(event.id, body.data.eventId),
-    });
-    const requiredFields = event?.registrationFields.filter((field) => field.required);
-
-    // loop through required fields and check if they are filled
-    if (requiredFields) {
-      const missingFields = requiredFields.filter(
-        (field) =>
-          !body.data.registrationData.some((data) => data.registrationFieldId === field.id),
-      );
-
-      if (missingFields.length > 0) {
-        return res.status(400).json({
-          errors: missingFields.map((field) => ({
-            field: field.name,
-            message: 'missing required field',
-          })),
-        });
-      }
-    }
-
-    try {
-      const out = await sendRegistrationData(dbPool, body.data, userId);
-      return res.json({ data: out });
-    } catch (e) {
-      console.log('error saving registration ' + e);
-      return res.sendStatus(500);
-    }
-  };
-}
-
-export function getRegistration(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    // parse input
-    const eventId = req.params.eventId ?? '';
-    const userId = req.session.userId;
-
-    try {
-      const out = await dbPool.query.registrations.findFirst({
-        where: and(eq(db.registrations.userId, userId), eq(db.registrations.eventId, eventId)),
-      });
-
-      return res.json({ data: out });
-    } catch (e) {
-      console.log('error getting registration ' + e);
-      return res.sendStatus(500);
-    }
-  };
-}
-
-export function getUserRegistrations(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    // parse input
-    const userId = req.session.userId;
-
-    try {
-      const out = await dbPool
-        .select()
-        .from(db.registrations)
-        .where(eq(db.registrations.userId, userId));
-
-      return res.json({ data: out });
-    } catch (e) {
-      console.log('error getting user registrations ' + e);
-      return res.sendStatus(500);
-    }
-  };
-}
-
-export async function sendRegistrationData(
+export async function saveEventRegistration(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
   userId: string,

@@ -1,6 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import type { Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
 
 type ResultData = {
@@ -16,42 +15,12 @@ type ResultData = {
       pluralityScore: string;
       distinctUsers: number;
       allocatedHearts: number;
+      quadraticScore: string;
       distinctGroups: number;
       listOfGroupNames: string[];
     }
   >;
 };
-
-/**
- * Retrieves result statistics for a specific forum question from the database.
- *
- * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @returns {Promise<Response>} - A promise that resolves with the Express response containing the result statistics data.
- */
-export function getResultStatistics(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    try {
-      const forumQuestionId = req.params.forumQuestionId;
-
-      // Check if forumQuestionId is provided
-      if (!forumQuestionId) {
-        return res.status(400).json({ error: 'Missing forumQuestionId parameter' });
-      }
-
-      // Execute queries
-      const responseData = await executeResultQueries(forumQuestionId, dbPool);
-
-      // Send response
-      return res.status(200).json({ data: responseData });
-    } catch (error) {
-      console.error('Error in getResultStatistics:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
-  };
-}
 
 /**
  * Executes multiple queries concurrently to retrieve statistics related to a forum question from the database.
@@ -129,6 +98,7 @@ export async function executeResultQueries(
         pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
+        quadraticScore: string;
         distinctGroups: number;
         listOfGroupNames: string[];
       }>(
@@ -157,6 +127,18 @@ export async function executeResultQueries(
                   ) AS ranked 
               WHERE row_num = 1
               GROUP BY option_id
+          ),
+
+          quadratic_score AS (
+              SELECT option_id AS "optionId", sum(sqrt_votes)::numeric AS "quadraticScore"
+	            FROM (
+		              SELECT user_id, option_id, sqrt(num_of_votes) AS sqrt_votes, updated_at,
+        	        ROW_NUMBER() OVER (PARTITION BY user_id, option_id ORDER BY updated_at DESC) as row_num
+                  FROM votes
+                  WHERE question_id = '${forumQuestionId}'
+                  ) AS ranked 
+              WHERE row_num = 1
+	            GROUP BY option_id
           ),
           
           /* Query distinct groups and group names by option id */
@@ -197,6 +179,7 @@ export async function executeResultQueries(
                     id_title_score."pluralityScore",
                     distinct_users."distinctUsers",
                     hearts."allocatedHearts",
+                    quadratic_score."quadraticScore",
                     group_count_names."distinctGroups",
                     group_count_names."listOfGroupNames" 
               FROM plural_score_and_title AS id_title_score
@@ -204,6 +187,8 @@ export async function executeResultQueries(
               ON id_title_score."optionId" = distinct_users."optionId"
               LEFT JOIN allocated_hearts AS hearts 
               ON id_title_score."optionId" = hearts."optionId"
+              LEFT JOIN quadratic_score AS quadratic_score 
+              ON id_title_score."optionId" = quadratic_score."optionId"
               LEFT JOIN option_distinct_group_name AS group_count_names
               ON id_title_score."optionId" = group_count_names."optionId"
           )
@@ -226,6 +211,7 @@ export async function executeResultQueries(
         pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
+        quadraticScore: string;
         distinctGroups: number;
         listOfGroupNames: string[];
       }
@@ -240,6 +226,7 @@ export async function executeResultQueries(
         pluralityScore: indivPluralityScore,
         distinctUsers: indivDistinctUsers,
         allocatedHearts: indivAllocatedHearts,
+        quadraticScore: indivQuadraticScore,
         distinctGroups: indivdistinctGroups,
         listOfGroupNames: indivlistOfGroupNames,
       } = row;
@@ -250,6 +237,7 @@ export async function executeResultQueries(
         pluralityScore: indivPluralityScore || '0.0',
         distinctUsers: indivDistinctUsers || 0,
         allocatedHearts: indivAllocatedHearts || 0,
+        quadraticScore: indivQuadraticScore || '0.0',
         distinctGroups: indivdistinctGroups || 0,
         listOfGroupNames: indivlistOfGroupNames || [],
       };

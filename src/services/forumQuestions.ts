@@ -1,6 +1,5 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import type { Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
 
 export function availableHearts(
@@ -39,27 +38,36 @@ export function availableHearts(
   return minHearts;
 }
 
-export function getQuestionHearts(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const forumQuestionId = req.params.forumQuestionId;
-    // Fetch hearts for each active question
-    const numOptions = await dbPool.execute<{ countOptions: number }>(
-      sql.raw(`
+export async function getQuestionHearts(
+  dbPool: PostgresJsDatabase<typeof db>,
+  data: {
+    forumQuestionId: string;
+  },
+): Promise<number> {
+  const { forumQuestionId } = data;
+
+  // Fetch hearts for each active question
+  const numOptions = await dbPool.execute<{ countOptions: number }>(
+    sql.raw(`
             SELECT count("id") AS "countOptions"   
             FROM question_options
             WHERE question_id = '${forumQuestionId}'
           `),
-    );
+  );
 
-    const countOptions = numOptions[0]?.countOptions;
+  const countOptions = numOptions[0]?.countOptions;
 
-    // Calculate available hearts
-    if (countOptions !== undefined) {
-      const result = availableHearts(countOptions, 4, 5, 0.8, null);
-      return res.json({ data: result });
-    } else {
-      // Return 0 in case there are no options available yet.
-      return res.json({ data: 0 });
+  // Calculate available hearts
+  if (countOptions !== undefined) {
+    const result = availableHearts(countOptions, 4, 5, 0.8, null);
+
+    if (result === null) {
+      return 0;
     }
-  };
+
+    return result;
+  } else {
+    // Return 0 in case there are no options available yet.
+    return 0;
+  }
 }

@@ -1,38 +1,6 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { eq, and, isNotNull, inArray } from 'drizzle-orm';
-import type { Request, Response } from 'express';
-
-export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const eventId = req.params.eventId;
-    const userId = req.session.userId;
-    console.log({ userId });
-    if (!userId) {
-      return res.status(400).json({ errors: ['userId is required'] });
-    }
-
-    if (!eventId) {
-      return res.status(400).json({ errors: ['eventId is required'] });
-    }
-
-    const event = await dbPool.query.events.findFirst({
-      with: {
-        registrations: {
-          with: {
-            registrationData: true,
-          },
-          where: (fields, { eq }) => eq(fields.userId, userId),
-        },
-      },
-      where: (fields, { eq }) => eq(fields.id, eventId),
-    });
-
-    const out = event?.registrations.map((registration) => registration.registrationData).flat();
-
-    return res.json({ data: out });
-  };
-}
 
 /**
  * Upserts the registration data for a given registrationId.
@@ -47,8 +15,8 @@ export function getRegistrationData(dbPool: PostgresJsDatabase<typeof db>) {
  */
 export async function upsertRegistrationData({
   dbPool,
-  registrationData,
   registrationId,
+  registrationData,
 }: {
   dbPool: PostgresJsDatabase<typeof db>;
   registrationId: string;

@@ -11,6 +11,7 @@ import { forumQuestionsRouter } from './forumQuestions';
 import { groupsRouter } from './groups';
 import { commentsRouter } from './comments';
 import { optionsRouter } from './options';
+import { votesRouter } from './votes';
 
 const router = express.Router();
 
@@ -47,6 +48,7 @@ export function apiRouter({
   router.use('/auth', authRouter({ dbPool }));
   router.use('/users', usersRouter({ dbPool }));
   router.use('/cycles', cyclesRouter({ dbPool }));
+  router.use('/votes', votesRouter({ dbPool }));
   router.use('/events', eventsRouter({ dbPool }));
   router.use('/forum-questions', forumQuestionsRouter({ dbPool }));
   router.use('/groups', groupsRouter({ dbPool }));
