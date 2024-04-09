@@ -3,6 +3,7 @@ import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { events } from './events';
 import { registrationData } from './registrationData';
 import { users } from './users';
+import { groups } from './groups';
 
 export const registrations = pgTable('registrations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -12,6 +13,7 @@ export const registrations = pgTable('registrations', {
   eventId: uuid('event_id')
     .references(() => events.id)
     .notNull(),
+  groupId: uuid('group_id').references(() => groups.id),
   // CAN BE: DRAFT, APPROVED, REJECTED AND MORE
   status: varchar('status').default('DRAFT'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -26,6 +28,10 @@ export const registrationsRelations = relations(registrations, ({ one, many }) =
   event: one(events, {
     fields: [registrations.eventId],
     references: [events.id],
+  }),
+  group: one(groups, {
+    fields: [registrations.groupId],
+    references: [groups.id],
   }),
   registrationData: many(registrationData),
 }));
