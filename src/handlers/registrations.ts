@@ -14,7 +14,7 @@ export function getRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>
     }
 
     if (!registrationId) {
-      return res.status(400).json({ errors: ['eventId is required'] });
+      return res.status(400).json({ errors: ['registrationId is required'] });
     }
 
     try {
