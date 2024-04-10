@@ -54,6 +54,7 @@ export function apiRouter({
   router.use('/groups', groupsRouter({ dbPool }));
   router.use('/comments', commentsRouter({ dbPool }));
   router.use('/options', optionsRouter({ dbPool }));
+  router.use('/group-categories', optionsRouter({ dbPool }));
 
   return router;
 }
