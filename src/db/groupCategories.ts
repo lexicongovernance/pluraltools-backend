@@ -3,6 +3,7 @@ import { events } from './events';
 import { groups } from './groups';
 import { usersToGroups } from './usersToGroups';
 import { relations } from 'drizzle-orm';
+import { questionsToGroupCategories } from './questionsToGroupCategories';
 
 export const groupCategories = pgTable('group_categories', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -19,6 +20,7 @@ export const groupCategoriesRelations = relations(groupCategories, ({ one, many 
   }),
   group: many(groups),
   usersToGroup: many(usersToGroups),
+  questionsToGroupCategories: many(questionsToGroupCategories),
 }));
 
 export type GroupCategory = typeof groupCategories.$inferSelect;
