@@ -2,9 +2,6 @@ import { and, eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { insertRegistrationSchema } from '../types';
-import { validateRequiredRegistrationFields } from '../services/registrationFields';
-import { saveEventRegistration } from '../services/registrations';
 
 export function getEventCyclesHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -73,35 +70,6 @@ export function getEventRegistrationFieldsHandler(dbPool: PostgresJsDatabase<typ
     });
 
     return res.json({ data: event?.registrationFields });
-  };
-}
-
-export function saveEventRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    // parse input
-    const eventId = req.params.eventId;
-    const userId = req.session.userId;
-    req.body.userId = userId;
-    req.body.eventId = eventId;
-    const body = insertRegistrationSchema.safeParse(req.body);
-
-    if (!body.success) {
-      return res.status(400).json({ errors: body.error.issues });
-    }
-
-    const missingRequiredFields = await validateRequiredRegistrationFields(dbPool, body.data);
-
-    if (missingRequiredFields.length > 0) {
-      return res.status(400).json({ errors: missingRequiredFields });
-    }
-
-    try {
-      const out = await saveEventRegistration(dbPool, body.data, userId);
-      return res.json({ data: out });
-    } catch (e) {
-      console.log('error saving registration ' + e);
-      return res.sendStatus(500);
-    }
   };
 }
 
