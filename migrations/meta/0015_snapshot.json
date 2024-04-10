@@ -1,5 +1,5 @@
 {
-  "id": "d8506015-c303-43f5-8f18-20673b1869c2",
+  "id": "52b7a687-9af1-4d59-8443-195f60d1d1f5",
   "prevId": "2bbf7b5d-a98a-4170-8e2c-df6dcbab7133",
   "version": "5",
   "dialect": "pg",
@@ -578,6 +578,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "group_id": {
+          "name": "group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "status": {
           "name": "status",
           "type": "varchar",
@@ -621,6 +627,19 @@
           "tableTo": "events",
           "columnsFrom": [
             "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "registrations_group_id_groups_id_fk": {
+          "name": "registrations_group_id_groups_id_fk",
+          "tableFrom": "registrations",
+          "tableTo": "groups",
+          "columnsFrom": [
+            "group_id"
           ],
           "columnsTo": [
             "id"
