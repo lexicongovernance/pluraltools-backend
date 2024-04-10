@@ -76,40 +76,6 @@ export function getEventRegistrationFieldsHandler(dbPool: PostgresJsDatabase<typ
   };
 }
 
-export function getEventRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const eventId = req.params.eventId;
-    const userId = req.session.userId;
-    if (!userId) {
-      return res.status(400).json({ errors: ['userId is required'] });
-    }
-
-    if (!eventId) {
-      return res.status(400).json({ errors: ['eventId is required'] });
-    }
-
-    try {
-      const event = await dbPool.query.events.findFirst({
-        with: {
-          registrations: {
-            with: {
-              registrationData: true,
-            },
-            where: (fields, { eq }) => eq(fields.userId, userId),
-          },
-        },
-        where: (fields, { eq }) => eq(fields.id, eventId),
-      });
-
-      const out = event?.registrations.map((registration) => registration.registrationData).flat();
-
-      return res.json({ data: out });
-    } catch (e) {
-      return res.status(500).json({ errors: ['Failed to get registration data'] });
-    }
-  };
-}
-
 export function saveEventRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input

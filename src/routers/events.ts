@@ -5,7 +5,6 @@ import { isLoggedIn } from '../middleware/isLoggedIn';
 import {
   getEventCyclesHandler,
   getEventHandler,
-  getEventRegistrationDataHandler,
   getEventRegistrationFieldsHandler,
   getEventRegistrationHandler,
   getEventsHandler,
@@ -21,13 +20,8 @@ export function eventsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db>
     isLoggedIn(dbPool),
     getEventRegistrationFieldsHandler(dbPool),
   );
-  router.get(
-    '/:eventId/registration-data',
-    isLoggedIn(dbPool),
-    getEventRegistrationDataHandler(dbPool),
-  );
   router.get('/:eventId/cycles', isLoggedIn(dbPool), getEventCyclesHandler(dbPool));
-  router.post('/:eventId/registration', isLoggedIn(dbPool), saveEventRegistrationHandler(dbPool));
-  router.get('/:eventId/registration', isLoggedIn(dbPool), getEventRegistrationHandler(dbPool));
+  router.post('/:eventId/registrations', isLoggedIn(dbPool), saveEventRegistrationHandler(dbPool));
+  router.get('/:eventId/registrations', isLoggedIn(dbPool), getEventRegistrationHandler(dbPool));
   return router;
 }
