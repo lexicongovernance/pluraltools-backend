@@ -12,5 +12,5 @@ module.exports = {
   collectCoverage: false,
   collectCoverageFrom: ['src/modules/**/*.ts', 'src/services/**/*.ts'],
   coveragePathIgnorePatterns: ['/src/handlers/'],
-  silent: true, // surpress console output for passing tests
+  //silent: true, // surpress console output for passing tests
 };

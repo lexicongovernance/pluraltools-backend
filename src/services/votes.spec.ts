@@ -17,7 +17,7 @@ import {
   updateVoteScore,
   userCanVote,
 } from './votes';
-import { eq } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -29,6 +29,7 @@ describe('service: votes', () => {
   let questionOption: db.QuestionOption | undefined;
   let otherQuestionOption: db.QuestionOption | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
+  let groupCategory: db.GroupCategory | undefined;
   let user: db.User | undefined;
   let secondUser: db.User | undefined;
   let thirdUser: db.User | undefined;
@@ -38,11 +39,12 @@ describe('service: votes', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { users, questionOptions, forumQuestions, cycles } = await seed(dbPool);
+    const { users, questionOptions, forumQuestions, cycles, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
     otherQuestionOption = questionOptions[1];
     forumQuestion = forumQuestions[0];
+    groupCategory = groupCategories[0];
     user = users[0];
     secondUser = users[1];
     thirdUser = users[2];
@@ -186,7 +188,11 @@ describe('service: votes', () => {
     // Get vote data required for groups
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
     const votesDictionary = await numOfVotesDictionary(voteArray);
-    const groups = await groupsDictionary(dbPool, votesDictionary);
+    console.log('voteArray', voteArray);
+    console.log('votesDictionary', votesDictionary);
+
+    const groups = await groupsDictionary(dbPool, votesDictionary, [groupCategory!.id]);
+    console.log('groups', groups);
 
     expect(groups).toBeDefined();
     expect(groups['unexpectedKey']).toBeUndefined();

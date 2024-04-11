@@ -81,7 +81,7 @@ export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVot
 export async function queryGroupCategories(
   dbPool: PostgresJsDatabase<typeof db>,
   questionId: string,
-): Promise<(string | null)[] | null> {
+): Promise<string[]> {
   const groupCategories = await dbPool
     .select({
       groupCategoryId: db.questionsToGroupCategories.groupCategoryId,
@@ -96,7 +96,7 @@ export async function queryGroupCategories(
 
   // Returning null if there are no group categories found
   if (groupCategoryIds.length === 0) {
-    return null;
+    return [];
   }
 
   return groupCategoryIds;
@@ -105,13 +105,13 @@ export async function queryGroupCategories(
 /**
  * Queries group data and creates group dictionary based on user IDs and option ID.
  * @param {Record<string, number>} numOfVotesDictionary - Dictionary of user IDs and their respective number of votes.
- * @param {Array<string | null>} groupCategoryIds - Array of group category IDs.
+ * @param {Array<string>} groupCategoryIds - Array of group category IDs.
  * @returns {Promise<Record<string, string[]>>} - Dictionary of group IDs and their corresponding user IDs.
  */
 export async function groupsDictionary(
   dbPool: PostgresJsDatabase<typeof db>,
   numOfVotesDictionary: Record<string, number>,
-  groupCategories: Array<string | null>,
+  groupCategories: Array<string>,
 ) {
   const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
     sql.raw(`
@@ -127,6 +127,8 @@ export async function groupsDictionary(
     `),
   );
 
+  console.log('groupArrayCode', groupArray);
+
   const groupsDictionary = groupArray.reduce(
     (acc, group) => {
       acc[group.groupId] = group.userIds ?? [];
@@ -134,6 +136,7 @@ export async function groupsDictionary(
     },
     {} as Record<string, string[]>,
   );
+  console.log('groupsDictionary', groupsDictionary);
 
   return groupsDictionary;
 }
