@@ -9,7 +9,8 @@ export const groupCategories = pgTable('group_categories', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name'),
   eventId: uuid('event_id').references(() => events.id),
-  private: boolean('private').notNull().default(false),
+  userCanCreate: boolean('user_can_create').notNull().default(false),
+  userCanView: boolean('user_can_view').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

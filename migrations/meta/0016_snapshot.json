@@ -1,5 +1,5 @@
 {
-  "id": "d4a280a6-c61f-4699-9b39-76f63cbcc882",
+  "id": "3bca2de9-9a2c-46ce-87c8-226969d43ec7",
   "prevId": "52b7a687-9af1-4d59-8443-195f60d1d1f5",
   "version": "5",
   "dialect": "pg",
@@ -375,8 +375,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "private": {
-          "name": "private",
+        "user_can_create": {
+          "name": "user_can_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "user_can_view": {
+          "name": "user_can_view",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -483,7 +490,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "groups_secret_unique": {
+          "name": "groups_secret_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "secret"
+          ]
+        }
+      }
     },
     "users": {
       "name": "users",
