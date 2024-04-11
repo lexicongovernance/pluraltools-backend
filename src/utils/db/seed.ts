@@ -49,8 +49,8 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.usersToGroups);
   await dbPool.delete(db.users);
   await dbPool.delete(db.groups);
-  await dbPool.delete(db.groupCategories);
   await dbPool.delete(db.questionsToGroupCategories);
+  await dbPool.delete(db.groupCategories);
   await dbPool.delete(db.forumQuestions);
   await dbPool.delete(db.cycles);
   await dbPool.delete(db.events);
