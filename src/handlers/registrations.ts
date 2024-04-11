@@ -26,7 +26,7 @@ export function getRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>
           and(eq(fields.userId, userId), eq(fields.id, registrationId)),
       });
 
-      const out = registration;
+      const out = [...(registration?.registrationData ?? [])];
 
       return res.json({ data: out });
     } catch (e) {
