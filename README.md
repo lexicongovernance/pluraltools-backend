@@ -12,12 +12,7 @@
 
 ## For developers
 
-1. install [nodejs v20](https://nodejs.org/en/download)
-   - On WSL (Windows Subsystems for Linux) install `node.js v20` as follows:
-   ```
-   1. curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   2. sudo apt install -y nodejs
-   ```
+1. install [bun](https://bun.sh/)
 2. install [pnpm](https://pnpm.io/installation#using-npm)
 3. start a postgres `docker run --name postgres  -e POSTGRES_PASSWORD=secretpassword -e POSTGRES_USER=postgres -p 5432:5432 -d postgres`
 4. update .env with connection string `postgresql://postgres:secretpassword@localhost:5432` & cookie password.

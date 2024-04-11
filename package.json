@@ -23,7 +23,8 @@
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": "^20"
+    "node": "^20",
+    "bun": "^1.1.0"
   },
   "devDependencies": {
     "@jest/types": "^29.6.3",
