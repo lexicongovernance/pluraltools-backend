@@ -21,6 +21,14 @@ export function createSecretGroup(
   return group;
 }
 
+export function getSecretGroup(dbPool: PostgresJsDatabase<typeof db>, secret: string) {
+  const group = dbPool.query.groups.findFirst({
+    where: (fields, { eq }) => eq(fields.secret, secret),
+  });
+
+  return group;
+}
+
 export function generateSecret(): string {
   return randomBytes(6).toString('hex');
 }
