@@ -2,6 +2,8 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import type { Request, Response } from 'express';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { insertGroupsSchema } from '../types/groups';
 
 /**
  * Retrieves groups by a specified group Category ID.
@@ -68,3 +70,8 @@ export function getGroupsPerUserByCategoryId(dbPool: PostgresJsDatabase<typeof d
     }
   };
 }
+
+export function createGroup(
+  dbPool: PostgresJsDatabase<typeof db>,
+  body: z.infer<typeof insertGroupsSchema>,
+) {}
