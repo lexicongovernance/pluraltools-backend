@@ -16,7 +16,7 @@ export async function canCreateGroupInGroupCategory(
   return groupCategory.userCanCreate;
 }
 
-export async function canViewGroupCategory(
+export async function canViewGroupsInGroupCategory(
   dbPool: PostgresJsDatabase<typeof db>,
   groupCategoryId: string,
 ) {

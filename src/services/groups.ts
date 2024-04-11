@@ -10,7 +10,7 @@ export function createSecretGroup(
 ) {
   const secret = generateSecret();
 
-  const group = dbPool
+  const rows = dbPool
     .insert(db.groups)
     .values({
       ...body,
@@ -18,7 +18,7 @@ export function createSecretGroup(
     })
     .returning();
 
-  return group;
+  return rows;
 }
 
 export function getSecretGroup(dbPool: PostgresJsDatabase<typeof db>, secret: string) {
