@@ -8,6 +8,7 @@ export const groups = pgTable('groups', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 256 }).notNull(),
   description: varchar('description', { length: 256 }),
+  secret: varchar('secret', { length: 256 }),
   groupCategoryId: uuid('group_category_id').references(() => groupCategories.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
