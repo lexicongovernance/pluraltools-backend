@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar, integer } from 'drizzle-orm/pg-core';
 import { registrations } from './registrations';
-import { cycles, registrationFields } from '.';
+import { cycles, groupCategories, registrationFields } from '.';
 
 export const events = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -19,6 +19,7 @@ export const eventsRelations = relations(events, ({ many }) => ({
   registrations: many(registrations),
   registrationFields: many(registrationFields),
   cycles: many(cycles),
+  groupCategories: many(groupCategories),
 }));
 
 export type Event = typeof events.$inferSelect;
