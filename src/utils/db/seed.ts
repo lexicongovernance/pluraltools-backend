@@ -17,6 +17,12 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     groups.map((g) => g.id!),
     groupCategories[0]?.id,
   );
+  const questionsToGroupCategories = await createQuestionsToGroupCategories(
+    dbPool,
+    forumQuestions[0]!.id,
+    groupCategories[0]?.id,
+    groupCategories[1]?.id,
+  );
 
   return {
     events,
@@ -28,6 +34,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     users,
     usersToGroups,
     registrationFields,
+    questionsToGroupCategories,
   };
 }
 
@@ -43,6 +50,7 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.users);
   await dbPool.delete(db.groups);
   await dbPool.delete(db.groupCategories);
+  await dbPool.delete(db.questionsToGroupCategories);
   await dbPool.delete(db.forumQuestions);
   await dbPool.delete(db.cycles);
   await dbPool.delete(db.events);
@@ -207,6 +215,27 @@ async function createUsersToGroups(
     groupCategoryId,
   }));
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
+}
+
+async function createQuestionsToGroupCategories(
+  dbPool: PostgresJsDatabase<typeof db>,
+  questionId: string,
+  groupCategoryIdOne?: string,
+  groupCategoryIdTwo?: string,
+) {
+  return dbPool
+    .insert(db.questionsToGroupCategories)
+    .values([
+      {
+        questionId: questionId,
+        groupCategoryId: groupCategoryIdOne,
+      },
+      {
+        questionId: questionId,
+        groupCategoryId: groupCategoryIdTwo,
+      },
+    ])
+    .returning();
 }
 
 export { seed, cleanup };
