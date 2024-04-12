@@ -2,7 +2,6 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { eq, isNull } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
 import { insertGroupsSchema } from '../types/groups';
 import { canCreateGroupInGroupCategory } from '../services/groupCategories';
 import { createSecretGroup } from '../services/groups';

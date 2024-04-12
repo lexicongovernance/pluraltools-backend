@@ -2,7 +2,6 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { and, eq } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
 import { canViewGroupsInGroupCategory } from '../services/groupCategories';
 
 export function getGroupCategoriesHandler(dbPool: PostgresJsDatabase<typeof db>) {
@@ -14,17 +13,14 @@ export function getGroupCategoriesHandler(dbPool: PostgresJsDatabase<typeof db>)
 
 export function getGroupCategoryHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const groupCategoryName = req.params.name;
+    const groupCategoryId = req.params.id;
 
-    if (!groupCategoryName) {
-      return res.status(400).json({ error: 'Group Category Name is required' });
+    if (!groupCategoryId) {
+      return res.status(400).json({ error: 'Group Category ID is required' });
     }
 
     const groupCategory = await dbPool.query.groupCategories.findFirst({
-      with: {
-        group: true,
-      },
-      where: and(eq(db.groupCategories.name, groupCategoryName)),
+      where: and(eq(db.groupCategories.id, groupCategoryId)),
     });
 
     return res.json({ data: groupCategory });
@@ -33,13 +29,21 @@ export function getGroupCategoryHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
 export function getGroupCategoriesGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const groupCategoryId = req.params.id;
+    const groupCategoryName = req.params.name;
 
-    if (!groupCategoryId) {
-      return res.status(400).json({ error: 'Group Category ID is required' });
+    if (!groupCategoryName) {
+      return res.status(400).json({ error: 'Group Category Name is required' });
     }
 
-    const canView = await canViewGroupsInGroupCategory(dbPool, groupCategoryId);
+    const groupCategory = await dbPool.query.groupCategories.findFirst({
+      where: eq(db.groupCategories.name, groupCategoryName),
+    });
+
+    if (!groupCategory) {
+      return res.status(404).json({ error: 'Group Category not found' });
+    }
+
+    const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 
     if (!canView) {
       return res
@@ -48,7 +52,7 @@ export function getGroupCategoriesGroupsHandler(dbPool: PostgresJsDatabase<typeo
     }
 
     const groups = await dbPool.query.groups.findMany({
-      where: eq(db.groups.groupCategoryId, groupCategoryId),
+      where: eq(db.groups.groupCategoryId, groupCategory.id),
     });
 
     return res.json({ data: groups });
