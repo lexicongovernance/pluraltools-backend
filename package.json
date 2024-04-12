@@ -6,8 +6,12 @@
   "scripts": {
     "lint": "eslint .",
     "build": "node esbuild.config.mjs",
+    "build:watch": "node --watch-path=./src  --watch-preserve-output esbuild.config.mjs",
     "start": "node --env-file=.env dist/index.js",
-    "dev": "bun run src/index.ts",
+    "dev:tsc": "tsc --watch --preserveWatchOutput",
+    "dev:node": "node --watch --env-file=.env dist/index.js",
+    "dev:esbuild": "pnpm run build:watch",
+    "dev": "run-p dev:*",
     "db:generate": "drizzle-kit generate:pg",
     "db:drop": "drizzle-kit drop",
     "db:check": "drizzle-kit check:pg",
