@@ -196,6 +196,9 @@ async function createGroups(
       {
         name: randCompanyName(),
       },
+      {
+        name: randCompanyName(),
+      },
     ])
     .returning();
 }

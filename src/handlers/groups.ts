@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { eq } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import { insertGroupsSchema } from '../types/groups';
 import { canCreateGroupInGroupCategory } from '../services/groupCategories';
 import { createSecretGroup } from '../services/groups';
@@ -13,7 +13,9 @@ import { upsertUsersToGroups } from '../services/usersToGroups';
  */
 export function getGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const groups = await dbPool.query.groups.findMany();
+    const groups = await dbPool.query.groups.findMany({
+      where: isNull(db.groups.groupCategoryId),
+    });
     return res.json({ data: groups });
   };
 }
