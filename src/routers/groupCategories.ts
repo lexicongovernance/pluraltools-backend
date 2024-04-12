@@ -8,7 +8,7 @@ const router = express.Router();
 
 export function groupCategoriesRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.get('/', isLoggedIn(dbPool), getGroupCategoriesHandler(dbPool));
-  router.get('/:id', isLoggedIn(dbPool), getGroupCategoryHandler(dbPool));
+  router.get('/:name', isLoggedIn(dbPool), getGroupCategoryHandler(dbPool));
 
   return router;
 }

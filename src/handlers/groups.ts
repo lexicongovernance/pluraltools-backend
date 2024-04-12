@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { eq } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 /**
  * Retrieves all groups from the database.
  * @param dbPool The database connection pool.
@@ -9,7 +9,9 @@ import { eq } from 'drizzle-orm';
  */
 export function getGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const groups = await dbPool.query.groups.findMany();
+    const groups = await dbPool.query.groups.findMany({
+      where: isNull(db.groups.groupCategoryId),
+    });
     return res.json({ data: groups });
   };
 }

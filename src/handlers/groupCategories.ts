@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 export function getGroupCategoriesHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -12,14 +12,17 @@ export function getGroupCategoriesHandler(dbPool: PostgresJsDatabase<typeof db>)
 
 export function getGroupCategoryHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const groupCategoryId = req.params.id;
+    const groupCategoryName = req.params.name;
 
-    if (!groupCategoryId) {
-      return res.status(400).json({ error: 'Group Category ID is required' });
+    if (!groupCategoryName) {
+      return res.status(400).json({ error: 'Group Category Name is required' });
     }
 
     const groupCategory = await dbPool.query.groupCategories.findFirst({
-      where: eq(db.groupCategories.id, groupCategoryId),
+      with: {
+        group: true,
+      },
+      where: and(eq(db.groupCategories.name, groupCategoryName)),
     });
 
     return res.json({ data: groupCategory });
