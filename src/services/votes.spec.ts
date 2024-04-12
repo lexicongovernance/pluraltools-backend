@@ -18,7 +18,7 @@ import {
   updateVoteScore,
   userCanVote,
 } from './votes';
-import { eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
