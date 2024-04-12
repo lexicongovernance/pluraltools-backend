@@ -84,7 +84,7 @@ describe('service: statistics', () => {
         expect(optionStat?.distinctUsers).toEqual(2);
         expect(optionStat?.allocatedHearts).toEqual(8);
         expect(optionStat?.quadraticScore).toEqual('4');
-        expect(optionStat?.distinctGroups).toEqual(1);
+        expect(optionStat?.distinctGroups).toEqual(2);
         const listOfGroupNames = optionStat?.listOfGroupNames;
         // Check if the array is not empty
         expect(listOfGroupNames).toBeDefined();
