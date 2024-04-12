@@ -73,14 +73,14 @@ export function getEventRegistrationFieldsHandler(dbPool: PostgresJsDatabase<typ
   };
 }
 
-export function getEventRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getEventRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input
     const eventId = req.params.eventId ?? '';
     const userId = req.session.userId;
 
     try {
-      const out = await dbPool.query.registrations.findFirst({
+      const out = await dbPool.query.registrations.findMany({
         where: and(eq(db.registrations.userId, userId), eq(db.registrations.eventId, eventId)),
       });
 
