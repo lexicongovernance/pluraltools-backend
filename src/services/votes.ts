@@ -94,9 +94,9 @@ export async function queryGroupCategories(
     .map((category) => category.groupCategoryId)
     .filter((id) => id !== null) as string[];
 
-  // Returning null if there are no group categories found
+  // Returning dummy uuid if there are no group categories found
   if (groupCategoryIds.length === 0) {
-    return [];
+    return ['00000000-0000-0000-0000-000000000000'];
   }
 
   return groupCategoryIds;

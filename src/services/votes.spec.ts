@@ -204,8 +204,9 @@ describe('service: votes', () => {
     // Get vote data required for groups
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, otherForumQuestion!.id);
     expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(0);
+    expect(groupCategoriesIdArray.length).toBe(1);
     expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
+    expect(groupCategoriesIdArray).toEqual(['00000000-0000-0000-0000-000000000000']);
   });
 
   test('only return groups for users who voted for the option', async () => {
@@ -234,7 +235,6 @@ describe('service: votes', () => {
     expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
   });
 
-  /*
   test('only return baseline groups when no addtional group category gets provided', async () => {
     // Get vote data required for groups
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
@@ -242,7 +242,9 @@ describe('service: votes', () => {
     console.log('voteArray', voteArray);
     console.log('votesDictionary', votesDictionary);
 
-    const groups = await groupsDictionary(dbPool, votesDictionary, []);
+    const groups = await groupsDictionary(dbPool, votesDictionary, [
+      '00000000-0000-0000-0000-000000000000',
+    ]);
     console.log('groups', groups);
 
     expect(groups).toBeDefined();
@@ -251,7 +253,6 @@ describe('service: votes', () => {
     expect(Object.keys(groups).length).toEqual(1);
     expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
   });
-  */
 
   test('should calculate the plural score correctly', () => {
     // Mock groups dictionary
