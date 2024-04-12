@@ -122,10 +122,16 @@ async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycle
 
   return dbPool
     .insert(db.forumQuestions)
-    .values({
-      cycleId,
-      questionTitle: "What's your favorite movie?",
-    })
+    .values([
+      {
+        cycleId,
+        questionTitle: "What's your favorite movie?",
+      },
+      {
+        cycleId,
+        questionTitle: 'What is your favorit fruit?',
+      },
+    ])
     .returning();
 }
 

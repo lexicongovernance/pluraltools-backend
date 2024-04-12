@@ -127,7 +127,7 @@ export async function groupsDictionary(
     `),
   );
 
-  console.log('groupArrayCode', groupArray);
+  //console.log('groupArrayCode', groupArray); OR group_category_id IS NULL
 
   const groupsDictionary = groupArray.reduce(
     (acc, group) => {
@@ -136,7 +136,7 @@ export async function groupsDictionary(
     },
     {} as Record<string, string[]>,
   );
-  console.log('groupsDictionary', groupsDictionary);
+  //console.log('groupsDictionary', groupsDictionary);
 
   return groupsDictionary;
 }

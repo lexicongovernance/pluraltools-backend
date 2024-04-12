@@ -9,6 +9,7 @@ import { z } from 'zod';
 import {
   saveVote,
   queryVoteData,
+  queryGroupCategories,
   numOfVotesDictionary,
   groupsDictionary,
   calculatePluralScore,
@@ -29,7 +30,9 @@ describe('service: votes', () => {
   let questionOption: db.QuestionOption | undefined;
   let otherQuestionOption: db.QuestionOption | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
+  let otherForumQuestion: db.ForumQuestion | undefined;
   let groupCategory: db.GroupCategory | undefined;
+  let otherGroupCategory: db.GroupCategory | undefined;
   let user: db.User | undefined;
   let secondUser: db.User | undefined;
   let thirdUser: db.User | undefined;
@@ -44,7 +47,9 @@ describe('service: votes', () => {
     questionOption = questionOptions[0];
     otherQuestionOption = questionOptions[1];
     forumQuestion = forumQuestions[0];
+    otherForumQuestion = forumQuestions[1];
     groupCategory = groupCategories[0];
+    otherGroupCategory = groupCategories[1];
     user = users[0];
     secondUser = users[1];
     thirdUser = users[2];
@@ -184,15 +189,30 @@ describe('service: votes', () => {
     expect(thirdUser!.id in result).toBe(false);
   });
 
+  test('that query group categories returns the correct amount of group category ids', async () => {
+    // Get vote data required for groups
+    const groupCategoriesIdArray = await queryGroupCategories(dbPool, forumQuestion!.id);
+    expect(groupCategoriesIdArray).toBeDefined();
+    expect(groupCategoriesIdArray.length).toBe(2);
+    expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
+    groupCategoriesIdArray.forEach((categoryId) => {
+      expect(typeof categoryId).toBe('string');
+    });
+  });
+
+  test('that query group categories returns an empty array if their are no group categories for a specific question', async () => {
+    // Get vote data required for groups
+    const groupCategoriesIdArray = await queryGroupCategories(dbPool, otherForumQuestion!.id);
+    expect(groupCategoriesIdArray).toBeDefined();
+    expect(groupCategoriesIdArray.length).toBe(0);
+    expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
+  });
+
   test('only return groups for users who voted for the option', async () => {
     // Get vote data required for groups
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
     const votesDictionary = await numOfVotesDictionary(voteArray);
-    console.log('voteArray', voteArray);
-    console.log('votesDictionary', votesDictionary);
-
     const groups = await groupsDictionary(dbPool, votesDictionary, [groupCategory!.id]);
-    console.log('groups', groups);
 
     expect(groups).toBeDefined();
     expect(groups['unexpectedKey']).toBeUndefined();
@@ -200,6 +220,38 @@ describe('service: votes', () => {
     expect(Object.keys(groups).length).toEqual(2);
     expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
   });
+
+  test('only return baseline groups for users who voted for the option as non of the users is in the additional group category', async () => {
+    // Get vote data required for groups
+    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
+    const votesDictionary = await numOfVotesDictionary(voteArray);
+    const groups = await groupsDictionary(dbPool, votesDictionary, [otherGroupCategory!.id]);
+
+    expect(groups).toBeDefined();
+    expect(groups['unexpectedKey']).toBeUndefined();
+    expect(typeof groups).toBe('object');
+    expect(Object.keys(groups).length).toEqual(1);
+    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
+  });
+
+  /*
+  test('only return baseline groups when no addtional group category gets provided', async () => {
+    // Get vote data required for groups
+    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
+    const votesDictionary = await numOfVotesDictionary(voteArray);
+    console.log('voteArray', voteArray);
+    console.log('votesDictionary', votesDictionary);
+
+    const groups = await groupsDictionary(dbPool, votesDictionary, []);
+    console.log('groups', groups);
+
+    expect(groups).toBeDefined();
+    expect(groups['unexpectedKey']).toBeUndefined();
+    expect(typeof groups).toBe('object');
+    expect(Object.keys(groups).length).toEqual(1);
+    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
+  });
+  */
 
   test('should calculate the plural score correctly', () => {
     // Mock groups dictionary
