@@ -6,7 +6,7 @@ import {
   getEventCyclesHandler,
   getEventHandler,
   getEventRegistrationFieldsHandler,
-  getEventRegistrationHandler,
+  getEventRegistrationsHandler,
   getEventsHandler,
 } from '../handlers/events';
 const router = express.Router();
@@ -20,6 +20,6 @@ export function eventsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db>
     getEventRegistrationFieldsHandler(dbPool),
   );
   router.get('/:eventId/cycles', isLoggedIn(dbPool), getEventCyclesHandler(dbPool));
-  router.get('/:eventId/registrations', isLoggedIn(dbPool), getEventRegistrationHandler(dbPool));
+  router.get('/:eventId/registrations', isLoggedIn(dbPool), getEventRegistrationsHandler(dbPool));
   return router;
 }
