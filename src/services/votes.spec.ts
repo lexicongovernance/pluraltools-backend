@@ -197,7 +197,7 @@ describe('service: votes', () => {
     expect(groups).toBeDefined();
     expect(groups['unexpectedKey']).toBeUndefined();
     expect(typeof groups).toBe('object');
-    expect(Object.keys(groups).length).toEqual(1);
+    expect(Object.keys(groups).length).toEqual(2);
     expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
   });
 

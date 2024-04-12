@@ -214,6 +214,16 @@ async function createUsersToGroups(
     groupId: index < 2 ? groupIds[0]! : groupIds[1]!,
     groupCategoryId,
   }));
+
+  // Add baseline group for each user (i.e. each user must be assigned to at least one group at all times)
+  userIds.forEach((userId) => {
+    usersToGroups.push({
+      userId,
+      groupId: groupIds[3]!,
+      groupCategoryId: undefined, // udefined because currently affiliation does not have a group category id
+    });
+  });
+
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
 }
 
