@@ -95,7 +95,11 @@ export function getUserGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
     try {
       const query = await dbPool.query.usersToGroups.findMany({
         with: {
-          group: true,
+          group: {
+            with: {
+              groupCategory: true,
+            },
+          },
         },
         where: eq(db.usersToGroups.userId, userId),
       });

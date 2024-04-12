@@ -2,9 +2,6 @@ import { and, eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { insertRegistrationSchema } from '../types';
-import { validateRequiredRegistrationFields } from '../services/registrationFields';
-import { saveEventRegistration } from '../services/registrations';
 
 export function getEventCyclesHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -76,77 +73,14 @@ export function getEventRegistrationFieldsHandler(dbPool: PostgresJsDatabase<typ
   };
 }
 
-export function getEventRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const eventId = req.params.eventId;
-    const userId = req.session.userId;
-    if (!userId) {
-      return res.status(400).json({ errors: ['userId is required'] });
-    }
-
-    if (!eventId) {
-      return res.status(400).json({ errors: ['eventId is required'] });
-    }
-
-    try {
-      const event = await dbPool.query.events.findFirst({
-        with: {
-          registrations: {
-            with: {
-              registrationData: true,
-            },
-            where: (fields, { eq }) => eq(fields.userId, userId),
-          },
-        },
-        where: (fields, { eq }) => eq(fields.id, eventId),
-      });
-
-      const out = event?.registrations.map((registration) => registration.registrationData).flat();
-
-      return res.json({ data: out });
-    } catch (e) {
-      return res.status(500).json({ errors: ['Failed to get registration data'] });
-    }
-  };
-}
-
-export function saveEventRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    // parse input
-    const eventId = req.params.eventId;
-    const userId = req.session.userId;
-    req.body.userId = userId;
-    req.body.eventId = eventId;
-    const body = insertRegistrationSchema.safeParse(req.body);
-
-    if (!body.success) {
-      return res.status(400).json({ errors: body.error.issues });
-    }
-
-    const missingRequiredFields = await validateRequiredRegistrationFields(dbPool, body.data);
-
-    if (missingRequiredFields.length > 0) {
-      return res.status(400).json({ errors: missingRequiredFields });
-    }
-
-    try {
-      const out = await saveEventRegistration(dbPool, body.data, userId);
-      return res.json({ data: out });
-    } catch (e) {
-      console.log('error saving registration ' + e);
-      return res.sendStatus(500);
-    }
-  };
-}
-
-export function getEventRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getEventRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input
     const eventId = req.params.eventId ?? '';
     const userId = req.session.userId;
 
     try {
-      const out = await dbPool.query.registrations.findFirst({
+      const out = await dbPool.query.registrations.findMany({
         where: and(eq(db.registrations.userId, userId), eq(db.registrations.eventId, eventId)),
       });
 
