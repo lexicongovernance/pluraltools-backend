@@ -2,7 +2,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { eq } from 'drizzle-orm';
-import { canViewGroupCategory } from '../services/groupCategories';
+import { canViewGroupsInGroupCategory } from '../services/groupCategories';
 
 export function getGroupCategoriesHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -35,7 +35,7 @@ export function getGroupCategoriesGroupsHandler(dbPool: PostgresJsDatabase<typeo
       return res.status(400).json({ error: 'Group Category ID is required' });
     }
 
-    const canView = await canViewGroupCategory(dbPool, groupCategoryId);
+    const canView = await canViewGroupsInGroupCategory(dbPool, groupCategoryId);
 
     if (!canView) {
       return res
