@@ -53,6 +53,14 @@ export function getGroupCategoriesGroupsHandler(dbPool: PostgresJsDatabase<typeo
 
     const groups = await dbPool.query.groups.findMany({
       where: eq(db.groups.groupCategoryId, groupCategory.id),
+      columns: {
+        createdAt: true,
+        description: true,
+        groupCategoryId: true,
+        id: true,
+        name: true,
+        updatedAt: true,
+      },
     });
 
     return res.json({ data: groups });
