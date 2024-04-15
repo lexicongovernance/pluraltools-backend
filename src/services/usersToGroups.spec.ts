@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { upsertUsersToGroups } from './usersToGroups';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { createDbPool } from '../utils/db/createDbPool';
 import postgres from 'postgres';
 import { runMigrations } from '../utils/db/runMigrations';
@@ -25,7 +25,6 @@ describe('service: usersToGroups', function () {
     defaultGroups = groups;
     // insert users without group assignment
     await dbPool.insert(db.users).values({ username: 'NewUser', email: 'SomeEmail' });
-    await dbPool.insert(db.users).values({ username: 'NewUser1', email: 'SomeEmail1' });
   });
 
   test('can save initial groups', async function () {
@@ -45,30 +44,46 @@ describe('service: usersToGroups', function () {
     expect(newUserGroup?.userId).toBe(newUser?.id);
   });
 
-  test('can save initial groups when label is null', async function () {
+  test('can save another group for the same user with a different category id', async function () {
     // Get the newly inserted user
-    const newUser1 = await dbPool.query.users.findFirst({
-      where: eq(db.users.username, 'NewUser1'),
+    const newUser = await dbPool.query.users.findFirst({
+      where: eq(db.users.username, 'NewUser'),
     });
 
-    await upsertUsersToGroups(dbPool, newUser1?.id ?? '', [defaultGroups[3]?.id ?? '']);
+    await upsertUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[2]?.id ?? '']);
 
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
-      where: eq(db.usersToGroups.userId, newUser1?.id ?? ''),
+      where: and(
+        eq(db.usersToGroups.userId, newUser?.id ?? ''),
+        eq(db.usersToGroups.groupId, defaultGroups[2]?.id ?? ''),
+      ),
     });
 
     expect(newUserGroup).toBeDefined();
-    expect(newUserGroup?.userId).toBe(newUser1?.id);
+    expect(newUserGroup?.userId).toBe(newUser?.id);
+    expect(newUserGroup?.groupId).toBe(defaultGroups[2]?.id);
   });
 
   test('can overwrite old user groups', async function () {
-    await upsertUsersToGroups(dbPool, user?.id ?? '', [defaultGroups[2]?.id ?? '']);
-    const group = await dbPool.query.usersToGroups.findFirst({
-      where: eq(db.usersToGroups.groupId, defaultGroups[2]?.id ?? ''),
+    const newUser = await dbPool.query.users.findFirst({
+      where: eq(db.users.username, 'NewUser'),
     });
-    expect(group?.userId).toBeDefined;
-    expect(group?.userId).toBe(user?.id);
+
+    await upsertUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[1]?.id ?? '']);
+
+    // Find the userToGroup relationship for the newUser and the chosen group
+    const newUserGroup = await dbPool.query.usersToGroups.findFirst({
+      where: and(
+        eq(db.usersToGroups.userId, newUser?.id ?? ''),
+        eq(db.usersToGroups.groupId, defaultGroups[1]?.id ?? ''),
+      ),
+    });
+
+    expect(newUserGroup).toBeDefined();
+    expect(newUserGroup?.userId).toBe(newUser?.id);
+    expect(newUserGroup?.groupId).toBe(defaultGroups[1]?.id);
+    expect(newUserGroup?.groupId).not.toBe(defaultGroups[2]?.id);
   });
 
   test('handles non-existent group IDs', async function () {
