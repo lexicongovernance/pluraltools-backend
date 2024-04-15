@@ -17,6 +17,7 @@ export const registrationFields = pgTable('registration_fields', {
   questionOptionType: varchar('question_option_type'),
   fieldDisplayRank: integer('fields_display_rank'),
   characterLimit: integer('character_limit').default(0),
+  displayOnGroupRegistration: boolean('display_on_group_registration').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
