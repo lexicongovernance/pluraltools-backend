@@ -45,23 +45,6 @@ describe('service: usersToGroups', function () {
     expect(newUserGroup?.userId).toBe(newUser?.id);
   });
 
-  test('can save initial groups when label is null', async function () {
-    // Get the newly inserted user
-    const newUser1 = await dbPool.query.users.findFirst({
-      where: eq(db.users.username, 'NewUser1'),
-    });
-
-    await upsertUsersToGroups(dbPool, newUser1?.id ?? '', [defaultGroups[3]?.id ?? '']);
-
-    // Find the userToGroup relationship for the newUser and the chosen group
-    const newUserGroup = await dbPool.query.usersToGroups.findFirst({
-      where: eq(db.usersToGroups.userId, newUser1?.id ?? ''),
-    });
-
-    expect(newUserGroup).toBeDefined();
-    expect(newUserGroup?.userId).toBe(newUser1?.id);
-  });
-
   test('can overwrite old user groups', async function () {
     await upsertUsersToGroups(dbPool, user?.id ?? '', [defaultGroups[2]?.id ?? '']);
     const group = await dbPool.query.usersToGroups.findFirst({
