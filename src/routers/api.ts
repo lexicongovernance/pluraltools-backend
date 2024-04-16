@@ -15,6 +15,7 @@ import { votesRouter } from './votes';
 import { registrationsRouter } from './registrations';
 import { usersToGroupsRouter } from './usersToGroups';
 import { groupCategoriesRouter } from './groupCategories';
+import { alertsRouter } from './alerts';
 
 const router = express.Router();
 
@@ -60,6 +61,7 @@ export function apiRouter({
   router.use('/group-categories', groupCategoriesRouter({ dbPool }));
   router.use('/registrations', registrationsRouter({ dbPool }));
   router.use('/users-to-groups', usersToGroupsRouter({ dbPool }));
+  router.use('/alerts', alertsRouter({ dbPool }));
 
   return router;
 }
