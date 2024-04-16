@@ -1,24 +1,11 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { insertGroupsSchema } from '../types/groups';
 import { canCreateGroupInGroupCategory } from '../services/groupCategories';
 import { createSecretGroup } from '../services/groups';
 import { upsertUsersToGroups } from '../services/usersToGroups';
-/**
- * Retrieves all groups from the database.
- * @param dbPool The database connection pool.
- * @returns An asynchronous function that handles the HTTP request and response.
- */
-export function getGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
-  return async function (req: Request, res: Response) {
-    const groups = await dbPool.query.groups.findMany({
-      where: isNull(db.groups.groupCategoryId),
-    });
-    return res.json({ data: groups });
-  };
-}
 
 export function getGroupRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
