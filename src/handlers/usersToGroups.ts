@@ -18,9 +18,9 @@ export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
     try {
       // public group
-      if ('id' in body.data) {
+      if ('groupId' in body.data) {
         const group = await dbPool.query.groups.findFirst({
-          where: eq(db.groups.id, body.data.id),
+          where: eq(db.groups.id, body.data.groupId),
         });
 
         if (!group) {
@@ -31,7 +31,7 @@ export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
           return res.status(400).json({ error: 'Group is secret' });
         }
 
-        const userToGroup = await upsertUsersToGroups(dbPool, userId, [body.data.id]);
+        const userToGroup = await upsertUsersToGroups(dbPool, userId, [body.data.groupId]);
 
         return res.json({ data: userToGroup });
       }
