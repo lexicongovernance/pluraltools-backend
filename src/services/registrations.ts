@@ -1,6 +1,5 @@
-import { eq } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { and } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
@@ -16,8 +15,7 @@ export async function saveRegistration(
 ) {
   if (data.groupId) {
     const userGroup = dbPool.query.usersToGroups.findFirst({
-      where: (fields, { eq, and }) =>
-        and(eq(fields.userId, userId), eq(fields.groupId, data.groupId!)),
+      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, data.groupId!)),
     });
 
     if (!userGroup) {
@@ -64,8 +62,7 @@ export async function updateRegistration({
 }) {
   if (data.groupId) {
     const userGroup = dbPool.query.usersToGroups.findFirst({
-      where: (fields, { eq, and }) =>
-        and(eq(fields.userId, userId), eq(fields.groupId, data.groupId!)),
+      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, data.groupId!)),
     });
 
     if (!userGroup) {
@@ -118,6 +115,7 @@ async function createRegistrationInDB(
     .insert(db.registrations)
     .values({
       userId: body.userId,
+      groupId: body.groupId,
       eventId: body.eventId,
       status: body.status,
     })
@@ -135,6 +133,7 @@ async function updateRegistrationInDB(
     .set({
       userId: body.userId,
       eventId: body.eventId,
+      groupId: body.groupId,
       status: body.status,
       updatedAt: new Date(),
     })
