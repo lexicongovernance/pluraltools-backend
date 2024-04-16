@@ -164,10 +164,12 @@ async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, even
       {
         name: 'affiliation',
         eventId: eventId,
+        userCanView: true,
       },
       {
-        name: 'interests',
+        name: 'secrets',
         eventId: eventId,
+        userCanCreate: true,
       },
     ])
     .returning();
