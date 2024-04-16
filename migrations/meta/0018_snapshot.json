@@ -1,5 +1,5 @@
 {
-  "id": "f00ac886-f735-4aa5-801a-9d151d1fb17e",
+  "id": "9e82519c-4853-44bf-ac83-165a4e51c435",
   "prevId": "0d20d2de-c589-4e94-a0b1-fbd54238e209",
   "version": "5",
   "dialect": "pg",
@@ -15,17 +15,35 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "title": {
+          "name": "title",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(1024)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "link": {
+          "name": "link",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "start_at": {
           "name": "start_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "end_at": {
           "name": "end_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "active": {
           "name": "active",
