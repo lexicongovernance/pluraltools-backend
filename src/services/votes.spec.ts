@@ -200,13 +200,12 @@ describe('service: votes', () => {
     });
   });
 
-  test('that query group categories returns an empty array if their are no group categories for a specific question', async () => {
-    // Get vote data required for groups
+  test('that query group categories returns an empty array if their are no group categories specified for a specific question', async () => {
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, otherForumQuestion!.id);
     expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(1);
+    expect(groupCategoriesIdArray.length).toBe(0);
     expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
-    expect(groupCategoriesIdArray).toEqual(['00000000-0000-0000-0000-000000000000']);
+    expect(groupCategoriesIdArray).toEqual([]);
   });
 
   test('only return groups for users who voted for the option', async () => {

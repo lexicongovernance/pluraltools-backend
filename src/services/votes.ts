@@ -89,14 +89,12 @@ export async function queryGroupCategories(
     .from(db.questionsToGroupCategories)
     .where(eq(db.questionsToGroupCategories.questionId, questionId));
 
-  // Need to due this adjustment because currently group_category_id is nullable due to affiliations having no label.
-  const groupCategoryIds = groupCategories
-    .map((category) => category.groupCategoryId)
-    .filter((id) => id !== null) as string[];
+  // Need to due this adjustment because currently groupCategoryId is nullable in the datatable definition.
+  const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId!);
 
-  // Returning dummy uuid if there are no group categories found
   if (groupCategoryIds.length === 0) {
-    return ['00000000-0000-0000-0000-000000000000'];
+    console.error('Group Category ID is Missing');
+    return [];
   }
 
   return groupCategoryIds;
@@ -120,9 +118,7 @@ export async function groupsDictionary(
       WHERE user_id IN (${Object.keys(numOfVotesDictionary)
         .map((id) => `'${id}'`)
         .join(', ')})
-      AND (group_category_id IN (${groupCategories
-        .map((category) => `'${category}'`)
-        .join(', ')}) OR group_category_id IS NULL)
+      AND group_category_id IN (${groupCategories.map((category) => `'${category}'`).join(', ')})
       GROUP BY group_id
     `),
   );
