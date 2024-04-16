@@ -15,7 +15,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     dbPool,
     users.map((u) => u.id!),
     groups.map((g) => g.id!),
-    groupCategories[0]?.id,
+    groupCategories[0]!.id,
   );
   const questionsToGroupCategories = await createQuestionsToGroupCategories(
     dbPool,
@@ -193,12 +193,6 @@ async function createGroups(
         name: randCompanyName(),
         groupCategoryId: groupIdTwo,
       },
-      {
-        name: randCompanyName(),
-      },
-      {
-        name: randCompanyName(),
-      },
     ])
     .returning();
 }
@@ -215,7 +209,7 @@ async function createUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userIds: string[],
   groupIds: string[],
-  groupCategoryId: string | undefined,
+  groupCategoryId: string,
 ) {
   // assign users to groups
   const usersToGroups = userIds.map((userId, index) => ({
@@ -223,15 +217,6 @@ async function createUsersToGroups(
     groupId: index < 2 ? groupIds[0]! : groupIds[1]!,
     groupCategoryId,
   }));
-
-  // Add baseline group for each user (i.e. each user must be assigned to at least one group at all times)
-  userIds.forEach((userId) => {
-    usersToGroups.push({
-      userId,
-      groupId: groupIds[3]!,
-      groupCategoryId: undefined, // udefined because currently affiliation does not have a group category id
-    });
-  });
 
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
 }
