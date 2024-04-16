@@ -9,13 +9,19 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id);
   const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
   const groupCategories = await createGroupCategories(dbPool, events[0]?.id);
-  const groups = await createGroups(dbPool, groupCategories[0]?.id, groupCategories[1]?.id);
+  const groups = await createGroups(
+    dbPool,
+    groupCategories[0]?.id,
+    groupCategories[1]?.id,
+    groupCategories[2]?.id,
+  );
   const users = await createUsers(dbPool);
   const usersToGroups = await createUsersToGroups(
     dbPool,
     users.map((u) => u.id!),
     groups.map((g) => g.id!),
     groupCategories[0]!.id,
+    groupCategories[1]!.id,
   );
   const questionsToGroupCategories = await createQuestionsToGroupCategories(
     dbPool,
@@ -167,6 +173,16 @@ async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, even
         userCanView: true,
       },
       {
+        name: 'category A',
+        eventId: eventId,
+        userCanView: true,
+      },
+      {
+        name: 'category B',
+        eventId: eventId,
+        userCanView: true,
+      },
+      {
         name: 'secrets',
         eventId: eventId,
         userCanCreate: true,
@@ -177,23 +193,28 @@ async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, even
 
 async function createGroups(
   dbPool: PostgresJsDatabase<typeof db>,
-  groupIdOne?: string,
-  groupIdTwo?: string,
+  baselineCategory?: string,
+  categoryOne?: string,
+  categoryTwo?: string,
 ) {
   return dbPool
     .insert(db.groups)
     .values([
       {
         name: randCompanyName(),
-        groupCategoryId: groupIdOne,
+        groupCategoryId: baselineCategory,
       },
       {
         name: randCompanyName(),
-        groupCategoryId: groupIdOne,
+        groupCategoryId: categoryOne,
       },
       {
         name: randCompanyName(),
-        groupCategoryId: groupIdTwo,
+        groupCategoryId: categoryOne,
+      },
+      {
+        name: randCompanyName(),
+        groupCategoryId: categoryTwo,
       },
     ])
     .returning();
@@ -211,14 +232,24 @@ async function createUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userIds: string[],
   groupIds: string[],
-  groupCategoryId: string,
+  baselineGroupCategory: string | undefined,
+  otherGroupCategory: string | undefined,
 ) {
   // assign users to groups
   const usersToGroups = userIds.map((userId, index) => ({
     userId,
-    groupId: index < 2 ? groupIds[0]! : groupIds[1]!,
-    groupCategoryId,
+    groupId: index < 2 ? groupIds[1]! : groupIds[2]!,
+    groupCategoryId: otherGroupCategory,
   }));
+
+  // Add baseline group for each user (i.e. each user must be assigned to at least one group at all times)
+  userIds.forEach((userId) => {
+    usersToGroups.push({
+      userId,
+      groupId: groupIds[0]!,
+      groupCategoryId: baselineGroupCategory,
+    });
+  });
 
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
 }
