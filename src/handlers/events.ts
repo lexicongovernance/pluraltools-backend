@@ -66,7 +66,7 @@ export function getEventRegistrationFieldsHandler(dbPool: PostgresJsDatabase<typ
           },
         },
       },
-      where: (fields, { eq }) => eq(fields.id, eventId),
+      where: eq(db.events.id, eventId),
     });
 
     return res.json({ data: event?.registrationFields });
