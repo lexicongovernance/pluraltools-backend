@@ -218,38 +218,38 @@ describe('service: votes', () => {
     expect(groups).toBeDefined();
     expect(groups['unexpectedKey']).toBeUndefined();
     expect(typeof groups).toBe('object');
+    expect(Object.keys(groups).length).toEqual(2);
+    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
+  });
+
+  test('only return baseline groups for users who voted for the option as non of the users is in the additional group category', async () => {
+    // Get vote data required for groups
+    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
+    const votesDictionary = await numOfVotesDictionary(voteArray);
+    const groups = await groupsDictionary(dbPool, votesDictionary, [otherGroupCategory!.id]);
+
+    expect(groups).toBeDefined();
+    expect(groups['unexpectedKey']).toBeUndefined();
+    expect(typeof groups).toBe('object');
     expect(Object.keys(groups).length).toEqual(1);
     expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
   });
 
-  // test('only return baseline groups for users who voted for the option as non of the users is in the additional group category', async () => {
-  //   // Get vote data required for groups
-  //   const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
-  //   const votesDictionary = await numOfVotesDictionary(voteArray);
-  //   const groups = await groupsDictionary(dbPool, votesDictionary, [otherGroupCategory!.id]);
+  test('only return baseline groups when no addtional group category gets provided', async () => {
+    // Get vote data required for groups
+    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
+    const votesDictionary = await numOfVotesDictionary(voteArray);
 
-  //   expect(groups).toBeDefined();
-  //   expect(groups['unexpectedKey']).toBeUndefined();
-  //   expect(typeof groups).toBe('object');
-  //   expect(Object.keys(groups).length).toEqual(1);
-  //   expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
-  // });
+    const groups = await groupsDictionary(dbPool, votesDictionary, [
+      '00000000-0000-0000-0000-000000000000',
+    ]);
 
-  // test('only return baseline groups when no addtional group category gets provided', async () => {
-  //   // Get vote data required for groups
-  //   const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
-  //   const votesDictionary = await numOfVotesDictionary(voteArray);
-
-  //   const groups = await groupsDictionary(dbPool, votesDictionary, [
-  //     '00000000-0000-0000-0000-000000000000',
-  //   ]);
-
-  //   expect(groups).toBeDefined();
-  //   expect(groups['unexpectedKey']).toBeUndefined();
-  //   expect(typeof groups).toBe('object');
-  //   expect(Object.keys(groups).length).toEqual(1);
-  //   expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
-  // });
+    expect(groups).toBeDefined();
+    expect(groups['unexpectedKey']).toBeUndefined();
+    expect(typeof groups).toBe('object');
+    expect(Object.keys(groups).length).toEqual(1);
+    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
+  });
 
   test('should calculate the plural score correctly', () => {
     // Mock groups dictionary

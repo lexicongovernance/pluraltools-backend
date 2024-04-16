@@ -31,7 +31,7 @@ describe('service: statistics', () => {
     questionOption = questionOptions[0];
     forumQuestion = forumQuestions[0];
     user = users[0];
-    otherUser = users[2];
+    otherUser = users[1];
     userTestData = {
       numOfVotes: 4,
       optionId: questionOption?.id ?? '',
