@@ -14,6 +14,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     groupCategories[0]?.id,
     groupCategories[1]?.id,
     groupCategories[2]?.id,
+    groupCategories[3]?.id,
   );
   const users = await createUsers(dbPool);
   const usersToGroups = await createUsersToGroups(
@@ -196,6 +197,7 @@ async function createGroups(
   baselineCategory?: string,
   categoryOne?: string,
   categoryTwo?: string,
+  secretCategory?: string,
 ) {
   return dbPool
     .insert(db.groups)
@@ -215,6 +217,10 @@ async function createGroups(
       {
         name: randCompanyName(),
         groupCategoryId: categoryTwo,
+      },
+      {
+        name: randCompanyName(),
+        groupCategoryId: secretCategory,
       },
     ])
     .returning();
