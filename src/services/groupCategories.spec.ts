@@ -53,10 +53,15 @@ describe('service: groupCategories', () => {
   });
 
   describe('check if user can view group category', function () {
-    test('default:', async function () {
+    test('userCanView: false', async function () {
       if (!groupCategory) {
         throw new Error('Group category not found');
       }
+
+      await dbPool
+        .update(db.groupCategories)
+        .set({ userCanView: false })
+        .where(eq(db.groupCategories.id, groupCategory.id));
 
       const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 
