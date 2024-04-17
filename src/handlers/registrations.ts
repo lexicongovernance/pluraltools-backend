@@ -56,11 +56,12 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: missingRequiredFields });
     }
 
-    const canRegisterGroup = await validateCreateRegistrationPermissions(
+    const canRegisterGroup = await validateCreateRegistrationPermissions({
       dbPool,
       userId,
-      body.data.groupId,
-    );
+      eventId: body.data.eventId,
+      groupId: body.data.groupId,
+    });
 
     if (!canRegisterGroup) {
       return res.status(400).json({ errors: ['Cannot register for this group'] });

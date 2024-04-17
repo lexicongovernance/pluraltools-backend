@@ -8,11 +8,17 @@ import {
   upsertQuestionOptionFromRegistrationData,
 } from './registrationData';
 
-export async function validateCreateRegistrationPermissions(
-  dbPool: PostgresJsDatabase<typeof db>,
-  userId: string,
-  groupId?: string | null,
-) {
+export async function validateCreateRegistrationPermissions({
+  dbPool,
+  userId,
+  groupId,
+  eventId,
+}: {
+  dbPool: PostgresJsDatabase<typeof db>;
+  userId: string;
+  eventId: string;
+  groupId?: string | null;
+}) {
   if (groupId) {
     const userGroup = dbPool.query.usersToGroups.findFirst({
       where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
@@ -22,9 +28,9 @@ export async function validateCreateRegistrationPermissions(
       return false;
     }
 
-    // limit one registration per group
+    // limit one registration per group per event
     const existingRegistration = await dbPool.query.registrations.findFirst({
-      where: and(eq(db.registrations.userId, userId), eq(db.registrations.groupId, groupId)),
+      where: and(eq(db.registrations.eventId, eventId), eq(db.registrations.groupId, groupId)),
     });
 
     if (existingRegistration) {
