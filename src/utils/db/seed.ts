@@ -86,6 +86,8 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
         required: true,
         eventId,
         questionOptionType: 'TITLE',
+        forUser: false,
+        forGroup: true,
       },
       {
         name: 'proposal description',
@@ -93,6 +95,8 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
         required: true,
         eventId,
         questionOptionType: 'SUBTITLE',
+        forUser: true,
+        forGroup: false,
       },
       {
         name: 'other field',
