@@ -21,6 +21,15 @@ export async function saveRegistration(
     if (!userGroup) {
       throw new Error('user is not in group');
     }
+
+    // limit one registration per group
+    const existingRegistration = await dbPool.query.registrations.findFirst({
+      where: and(eq(db.registrations.userId, userId), eq(db.registrations.groupId, data.groupId)),
+    });
+
+    if (existingRegistration) {
+      throw new Error('registration already exists for group');
+    }
   }
 
   const newRegistration = await createRegistrationInDB(dbPool, data);
