@@ -6,11 +6,7 @@ import { runMigrations } from '../utils/db/runMigrations';
 import { insertRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import {
-  upsertRegistrationData,
-  fetchRegistrationFields,
-  filterRegistrationData,
-} from './registrationData';
+import { upsertRegistrationData } from './registrationData';
 import { saveRegistration } from './registrations';
 import { isNotNull } from 'drizzle-orm';
 
@@ -20,8 +16,6 @@ describe('service: registrationData', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let registrationField: db.RegistrationField | undefined;
-  let otherRegistrationField: db.RegistrationField | undefined;
-  let otherOtherRegistrationField: db.RegistrationField | undefined;
   let registration: db.Registration | undefined;
   let testRegistration: z.infer<typeof insertRegistrationSchema>;
   let forumQuestion: db.ForumQuestion | undefined;
@@ -37,8 +31,6 @@ describe('service: registrationData', () => {
     // Define data
     forumQuestion = forumQuestions[0];
     registrationField = registrationFields[0];
-    otherRegistrationField = registrationFields[1];
-    otherOtherRegistrationField = registrationFields[2];
 
     testRegistration = {
       userId: users[0]?.id ?? '',
@@ -61,10 +53,7 @@ describe('service: registrationData', () => {
     };
 
     // Add test registration data to the db
-    await dbPool
-      .update(db.registrationFields)
-      .set({ questionId: forumQuestion?.id ?? '' })
-      .where(isNotNull(db.registrationFields.questionOptionType));
+    await dbPool.update(db.registrationFields).set({ questionId: forumQuestion?.id ?? '' });
     registration = await saveRegistration(dbPool, testRegistration, testRegistration.userId);
   });
 
@@ -124,60 +113,6 @@ describe('service: registrationData', () => {
 
     // Assert that the function returns null when an error occurs
     expect(updatedData).toBeNull();
-  });
-
-  test('should fetch registration fields from the database', async () => {
-    // Fetch registration fields from the database and call the function
-    const registrationFieldIds = [
-      registrationField?.id ?? '',
-      otherRegistrationField?.id ?? '',
-      otherOtherRegistrationField?.id ?? '',
-    ];
-    const result = await fetchRegistrationFields(dbPool, registrationFieldIds);
-
-    // Assert that the result is an array and not empty
-    expect(Array.isArray(result)).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
-
-    // function should neglects registration fields with questionOptionType equal null
-    expect(result.length).toEqual(2);
-
-    // Assert that each item in the result array has the expected properties
-    result.forEach((item) => {
-      expect(item).toHaveProperty('registrationFieldId');
-      expect(item).toHaveProperty('questionId');
-      expect(item).toHaveProperty('questionOptionType');
-    });
-  });
-
-  test('should filter registration data based on available registration fields', async () => {
-    // Query all registration data
-    const registrationDataQueryResult = await dbPool.query.registrationData.findMany();
-
-    // Extract the necessary properties from the query results
-    const registrationData = registrationDataQueryResult.map(
-      ({ id, registrationFieldId, registrationId, value }) => ({
-        id,
-        registrationFieldId,
-        registrationId,
-        value,
-      }),
-    );
-
-    const registrationFieldIds = [
-      registrationField?.id ?? '',
-      otherRegistrationField?.id ?? '',
-      otherOtherRegistrationField?.id ?? '',
-    ];
-    const registrationFields = await fetchRegistrationFields(dbPool, registrationFieldIds);
-
-    // Call the filterRegistrationData function
-    const filteredData = filterRegistrationData(registrationData, registrationFields);
-
-    // Assert that the filtered data contains only the relevant registration data
-    expect(filteredData).toBeDefined();
-    expect(filteredData).not.toBeNull();
-    expect(filteredData).toHaveLength(2);
   });
 
   afterAll(async () => {

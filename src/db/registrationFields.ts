@@ -13,8 +13,6 @@ export const registrationFields = pgTable('registration_fields', {
   type: varchar('type').notNull().default('TEXT'),
   required: boolean('required').default(false),
   questionId: uuid('question_id').references(() => forumQuestions.id),
-  // CAN BE: NULL, TITLE, OR SUBTITLE
-  questionOptionType: varchar('question_option_type'),
   fieldDisplayRank: integer('fields_display_rank'),
   characterLimit: integer('character_limit').default(0),
   displayOnGroupRegistration: boolean('display_on_group_registration').default(false),
