@@ -12,7 +12,6 @@ export const registrationFields = pgTable('registration_fields', {
   // CAN BE: TEXT, NUMBER, SELECT, RADIO, CHECKBOX, TEXTAREA AND MORE
   type: varchar('type').notNull().default('TEXT'),
   required: boolean('required').default(false),
-  questionId: uuid('question_id').references(() => forumQuestions.id),
   fieldDisplayRank: integer('fields_display_rank'),
   characterLimit: integer('character_limit').default(0),
   displayOnGroupRegistration: boolean('display_on_group_registration').default(false),
@@ -24,10 +23,6 @@ export const registrationFieldsRelations = relations(registrationFields, ({ one,
   event: one(events, {
     fields: [registrationFields.eventId],
     references: [events.id],
-  }),
-  forumQuestion: one(forumQuestions, {
-    fields: [registrationFields.questionId],
-    references: [forumQuestions.id],
   }),
   registrationFieldOptions: many(registrationFieldOptions),
   registrationData: many(registrationData),

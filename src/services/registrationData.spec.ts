@@ -8,7 +8,6 @@ import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import { upsertRegistrationData } from './registrationData';
 import { saveRegistration } from './registrations';
-import { isNotNull } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -18,7 +17,6 @@ describe('service: registrationData', () => {
   let registrationField: db.RegistrationField | undefined;
   let registration: db.Registration | undefined;
   let testRegistration: z.infer<typeof insertRegistrationSchema>;
-  let forumQuestion: db.ForumQuestion | undefined;
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
@@ -26,10 +24,8 @@ describe('service: registrationData', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { events, users, forumQuestions, registrationFields } = await seed(dbPool);
+    const { events, users, registrationFields } = await seed(dbPool);
 
-    // Define data
-    forumQuestion = forumQuestions[0];
     registrationField = registrationFields[0];
 
     testRegistration = {
@@ -53,7 +49,6 @@ describe('service: registrationData', () => {
     };
 
     // Add test registration data to the db
-    await dbPool.update(db.registrationFields).set({ questionId: forumQuestion?.id ?? '' });
     registration = await saveRegistration(dbPool, testRegistration, testRegistration.userId);
   });
 

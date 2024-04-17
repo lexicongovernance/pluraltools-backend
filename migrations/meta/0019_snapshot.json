@@ -1,5 +1,5 @@
 {
-  "id": "10961a93-f5d1-469b-9cc4-dc797e8695b0",
+  "id": "d9807741-0d11-4dfa-b5c2-abf48f5371fc",
   "prevId": "9e82519c-4853-44bf-ac83-165a4e51c435",
   "version": "5",
   "dialect": "pg",
@@ -1057,12 +1057,6 @@
           "notNull": false,
           "default": false
         },
-        "question_id": {
-          "name": "question_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "fields_display_rank": {
           "name": "fields_display_rank",
           "type": "integer",
@@ -1106,19 +1100,6 @@
           "tableTo": "events",
           "columnsFrom": [
             "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "registration_fields_question_id_forum_questions_id_fk": {
-          "name": "registration_fields_question_id_forum_questions_id_fk",
-          "tableFrom": "registration_fields",
-          "tableTo": "forum_questions",
-          "columnsFrom": [
-            "question_id"
           ],
           "columnsTo": [
             "id"
