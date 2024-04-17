@@ -8,30 +8,38 @@ import {
   upsertQuestionOptionFromRegistrationData,
 } from './registrationData';
 
+export async function validateGroupRegistration(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  groupId?: string | null,
+) {
+  if (groupId) {
+    const userGroup = dbPool.query.usersToGroups.findFirst({
+      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
+    });
+
+    if (!userGroup) {
+      return false;
+    }
+
+    // limit one registration per group
+    const existingRegistration = await dbPool.query.registrations.findFirst({
+      where: and(eq(db.registrations.userId, userId), eq(db.registrations.groupId, groupId)),
+    });
+
+    if (existingRegistration) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export async function saveRegistration(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
   userId: string,
 ) {
-  if (data.groupId) {
-    const userGroup = dbPool.query.usersToGroups.findFirst({
-      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, data.groupId!)),
-    });
-
-    if (!userGroup) {
-      throw new Error('user is not in group');
-    }
-
-    // limit one registration per group
-    const existingRegistration = await dbPool.query.registrations.findFirst({
-      where: and(eq(db.registrations.userId, userId), eq(db.registrations.groupId, data.groupId)),
-    });
-
-    if (existingRegistration) {
-      throw new Error('registration already exists for group');
-    }
-  }
-
   const newRegistration = await createRegistrationInDB(dbPool, data);
   if (!newRegistration) {
     throw new Error('failed to save registration');

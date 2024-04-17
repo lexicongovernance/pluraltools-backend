@@ -3,7 +3,11 @@ import type { Request, Response } from 'express';
 import * as db from '../db';
 import { insertRegistrationSchema } from '../types';
 import { validateRequiredRegistrationFields } from '../services/registrationFields';
-import { saveRegistration, updateRegistration } from '../services/registrations';
+import {
+  saveRegistration,
+  updateRegistration,
+  validateGroupRegistration,
+} from '../services/registrations';
 import { and, eq } from 'drizzle-orm';
 
 export function getRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>) {
@@ -49,6 +53,12 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
     if (missingRequiredFields.length > 0) {
       return res.status(400).json({ errors: missingRequiredFields });
+    }
+
+    const canRegisterGroup = await validateGroupRegistration(dbPool, userId, body.data.groupId);
+
+    if (!canRegisterGroup) {
+      return res.status(400).json({ errors: ['Cannot register for this group'] });
     }
 
     try {
