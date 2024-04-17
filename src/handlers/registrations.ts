@@ -6,7 +6,8 @@ import { validateRequiredRegistrationFields } from '../services/registrationFiel
 import {
   saveRegistration,
   updateRegistration,
-  validateGroupRegistration,
+  validateCreateRegistrationPermissions,
+  validateUpdateRegistrationPermissions,
 } from '../services/registrations';
 import { and, eq } from 'drizzle-orm';
 
@@ -55,7 +56,11 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: missingRequiredFields });
     }
 
-    const canRegisterGroup = await validateGroupRegistration(dbPool, userId, body.data.groupId);
+    const canRegisterGroup = await validateCreateRegistrationPermissions(
+      dbPool,
+      userId,
+      body.data.groupId,
+    );
 
     if (!canRegisterGroup) {
       return res.status(400).json({ errors: ['Cannot register for this group'] });
@@ -91,6 +96,17 @@ export function updateRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>)
 
     if (missingRequiredFields.length > 0) {
       return res.status(400).json({ errors: missingRequiredFields });
+    }
+
+    const canUpdateRegistration = await validateUpdateRegistrationPermissions({
+      dbPool,
+      registrationId,
+      userId,
+      groupId: body.data.groupId,
+    });
+
+    if (!canUpdateRegistration) {
+      return res.status(400).json({ errors: ['Cannot update this registration'] });
     }
 
     try {
