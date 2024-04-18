@@ -45,7 +45,12 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields(dbPool, body.data);
+    const missingRequiredFields = await validateRequiredRegistrationFields({
+      dbPool,
+      data: body.data,
+      forGroup: !!body.data.groupId,
+      forUser: !body.data.groupId,
+    });
 
     if (missingRequiredFields.length > 0) {
       return res.status(400).json({ errors: missingRequiredFields });
@@ -77,7 +82,12 @@ export function updateRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>)
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields(dbPool, body.data);
+    const missingRequiredFields = await validateRequiredRegistrationFields({
+      dbPool,
+      data: body.data,
+      forGroup: !!body.data.groupId,
+      forUser: !body.data.groupId,
+    });
 
     if (missingRequiredFields.length > 0) {
       return res.status(400).json({ errors: missingRequiredFields });
