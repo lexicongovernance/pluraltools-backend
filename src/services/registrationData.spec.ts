@@ -11,7 +11,7 @@ import {
   fetchRegistrationFields,
   filterRegistrationData,
 } from './registrationData';
-import { saveEventRegistration } from './registrations';
+import { saveRegistration } from './registrations';
 import { isNotNull } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -65,7 +65,7 @@ describe('service: registrationData', () => {
       .update(db.registrationFields)
       .set({ questionId: forumQuestion?.id ?? '' })
       .where(isNotNull(db.registrationFields.questionOptionType));
-    registration = await saveEventRegistration(dbPool, testRegistration, testRegistration.userId);
+    registration = await saveRegistration(dbPool, testRegistration, testRegistration.userId);
   });
 
   test('should update existing records', async () => {

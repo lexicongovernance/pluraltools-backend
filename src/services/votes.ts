@@ -78,13 +78,38 @@ export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVot
   return numOfVotesDictionary;
 }
 
+export async function queryGroupCategories(
+  dbPool: PostgresJsDatabase<typeof db>,
+  questionId: string,
+): Promise<string[]> {
+  const groupCategories = await dbPool
+    .select({
+      groupCategoryId: db.questionsToGroupCategories.groupCategoryId,
+    })
+    .from(db.questionsToGroupCategories)
+    .where(eq(db.questionsToGroupCategories.questionId, questionId));
+
+  // Need to due this adjustment because currently groupCategoryId is nullable in the datatable definition.
+  const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId!);
+
+  if (groupCategoryIds.length === 0) {
+    console.error('Group Category ID is Missing');
+    return [];
+  }
+
+  return groupCategoryIds;
+}
+
 /**
  * Queries group data and creates group dictionary based on user IDs and option ID.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {Record<string, number>} numOfVotesDictionary - Dictionary of user IDs and their respective number of votes.
+ * @param {Array<string>} groupCategoryIds - Array of group category IDs.
+ * @returns {Promise<Record<string, string[]>>} - Dictionary of group IDs and their corresponding user IDs.
  */
 export async function groupsDictionary(
   dbPool: PostgresJsDatabase<typeof db>,
   numOfVotesDictionary: Record<string, number>,
+  groupCategories: Array<string>,
 ) {
   const groupArray = await dbPool.execute<{ groupId: string; userIds: string[] }>(
     sql.raw(`
@@ -93,6 +118,7 @@ export async function groupsDictionary(
       WHERE user_id IN (${Object.keys(numOfVotesDictionary)
         .map((id) => `'${id}'`)
         .join(', ')})
+      AND group_category_id IN (${groupCategories.map((category) => `'${category}'`).join(', ')})
       GROUP BY group_id
     `),
   );
@@ -171,8 +197,19 @@ export async function updateVoteScore(
   // Transform data
   const votesDictionary = await numOfVotesDictionary(voteArray);
 
+  // Query question Id
+  const queryQuestionId = await dbPool
+    .select({
+      questionId: db.questionOptions.questionId,
+    })
+    .from(db.questionOptions)
+    .where(eq(db.questionOptions.id, optionId));
+
+  // Query group categories
+  const groupCategories = await queryGroupCategories(dbPool, queryQuestionId[0]!.questionId);
+
   // Query group data
-  const groupArray = await groupsDictionary(dbPool, votesDictionary);
+  const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories ?? []);
 
   // Perform plural voting calculation
   const score = await calculatePluralScore(groupArray, votesDictionary);

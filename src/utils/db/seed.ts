@@ -6,16 +6,33 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const events = await createEvent(dbPool);
   const cycles = await createCycle(dbPool, events[0]?.id);
   const registrationFields = await createRegistrationFields(dbPool, events[0]?.id);
+  const registrationFieldOptions = await createRegistrationFieldOptions(
+    dbPool,
+    registrationFields[3]?.id,
+  );
   const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id);
   const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
   const groupCategories = await createGroupCategories(dbPool, events[0]?.id);
-  const groups = await createGroups(dbPool, groupCategories[0]?.id, groupCategories[1]?.id);
+  const groups = await createGroups(
+    dbPool,
+    groupCategories[0]?.id,
+    groupCategories[1]?.id,
+    groupCategories[2]?.id,
+    groupCategories[3]?.id,
+  );
   const users = await createUsers(dbPool);
   const usersToGroups = await createUsersToGroups(
     dbPool,
     users.map((u) => u.id!),
     groups.map((g) => g.id!),
+    groupCategories[0]!.id,
+    groupCategories[1]!.id,
+  );
+  const questionsToGroupCategories = await createQuestionsToGroupCategories(
+    dbPool,
+    forumQuestions[0]!.id,
     groupCategories[0]?.id,
+    groupCategories[1]?.id,
   );
 
   return {
@@ -28,6 +45,8 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     users,
     usersToGroups,
     registrationFields,
+    questionsToGroupCategories,
+    registrationFieldOptions,
   };
 }
 
@@ -37,11 +56,13 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.federatedCredentials);
   await dbPool.delete(db.questionOptions);
   await dbPool.delete(db.registrationData);
+  await dbPool.delete(db.registrationFieldOptions);
   await dbPool.delete(db.registrationFields);
   await dbPool.delete(db.registrations);
   await dbPool.delete(db.usersToGroups);
   await dbPool.delete(db.users);
   await dbPool.delete(db.groups);
+  await dbPool.delete(db.questionsToGroupCategories);
   await dbPool.delete(db.groupCategories);
   await dbPool.delete(db.forumQuestions);
   await dbPool.delete(db.cycles);
@@ -71,6 +92,8 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
         required: true,
         eventId,
         questionOptionType: 'TITLE',
+        forUser: false,
+        forGroup: true,
       },
       {
         name: 'proposal description',
@@ -78,12 +101,44 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
         required: true,
         eventId,
         questionOptionType: 'SUBTITLE',
+        forUser: true,
+        forGroup: false,
       },
       {
         name: 'other field',
         type: 'TEXT',
         required: false,
         eventId,
+      },
+      {
+        name: 'select field',
+        type: 'SELECT',
+        required: false,
+        eventId,
+        forUser: true,
+      },
+    ])
+    .returning();
+}
+
+async function createRegistrationFieldOptions(
+  dbPool: PostgresJsDatabase<typeof db>,
+  registrationFieldId?: string,
+) {
+  if (registrationFieldId === undefined) {
+    throw new Error('Registration Field ID is undefined.');
+  }
+
+  return dbPool
+    .insert(db.registrationFieldOptions)
+    .values([
+      {
+        registrationFieldId,
+        value: 'Option A',
+      },
+      {
+        registrationFieldId,
+        value: 'Option B',
       },
     ])
     .returning();
@@ -114,10 +169,16 @@ async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycle
 
   return dbPool
     .insert(db.forumQuestions)
-    .values({
-      cycleId,
-      questionTitle: "What's your favorite movie?",
-    })
+    .values([
+      {
+        cycleId,
+        questionTitle: "What's your favorite movie?",
+      },
+      {
+        cycleId,
+        questionTitle: 'What is your favorit fruit?',
+      },
+    ])
     .returning();
 }
 
@@ -148,12 +209,24 @@ async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, even
     .insert(db.groupCategories)
     .values([
       {
-        name: 'Category A',
+        name: 'affiliation',
         eventId: eventId,
+        userCanView: true,
       },
       {
-        name: 'Category B',
+        name: 'category A',
         eventId: eventId,
+        userCanView: true,
+      },
+      {
+        name: 'category B',
+        eventId: eventId,
+        userCanView: true,
+      },
+      {
+        name: 'secrets',
+        eventId: eventId,
+        userCanCreate: true,
       },
     ])
     .returning();
@@ -161,26 +234,33 @@ async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, even
 
 async function createGroups(
   dbPool: PostgresJsDatabase<typeof db>,
-  groupIdOne?: string,
-  groupIdTwo?: string,
+  baselineCategory?: string,
+  categoryOne?: string,
+  categoryTwo?: string,
+  secretCategory?: string,
 ) {
   return dbPool
     .insert(db.groups)
     .values([
       {
         name: randCompanyName(),
-        groupCategoryId: groupIdOne,
+        groupCategoryId: baselineCategory,
       },
       {
         name: randCompanyName(),
-        groupCategoryId: groupIdOne,
+        groupCategoryId: categoryOne,
       },
       {
         name: randCompanyName(),
-        groupCategoryId: groupIdTwo,
+        groupCategoryId: categoryOne,
       },
       {
         name: randCompanyName(),
+        groupCategoryId: categoryTwo,
+      },
+      {
+        name: randCompanyName(),
+        groupCategoryId: secretCategory,
       },
     ])
     .returning();
@@ -198,15 +278,47 @@ async function createUsersToGroups(
   dbPool: PostgresJsDatabase<typeof db>,
   userIds: string[],
   groupIds: string[],
-  groupCategoryId: string | undefined,
+  baselineGroupCategory: string | undefined,
+  otherGroupCategory: string | undefined,
 ) {
   // assign users to groups
   const usersToGroups = userIds.map((userId, index) => ({
     userId,
-    groupId: index < 2 ? groupIds[0]! : groupIds[1]!,
-    groupCategoryId,
+    groupId: index < 2 ? groupIds[1]! : groupIds[2]!,
+    groupCategoryId: otherGroupCategory,
   }));
+
+  // Add baseline group for each user (i.e. each user must be assigned to at least one group at all times)
+  userIds.forEach((userId) => {
+    usersToGroups.push({
+      userId,
+      groupId: groupIds[0]!,
+      groupCategoryId: baselineGroupCategory,
+    });
+  });
+
   return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
+}
+
+async function createQuestionsToGroupCategories(
+  dbPool: PostgresJsDatabase<typeof db>,
+  questionId: string,
+  groupCategoryIdOne?: string,
+  groupCategoryIdTwo?: string,
+) {
+  return dbPool
+    .insert(db.questionsToGroupCategories)
+    .values([
+      {
+        questionId: questionId,
+        groupCategoryId: groupCategoryIdOne,
+      },
+      {
+        questionId: questionId,
+        groupCategoryId: groupCategoryIdTwo,
+      },
+    ])
+    .returning();
 }
 
 export { seed, cleanup };
