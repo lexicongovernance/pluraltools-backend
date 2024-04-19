@@ -14,7 +14,8 @@ export const registrationFields = pgTable('registration_fields', {
   required: boolean('required').default(false),
   fieldDisplayRank: integer('fields_display_rank'),
   characterLimit: integer('character_limit').default(0),
-  displayOnGroupRegistration: boolean('display_on_group_registration').default(false),
+  forGroup: boolean('for_group').default(false),
+  forUser: boolean('for_user').default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

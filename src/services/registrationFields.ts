@@ -1,24 +1,38 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
+import { and, eq } from 'drizzle-orm';
 
-export async function validateRequiredRegistrationFields(
-  dbPool: PostgresJsDatabase<typeof db>,
+export async function validateRequiredRegistrationFields({
+  data,
+  dbPool,
+  forGroup,
+  forUser,
+}: {
+  dbPool: PostgresJsDatabase<typeof db>;
   data: {
     eventId: string;
     registrationData: {
       registrationFieldId: string;
       value: string;
     }[];
-  },
-) {
+  };
+  forUser: boolean;
+  forGroup: boolean;
+}) {
   // check if all required fields are filled
   const event = await dbPool.query.events.findFirst({
     with: {
-      registrationFields: true,
+      registrationFields: {
+        where: and(
+          eq(db.registrationFields.forUser, forUser),
+          eq(db.registrationFields.forGroup, forGroup),
+          eq(db.registrationFields.required, true),
+        ),
+      },
     },
-    where: (event, { eq }) => eq(event.id, data.eventId),
+    where: eq(db.events.id, data.eventId),
   });
-  const requiredFields = event?.registrationFields.filter((field) => field.required);
+  const requiredFields = event?.registrationFields;
 
   if (!requiredFields) {
     return [];

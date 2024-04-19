@@ -85,12 +85,16 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
         type: 'TEXT',
         required: true,
         eventId,
+        forUser: false,
+        forGroup: true,
       },
       {
         name: 'proposal description',
         type: 'TEXT',
         required: true,
         eventId,
+        forUser: true,
+        forGroup: false,
       },
       {
         name: 'other field',

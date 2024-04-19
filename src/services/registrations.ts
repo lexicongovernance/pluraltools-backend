@@ -5,21 +5,80 @@ import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
 import { upsertRegistrationData } from './registrationData';
 
+export async function validateCreateRegistrationPermissions({
+  dbPool,
+  userId,
+  groupId,
+  eventId,
+}: {
+  dbPool: PostgresJsDatabase<typeof db>;
+  userId: string;
+  eventId: string;
+  groupId?: string | null;
+}) {
+  if (groupId) {
+    const userGroup = dbPool.query.usersToGroups.findFirst({
+      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
+    });
+
+    if (!userGroup) {
+      return false;
+    }
+
+    // limit one registration per group per event
+    const existingRegistration = await dbPool.query.registrations.findFirst({
+      where: and(eq(db.registrations.eventId, eventId), eq(db.registrations.groupId, groupId)),
+    });
+
+    if (existingRegistration) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export async function validateUpdateRegistrationPermissions({
+  dbPool,
+  registrationId,
+  userId,
+  groupId,
+}: {
+  dbPool: PostgresJsDatabase<typeof db>;
+  userId: string;
+  registrationId: string;
+  groupId?: string | null;
+}) {
+  const existingRegistration = await dbPool.query.registrations.findFirst({
+    where: and(eq(db.registrations.userId, userId), eq(db.registrations.id, registrationId)),
+  });
+
+  if (!existingRegistration) {
+    return false;
+  }
+
+  if (existingRegistration.userId !== userId) {
+    return false;
+  }
+
+  if (groupId) {
+    const userGroup = dbPool.query.usersToGroups.findFirst({
+      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
+    });
+
+    if (!userGroup) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export async function saveRegistration(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
   userId: string,
 ) {
-  if (data.groupId) {
-    const userGroup = dbPool.query.usersToGroups.findFirst({
-      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, data.groupId!)),
-    });
-
-    if (!userGroup) {
-      throw new Error('user is not in group');
-    }
-  }
-
   const newRegistration = await createRegistrationInDB(dbPool, data);
   if (!newRegistration) {
     throw new Error('failed to save registration');
@@ -54,16 +113,6 @@ export async function updateRegistration({
   registrationId: string;
   userId: string;
 }) {
-  if (data.groupId) {
-    const userGroup = dbPool.query.usersToGroups.findFirst({
-      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, data.groupId!)),
-    });
-
-    if (!userGroup) {
-      throw new Error('user is not in group');
-    }
-  }
-
   const existingRegistration = await dbPool.query.registrations.findFirst({
     where: and(eq(db.registrations.userId, userId), eq(db.registrations.id, registrationId)),
   });
@@ -121,7 +170,6 @@ async function updateRegistrationInDB(
   const updatedRegistration = await dbPool
     .update(db.registrations)
     .set({
-      userId: body.userId,
       eventId: body.eventId,
       groupId: body.groupId,
       status: body.status,
