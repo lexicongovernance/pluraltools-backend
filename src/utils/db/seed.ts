@@ -113,7 +113,7 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
       {
         name: 'select field',
         type: 'SELECT',
-        required: true,
+        required: false,
         eventId,
         forUser: true,
       },
