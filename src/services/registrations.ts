@@ -77,7 +77,6 @@ export async function validateUpdateRegistrationPermissions({
 export async function saveRegistration(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
-  userId: string,
 ) {
   const newRegistration = await createRegistrationInDB(dbPool, data);
   if (!newRegistration) {

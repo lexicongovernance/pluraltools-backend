@@ -37,7 +37,7 @@ describe('service: registrations', () => {
   });
   test('send registration data', async function () {
     // Call the saveRegistration function
-    const response = await saveRegistration(dbPool, testData, testData.userId);
+    const response = await saveRegistration(dbPool, testData);
     // Check if response is defined
     expect(response).toBeDefined();
     // Check property existence and types
@@ -66,7 +66,7 @@ describe('service: registrations', () => {
       },
     ];
     // Call the saveRegistration function
-    const response = await saveRegistration(dbPool, testData, testData.userId);
+    const response = await saveRegistration(dbPool, testData);
     // Check if response is defined
     expect(response).toBeDefined();
     // Check property existence and types

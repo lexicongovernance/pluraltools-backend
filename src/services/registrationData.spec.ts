@@ -49,7 +49,7 @@ describe('service: registrationData', () => {
     };
 
     // Add test registration data to the db
-    registration = await saveRegistration(dbPool, testRegistration, testRegistration.userId);
+    registration = await saveRegistration(dbPool, testRegistration);
   });
 
   test('should update existing records', async () => {
