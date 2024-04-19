@@ -3,7 +3,12 @@ import type { Request, Response } from 'express';
 import * as db from '../db';
 import { insertRegistrationSchema } from '../types';
 import { validateRequiredRegistrationFields } from '../services/registrationFields';
-import { saveRegistration, updateRegistration } from '../services/registrations';
+import {
+  saveRegistration,
+  updateRegistration,
+  validateCreateRegistrationPermissions,
+  validateUpdateRegistrationPermissions,
+} from '../services/registrations';
 import { and, eq } from 'drizzle-orm';
 
 export function getRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>) {
@@ -45,10 +50,26 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields(dbPool, body.data);
+    const missingRequiredFields = await validateRequiredRegistrationFields({
+      dbPool,
+      data: body.data,
+      forGroup: !!body.data.groupId,
+      forUser: !body.data.groupId,
+    });
 
     if (missingRequiredFields.length > 0) {
       return res.status(400).json({ errors: missingRequiredFields });
+    }
+
+    const canRegisterGroup = await validateCreateRegistrationPermissions({
+      dbPool,
+      userId,
+      eventId: body.data.eventId,
+      groupId: body.data.groupId,
+    });
+
+    if (!canRegisterGroup) {
+      return res.status(400).json({ errors: ['Cannot register for this group'] });
     }
 
     try {
@@ -77,10 +98,26 @@ export function updateRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>)
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields(dbPool, body.data);
+    const missingRequiredFields = await validateRequiredRegistrationFields({
+      dbPool,
+      data: body.data,
+      forGroup: !!body.data.groupId,
+      forUser: !body.data.groupId,
+    });
 
     if (missingRequiredFields.length > 0) {
       return res.status(400).json({ errors: missingRequiredFields });
+    }
+
+    const canUpdateRegistration = await validateUpdateRegistrationPermissions({
+      dbPool,
+      registrationId,
+      userId,
+      groupId: body.data.groupId,
+    });
+
+    if (!canUpdateRegistration) {
+      return res.status(400).json({ errors: ['Cannot update this registration'] });
     }
 
     try {
