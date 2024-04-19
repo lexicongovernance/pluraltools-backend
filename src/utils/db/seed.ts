@@ -6,6 +6,10 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const events = await createEvent(dbPool);
   const cycles = await createCycle(dbPool, events[0]?.id);
   const registrationFields = await createRegistrationFields(dbPool, events[0]?.id);
+  const registrationFieldOptions = await createRegistrationFieldOptions(
+    dbPool,
+    registrationFields[3]?.id,
+  );
   const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id);
   const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
   const groupCategories = await createGroupCategories(dbPool, events[0]?.id);
@@ -42,6 +46,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     usersToGroups,
     registrationFields,
     questionsToGroupCategories,
+    registrationFieldOptions,
   };
 }
 
@@ -51,6 +56,7 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.federatedCredentials);
   await dbPool.delete(db.questionOptions);
   await dbPool.delete(db.registrationData);
+  await dbPool.delete(db.registrationFieldOptions);
   await dbPool.delete(db.registrationFields);
   await dbPool.delete(db.registrations);
   await dbPool.delete(db.usersToGroups);
@@ -103,6 +109,36 @@ async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, e
         type: 'TEXT',
         required: false,
         eventId,
+      },
+      {
+        name: 'select field',
+        type: 'SELECT',
+        required: true,
+        eventId,
+        forUser: true,
+      },
+    ])
+    .returning();
+}
+
+async function createRegistrationFieldOptions(
+  dbPool: PostgresJsDatabase<typeof db>,
+  registrationFieldId?: string,
+) {
+  if (registrationFieldId === undefined) {
+    throw new Error('Registration Field ID is undefined.');
+  }
+
+  return dbPool
+    .insert(db.registrationFieldOptions)
+    .values([
+      {
+        registrationFieldId,
+        value: 'Option A',
+      },
+      {
+        registrationFieldId,
+        value: 'Option B',
       },
     ])
     .returning();

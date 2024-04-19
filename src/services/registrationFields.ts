@@ -39,9 +39,23 @@ export async function validateRequiredRegistrationFields({
   }
 
   // loop through required fields and check if they are filled
-  const missingFields = requiredFields.filter(
-    (field) => !data.registrationData.some((data) => data.registrationFieldId === field.id),
-  );
+  const missingFields = requiredFields.filter((field) => {
+    const registrationField = data.registrationData.find(
+      (data) => data.registrationFieldId === field.id,
+    );
+
+    // if field is not found in registration data, it is missing
+    if (!registrationField) {
+      return true;
+    }
+
+    // if field is found but value is empty, it is missing
+    if (!registrationField.value) {
+      return true;
+    }
+
+    return false;
+  });
 
   return missingFields.map((field) => ({
     field: field.name,
