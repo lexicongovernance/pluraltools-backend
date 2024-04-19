@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { boolean, integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { events, forumQuestions, registrationData, registrationFieldOptions } from '.';
+import { events, registrationData, registrationFieldOptions } from '.';
 
 export const registrationFields = pgTable('registration_fields', {
   id: uuid('id').primaryKey().defaultRandom(),
