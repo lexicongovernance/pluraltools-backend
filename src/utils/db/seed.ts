@@ -1,7 +1,103 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../../db';
-import { randCompanyName, randCountry, randMovie, randUser } from '@ngneat/falso';
+import { generateEventData, generateRegistrationFieldData, generateUserData, generateGroupData } from './seed-data-generators';
 
+async function seed(dbPool: PostgresJsDatabase<typeof db>, seedData: SeedData) {
+  const {
+    events,
+    cycles,
+    forumQuestions,
+    questionOptions,
+    groupCategories,
+    groups,
+    users,
+    usersToGroups,
+    registrationFields,
+    questionsToGroupCategories,
+    registrationFieldOptions,
+  } = seedData;
+
+  await createEvent(dbPool, events);
+  await createCycle(dbPool, cycles);
+  await createRegistrationFields(dbPool, registrationFields);
+  await createRegistrationFieldOptions(dbPool, registrationFieldOptions);
+  await createForumQuestions(dbPool, forumQuestions);
+  await createQuestionOptions(dbPool, questionOptions);
+  await createGroupCategories(dbPool, groupCategories);
+  await createGroups(dbPool, groups);
+  await createUsers(dbPool, users);
+  await createUsersToGroups(dbPool, usersToGroups);
+  await createQuestionsToGroupCategories(dbPool, questionsToGroupCategories);
+}
+
+async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
+  await dbPool.delete(db.userAttributes);
+  await dbPool.delete(db.votes);
+  await dbPool.delete(db.federatedCredentials);
+  await dbPool.delete(db.questionOptions);
+  await dbPool.delete(db.registrationData);
+  await dbPool.delete(db.registrationFieldOptions);
+  await dbPool.delete(db.registrationFields);
+  await dbPool.delete(db.registrations);
+  await dbPool.delete(db.usersToGroups);
+  await dbPool.delete(db.users);
+  await dbPool.delete(db.groups);
+  await dbPool.delete(db.questionsToGroupCategories);
+  await dbPool.delete(db.groupCategories);
+  await dbPool.delete(db.forumQuestions);
+  await dbPool.delete(db.cycles);
+  await dbPool.delete(db.events);
+}
+
+interface SeedData {
+  events: string[];
+  cycles: CycleData[];
+  forumQuestions: ForumQuestionData[];
+  questionOptions: QuestionOptionData[];
+  groupCategories: GroupCategoryData[];
+  groups: GroupData[];
+  users: UserData[];
+  usersToGroups: UsersToGroupsData[];
+  registrationFields: RegistrationFieldData[];
+  questionsToGroupCategories: QuestionsToGroupCategoriesData[];
+  registrationFieldOptions: RegistrationFieldOptionData[];
+}
+
+async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: string[]) {
+  for (const eventName of eventData) {
+    await dbPool
+      .insert(db.events)
+      .values({
+        name: eventName,
+      })
+      .execute();
+  }
+}
+
+async function createCycle(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
+  if (eventId === undefined) {
+    throw new Error('Event ID is undefined.');
+  }
+
+  const endInADay = new Date();
+  endInADay.setDate(endInADay.getDate() + 1);
+  return dbPool
+    .insert(db.cycles)
+    .values({
+      startAt: new Date(),
+      endAt: endInADay,
+      status: 'OPEN',
+      eventId,
+    })
+    .returning();
+}
+
+
+
+export { seed, cleanup };
+
+
+/*
 async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   const events = await createEvent(dbPool);
   const cycles = await createCycle(dbPool, events[0]?.id);
@@ -78,6 +174,8 @@ async function createEvent(dbPool: PostgresJsDatabase<typeof db>) {
     .returning();
 }
 
+*/
+
 async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
   if (eventId === undefined) {
     throw new Error('Event ID is undefined.');
@@ -142,23 +240,7 @@ async function createRegistrationFieldOptions(
     .returning();
 }
 
-async function createCycle(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
-  if (eventId === undefined) {
-    throw new Error('Event ID is undefined.');
-  }
 
-  const endInADay = new Date();
-  endInADay.setDate(endInADay.getDate() + 1);
-  return dbPool
-    .insert(db.cycles)
-    .values({
-      startAt: new Date(),
-      endAt: endInADay,
-      status: 'OPEN',
-      eventId,
-    })
-    .returning();
-}
 
 async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycleId?: string) {
   if (cycleId === undefined) {
@@ -318,5 +400,3 @@ async function createQuestionsToGroupCategories(
     ])
     .returning();
 }
-
-export { seed, cleanup };
