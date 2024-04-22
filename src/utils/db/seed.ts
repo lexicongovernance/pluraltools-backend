@@ -1,6 +1,6 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../../db';
-import { generateEventData, generateRegistrationFieldData, generateUserData, generateGroupData } from './seed-data-generators';
+import {EventData, CycleData, RegistrationFieldData, RegistrationFieldOptionData, ForumQuestionData} from './seed-data-generators';
 
 async function seed(dbPool: PostgresJsDatabase<typeof db>, seedData: SeedData) {
   const {
@@ -50,49 +50,116 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 interface SeedData {
-  events: string[];
+  events: EventData[];
   cycles: CycleData[];
+  registrationFields: RegistrationFieldData[];
+  registrationFieldOptions: RegistrationFieldOptionData[];
   forumQuestions: ForumQuestionData[];
   questionOptions: QuestionOptionData[];
   groupCategories: GroupCategoryData[];
   groups: GroupData[];
   users: UserData[];
   usersToGroups: UsersToGroupsData[];
-  registrationFields: RegistrationFieldData[];
   questionsToGroupCategories: QuestionsToGroupCategoriesData[];
-  registrationFieldOptions: RegistrationFieldOptionData[];
 }
 
-async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: string[]) {
+async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: EventData[]) {
   for (const eventName of eventData) {
     await dbPool
       .insert(db.events)
       .values({
-        name: eventName,
+        name: eventName.name,
       })
       .execute();
   }
 }
 
-async function createCycle(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
-  if (eventId === undefined) {
-    throw new Error('Event ID is undefined.');
+async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: CycleData[]) {
+  if (cycleData.length === 0) {
+    throw new Error('Cycle data is empty.');
   }
 
-  const endInADay = new Date();
-  endInADay.setDate(endInADay.getDate() + 1);
-  return dbPool
-    .insert(db.cycles)
-    .values({
-      startAt: new Date(),
-      endAt: endInADay,
-      status: 'OPEN',
-      eventId,
-    })
-    .returning();
+  for (const cycle of cycleData) {
+    if (!cycle.eventId) {
+      throw new Error('Event ID is not defined.');
+    }
+
+    await dbPool
+      .insert(db.cycles)
+      .values({
+        startAt: cycle.startAt,
+        endAt: cycle.endAt,
+        status: cycle.status,
+        eventId: cycle.eventId,
+      })
+      .execute();
+  }
 }
 
+async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, registrationFieldData: RegistrationFieldData[]) {
+  if (registrationFieldData.length === 0) {
+    throw new Error('Registration field data is empty.');
+  }
 
+  for (const field of registrationFieldData) {
+    if (!field.eventId) {
+      throw new Error('Event ID is not defined for a registration field.');
+    }
+
+    await dbPool
+      .insert(db.registrationFields)
+      .values({
+        name: field.name,
+        type: field.type,
+        required: field.required,
+        forUser: field.forUser,
+        forGroup: field.forGroup,
+        eventId: field.eventId,
+      })
+      .execute();
+  }
+}
+
+async function createRegistrationFieldOptions(
+  dbPool: PostgresJsDatabase<typeof db>,
+  registrationFieldOptionsData: RegistrationFieldOptionData[],
+) {
+  if (registrationFieldOptionsData.length === 0) {
+    throw new Error('Registration Field Options data is empty.');
+  }
+
+  for (const optionData of registrationFieldOptionsData) {
+    if (!optionData.registrationFieldId) {
+      throw new Error('Registration Field id is not defined for a registration option.');
+    }
+    await dbPool
+      .insert(db.registrationFieldOptions)
+      .values({
+        registrationFieldId: optionData.registrationFieldId,
+        value: optionData.value,
+      })
+      .execute();
+  }
+}
+async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, forumQuestionData: ForumQuestionData[]) {
+  if (forumQuestionData.length === 0) {
+    throw new Error('Forum Question data is empty.');
+  }
+
+  for (const questionData of forumQuestionData) {
+    if (!questionData.cycleId) {
+      throw new Error('Cycle ID is not defined for the forum question.');
+    }
+
+    await dbPool
+      .insert(db.forumQuestions)
+      .values({
+        cycleId: questionData.cycleId,
+        questionTitle: questionData.questionTitle,
+      })
+      .execute();
+  }
+}
 
 export { seed, cleanup };
 
@@ -176,91 +243,6 @@ async function createEvent(dbPool: PostgresJsDatabase<typeof db>) {
 
 */
 
-async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
-  if (eventId === undefined) {
-    throw new Error('Event ID is undefined.');
-  }
-
-  return dbPool
-    .insert(db.registrationFields)
-    .values([
-      {
-        name: 'proposal title',
-        type: 'TEXT',
-        required: true,
-        eventId,
-        forUser: false,
-        forGroup: true,
-      },
-      {
-        name: 'proposal description',
-        type: 'TEXT',
-        required: true,
-        eventId,
-        forUser: true,
-        forGroup: false,
-      },
-      {
-        name: 'other field',
-        type: 'TEXT',
-        required: false,
-        eventId,
-      },
-      {
-        name: 'select field',
-        type: 'SELECT',
-        required: false,
-        eventId,
-        forUser: true,
-      },
-    ])
-    .returning();
-}
-
-async function createRegistrationFieldOptions(
-  dbPool: PostgresJsDatabase<typeof db>,
-  registrationFieldId?: string,
-) {
-  if (registrationFieldId === undefined) {
-    throw new Error('Registration Field ID is undefined.');
-  }
-
-  return dbPool
-    .insert(db.registrationFieldOptions)
-    .values([
-      {
-        registrationFieldId,
-        value: 'Option A',
-      },
-      {
-        registrationFieldId,
-        value: 'Option B',
-      },
-    ])
-    .returning();
-}
-
-
-
-async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, cycleId?: string) {
-  if (cycleId === undefined) {
-    throw new Error('Cycle ID is undefined.');
-  }
-
-  return dbPool
-    .insert(db.forumQuestions)
-    .values([
-      {
-        cycleId,
-        questionTitle: "What's your favorite movie?",
-      },
-      {
-        cycleId,
-        questionTitle: 'What is your favorit fruit?',
-      },
-    ])
-    .returning();
-}
 
 async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, questionId?: string) {
   if (questionId === undefined) {
