@@ -73,7 +73,7 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     try {
-      const out = await saveRegistration(dbPool, body.data, userId);
+      const out = await saveRegistration(dbPool, body.data);
       return res.json({ data: out });
     } catch (e) {
       console.log('error saving registration ' + e);
