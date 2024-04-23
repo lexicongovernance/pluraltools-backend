@@ -82,7 +82,7 @@ async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: Eve
       .values({
         name: eventName.name,
       })
-      .execute();
+      .returning();
   }
 }
 
@@ -310,82 +310,3 @@ async function createQuestionsToGroupCategories(
 }
 
 export { seed, cleanup };
-
-/*
-async function seed(dbPool: PostgresJsDatabase<typeof db>) {
-  const events = await createEvent(dbPool);
-  const cycles = await createCycle(dbPool, events[0]?.id);
-  const registrationFields = await createRegistrationFields(dbPool, events[0]?.id);
-  const registrationFieldOptions = await createRegistrationFieldOptions(
-    dbPool,
-    registrationFields[3]?.id,
-  );
-  const forumQuestions = await createForumQuestions(dbPool, cycles[0]?.id);
-  const questionOptions = await createQuestionOptions(dbPool, forumQuestions[0]?.id);
-  const groupCategories = await createGroupCategories(dbPool, events[0]?.id);
-  const groups = await createGroups(
-    dbPool,
-    groupCategories[0]?.id,
-    groupCategories[1]?.id,
-    groupCategories[2]?.id,
-    groupCategories[3]?.id,
-  );
-  const users = await createUsers(dbPool);
-  const usersToGroups = await createUsersToGroups(
-    dbPool,
-    users.map((u) => u.id!),
-    groups.map((g) => g.id!),
-    groupCategories[0]!.id,
-    groupCategories[1]!.id,
-  );
-  const questionsToGroupCategories = await createQuestionsToGroupCategories(
-    dbPool,
-    forumQuestions[0]!.id,
-    groupCategories[0]?.id,
-    groupCategories[1]?.id,
-  );
-
-  return {
-    events,
-    cycles,
-    forumQuestions,
-    questionOptions,
-    groupCategories,
-    groups,
-    users,
-    usersToGroups,
-    registrationFields,
-    questionsToGroupCategories,
-    registrationFieldOptions,
-  };
-}
-
-async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
-  await dbPool.delete(db.userAttributes);
-  await dbPool.delete(db.votes);
-  await dbPool.delete(db.federatedCredentials);
-  await dbPool.delete(db.questionOptions);
-  await dbPool.delete(db.registrationData);
-  await dbPool.delete(db.registrationFieldOptions);
-  await dbPool.delete(db.registrationFields);
-  await dbPool.delete(db.registrations);
-  await dbPool.delete(db.usersToGroups);
-  await dbPool.delete(db.users);
-  await dbPool.delete(db.groups);
-  await dbPool.delete(db.questionsToGroupCategories);
-  await dbPool.delete(db.groupCategories);
-  await dbPool.delete(db.forumQuestions);
-  await dbPool.delete(db.cycles);
-  await dbPool.delete(db.events);
-}
-
-async function createEvent(dbPool: PostgresJsDatabase<typeof db>) {
-  return dbPool
-    .insert(db.events)
-    .values({
-      name: randCountry(),
-    })
-    .returning();
-}
-
-*/
