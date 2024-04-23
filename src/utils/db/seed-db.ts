@@ -14,20 +14,33 @@ import {
   generateCycleData,
 } from './seed-data-generators';
 
-
 async function defaultSeed(dbPool: PostgresJsDatabase<typeof db>) {
   const eventsData = generateEventData(1);
-  const events = createEvents(dbPool, eventsData)
+  const events = createEvents(dbPool, eventsData);
   const cycl = generateCycleData(1, events[0]?.id); // Example: Generate 3 cycles for event_id
   const registrationFields = generateRegistrationFieldData('event_id', [{}, {}, {}]); // Example: Generate registration fields for event_id
-  const registrationFieldOptions = generateRegistrationFieldOptionsData('registration_field_id', ['Option 1', 'Option 2']); // Example: Generate registration field options
+  const registrationFieldOptions = generateRegistrationFieldOptionsData('registration_field_id', [
+    'Option 1',
+    'Option 2',
+  ]); // Example: Generate registration field options
   const forumQuestions = generateForumQuestionData('cycle_id', ['Question 1', 'Question 2']); // Example: Generate forum questions
-  const questionOptions = generateQuestionOptionsData('question_id', ['Option A', 'Option B'], [true, false]); // Example: Generate question options
+  const questionOptions = generateQuestionOptionsData(
+    'question_id',
+    ['Option A', 'Option B'],
+    [true, false],
+  ); // Example: Generate question options
   const groupCategories = generateGroupCategoryData('event_id', [{}, {}]); // Example: Generate group categories for event_id
   const groupData = generateGroupData(['category_id1', 'category_id2'], [2, 3]); // Example: Generate groups for categories
   const users = generateUserData(5); // Example: Generate 5 users
-  const usersToGroups = generateUsersToGroupsData(['user_id1', 'user_id2'], ['group_id1', 'group_id2'], ['category_id1', 'category_id2']); // Example: Generate users to groups data
-  const questionsToGroupCategories = generateQuestionsToGroupCategoriesData(['question_id1', 'question_id2'], ['category_id1', 'category_id2']); // Example: Generate questions to group categories data
+  const usersToGroups = generateUsersToGroupsData(
+    ['user_id1', 'user_id2'],
+    ['group_id1', 'group_id2'],
+    ['category_id1', 'category_id2'],
+  ); // Example: Generate users to groups data
+  const questionsToGroupCategories = generateQuestionsToGroupCategoriesData(
+    ['question_id1', 'question_id2'],
+    ['category_id1', 'category_id2'],
+  ); // Example: Generate questions to group categories data
 
   const cycles = await createCycle(dbPool, events[0]?.id);
   const registrationFields = await createRegistrationFields(dbPool, events[0]?.id);
@@ -128,8 +141,10 @@ const generateQuestionsToGroupCategories = generateQuestionsToGroupCategoriesDat
   categIds,
 );
 
-
-function createEvents(dbPool: PostgresJsDatabase<typeof db>, eventsData: import("./seed-data-generators").EventData[]) {
+function createEvents(
+  dbPool: PostgresJsDatabase<typeof db>,
+  eventsData: import('./seed-data-generators').EventData[],
+) {
   throw new Error('Function not implemented.');
 }
 /*

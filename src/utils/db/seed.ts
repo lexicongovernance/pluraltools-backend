@@ -14,19 +14,42 @@ import {
   QuestionsToGroupCategoriesData,
   generateEventData,
   generateCycleData,
+  generateRegistrationFieldData,
+  generateRegistrationFieldOptionsData,
+  generateForumQuestionData,
 } from './seed-data-generators';
 
 async function seed(dbPool: PostgresJsDatabase<typeof db>) {
-  const events = await createEvent(dbPool, generateEventData(5));
-  const cycles = await createCycle(dbPool, generateCycleData(2, events[1]!.id));
+  const events = await createEvent(dbPool, generateEventData(1));
+  const cycles = await createCycle(dbPool, generateCycleData(1, events[0]!.id));
+  const registrationFieldsData = [
+    { name: 'proposal title', type: 'TEXT', required: true, forGroup: true },
+    { name: 'proposal description', type: 'TEXT', required: true, forUser: true },
+    { name: 'other field', type: 'TEXT', required: false },
+    { name: 'select field', type: 'SELECT', required: false, forUser: true },
+  ];
+  const registrationFields = await createRegistrationFields(
+    dbPool,
+    generateRegistrationFieldData(events[0]!.id, registrationFieldsData),
+  );
+  const registrationFieldOptions = await createRegistrationFieldOptions(
+    dbPool,
+    generateRegistrationFieldOptionsData(registrationFields[3]!.id, ['Option A', 'Option B']),
+  );
+  const forumQuestions = await createForumQuestions(
+    dbPool,
+    generateForumQuestionData(cycles[0]!.id, ['Question One', 'Question Two']),
+  );
 
   return {
     events,
     cycles,
-  }  
-
+    registrationFields,
+    registrationFieldOptions,
+    forumQuestions,
+  };
 }
-    
+
 async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.userAttributes);
   await dbPool.delete(db.votes);
@@ -54,7 +77,7 @@ async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: Eve
       .values({
         name: eventName.name,
       })
-      .returning(); 
+      .returning();
     events.push(result[0]);
   }
   return events;
@@ -65,12 +88,13 @@ async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: Cyc
     throw new Error('Cycle data is empty.');
   }
 
+  const cycles = [];
   for (const cycle of cycleData) {
     if (!cycle.eventId) {
       throw new Error('Event ID is not defined.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.cycles)
       .values({
         startAt: cycle.startAt,
@@ -79,7 +103,11 @@ async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: Cyc
         eventId: cycle.eventId,
       })
       .returning();
+
+    cycles.push(result[0]);
   }
+
+  return cycles;
 }
 
 async function createRegistrationFields(
@@ -90,12 +118,13 @@ async function createRegistrationFields(
     throw new Error('Registration field data is empty.');
   }
 
+  const registrationFields = [];
   for (const field of registrationFieldData) {
     if (!field.eventId) {
       throw new Error('Event ID is not defined for a registration field.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.registrationFields)
       .values({
         name: field.name,
@@ -105,8 +134,12 @@ async function createRegistrationFields(
         forGroup: field.forGroup,
         eventId: field.eventId,
       })
-      .execute();
+      .returning();
+
+    registrationFields.push(result[0]);
   }
+
+  return registrationFields;
 }
 
 async function createRegistrationFieldOptions(
@@ -117,18 +150,24 @@ async function createRegistrationFieldOptions(
     throw new Error('Registration Field Options data is empty.');
   }
 
+  const registrationFieldOptions = [];
   for (const optionData of registrationFieldOptionsData) {
     if (!optionData.registrationFieldId) {
       throw new Error('Registration Field id is not defined for a registration option.');
     }
-    await dbPool
+
+    const result = await dbPool
       .insert(db.registrationFieldOptions)
       .values({
         registrationFieldId: optionData.registrationFieldId,
         value: optionData.value,
       })
-      .execute();
+      .returning();
+
+    registrationFieldOptions.push(result[0]);
   }
+
+  return registrationFieldOptions;
 }
 
 async function createForumQuestions(
@@ -139,19 +178,24 @@ async function createForumQuestions(
     throw new Error('Forum Question data is empty.');
   }
 
+  const forumQuestions = [];
   for (const questionData of forumQuestionData) {
     if (!questionData.cycleId) {
       throw new Error('Cycle ID is not defined for the forum question.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.forumQuestions)
       .values({
         cycleId: questionData.cycleId,
         questionTitle: questionData.questionTitle,
       })
-      .execute();
+      .returning();
+
+    forumQuestions.push(result[0]);
   }
+
+  return forumQuestions;
 }
 
 async function createQuestionOptions(
@@ -162,20 +206,25 @@ async function createQuestionOptions(
     throw new Error('Question Option data is empty.');
   }
 
+  const questionOptions = [];
   for (const questionOption of questionOptionData) {
     if (!questionOption.questionId) {
       throw new Error('Question ID is not defined for the question option.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.questionOptions)
       .values({
         questionId: questionOption.questionId,
         optionTitle: questionOption.optionTitle,
         accepted: questionOption.accepted,
       })
-      .execute();
+      .returning();
+
+    questionOptions.push(result[0]);
   }
+
+  return questionOptions;
 }
 
 async function createGroupCategories(
@@ -186,12 +235,13 @@ async function createGroupCategories(
     throw new Error('Group Categories data is empty.');
   }
 
+  const groupCategories = [];
   for (const data of groupCategoriesData) {
     if (!data.eventId) {
       throw new Error('Event ID is not defined for the group category.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.groupCategories)
       .values({
         name: data.name,
@@ -199,8 +249,12 @@ async function createGroupCategories(
         userCanCreate: data.userCanCreate,
         userCanView: data.userCanView,
       })
-      .execute();
+      .returning();
+
+    groupCategories.push(result[0]);
   }
+
+  return groupCategories;
 }
 
 async function createGroups(dbPool: PostgresJsDatabase<typeof db>, groupData: GroupData[]) {
@@ -208,32 +262,42 @@ async function createGroups(dbPool: PostgresJsDatabase<typeof db>, groupData: Gr
     throw new Error('Group Data is empty.');
   }
 
+  const groups = [];
   for (const group of groupData) {
     if (!group.groupCategoryId) {
       throw new Error('Group Category ID is not defined for the group.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.groups)
       .values({
         name: group.name,
         groupCategoryId: group.groupCategoryId,
       })
-      .execute();
+      .returning();
+
+    groups.push(result[0]);
   }
+
+  return groups;
 }
 
 async function createUsers(dbPool: PostgresJsDatabase<typeof db>, userData: UserData[]) {
+  const users = [];
   for (const user of userData) {
-    await dbPool
+    const result = await dbPool
       .insert(db.users)
       .values({
         username: user.username,
         email: user.email,
         telegram: user.telegram,
       })
-      .execute();
+      .returning();
+
+    users.push(result[0]);
   }
+
+  return users;
 }
 
 async function createUsersToGroups(
@@ -241,23 +305,28 @@ async function createUsersToGroups(
   usersToGroupsData: UsersToGroupsData[],
 ) {
   if (usersToGroupsData.length === 0) {
-    throw new Error('Group Data is empty.');
+    throw new Error('Users to Groups Data is empty.');
   }
 
+  const usersToGroups = [];
   for (const group of usersToGroupsData) {
     if (!group.groupId) {
       throw new Error('Group ID is not defined for the users to groups relationship.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.usersToGroups)
       .values({
         userId: group.userId,
         groupId: group.groupId,
         groupCategoryId: group.groupCategoryId,
       })
-      .execute();
+      .returning();
+
+    usersToGroups.push(result[0]);
   }
+
+  return usersToGroups;
 }
 
 async function createQuestionsToGroupCategories(
@@ -268,19 +337,24 @@ async function createQuestionsToGroupCategories(
     throw new Error('Questions to Group Categories Data is empty.');
   }
 
+  const questionsToGroupCategories = [];
   for (const groupCategories of questionsToGroupCategoriesData) {
     if (!groupCategories.questionId) {
       throw new Error('Question ID is not defined for the group Category.');
     }
 
-    await dbPool
+    const result = await dbPool
       .insert(db.questionsToGroupCategories)
       .values({
         questionId: groupCategories.questionId,
         groupCategoryId: groupCategories.groupCategoryId,
       })
-      .execute();
+      .returning();
+
+    questionsToGroupCategories.push(result[0]);
   }
+
+  return questionsToGroupCategories;
 }
 
 export { seed, cleanup };
