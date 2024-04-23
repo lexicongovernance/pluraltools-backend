@@ -1,6 +1,18 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../../db';
-import {EventData, CycleData, RegistrationFieldData, RegistrationFieldOptionData, ForumQuestionData} from './seed-data-generators';
+import {
+  EventData,
+  CycleData,
+  RegistrationFieldData,
+  RegistrationFieldOptionData,
+  ForumQuestionData,
+  QuestionOptionData,
+  GroupCategoryData,
+  GroupData,
+  UserData,
+  UsersToGroupsData,
+  QuestionsToGroupCategoriesData,
+} from './seed-data-generators';
 
 async function seed(dbPool: PostgresJsDatabase<typeof db>, seedData: SeedData) {
   const {
@@ -96,7 +108,10 @@ async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: Cyc
   }
 }
 
-async function createRegistrationFields(dbPool: PostgresJsDatabase<typeof db>, registrationFieldData: RegistrationFieldData[]) {
+async function createRegistrationFields(
+  dbPool: PostgresJsDatabase<typeof db>,
+  registrationFieldData: RegistrationFieldData[],
+) {
   if (registrationFieldData.length === 0) {
     throw new Error('Registration field data is empty.');
   }
@@ -141,7 +156,11 @@ async function createRegistrationFieldOptions(
       .execute();
   }
 }
-async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, forumQuestionData: ForumQuestionData[]) {
+
+async function createForumQuestions(
+  dbPool: PostgresJsDatabase<typeof db>,
+  forumQuestionData: ForumQuestionData[],
+) {
   if (forumQuestionData.length === 0) {
     throw new Error('Forum Question data is empty.');
   }
@@ -161,8 +180,136 @@ async function createForumQuestions(dbPool: PostgresJsDatabase<typeof db>, forum
   }
 }
 
-export { seed, cleanup };
+async function createQuestionOptions(
+  dbPool: PostgresJsDatabase<typeof db>,
+  questionOptionData: QuestionOptionData[],
+) {
+  if (questionOptionData.length === 0) {
+    throw new Error('Question Option data is empty.');
+  }
 
+  for (const questionOption of questionOptionData) {
+    if (!questionOption.questionId) {
+      throw new Error('Question ID is not defined for the question option.');
+    }
+
+    await dbPool
+      .insert(db.questionOptions)
+      .values({
+        questionId: questionOption.questionId,
+        optionTitle: questionOption.optionTitle,
+        accepted: questionOption.accepted,
+      })
+      .execute();
+  }
+}
+
+async function createGroupCategories(
+  dbPool: PostgresJsDatabase<typeof db>,
+  groupCategoriesData: GroupCategoryData[],
+) {
+  if (groupCategoriesData.length === 0) {
+    throw new Error('Group Categories data is empty.');
+  }
+
+  for (const data of groupCategoriesData) {
+    if (!data.eventId) {
+      throw new Error('Event ID is not defined for the group category.');
+    }
+
+    await dbPool
+      .insert(db.groupCategories)
+      .values({
+        name: data.name,
+        eventId: data.eventId,
+        userCanCreate: data.userCanCreate,
+        userCanView: data.userCanView,
+      })
+      .execute();
+  }
+}
+
+async function createGroups(dbPool: PostgresJsDatabase<typeof db>, groupData: GroupData[]) {
+  if (groupData.length === 0) {
+    throw new Error('Group Data is empty.');
+  }
+
+  for (const group of groupData) {
+    if (!group.groupCategoryId) {
+      throw new Error('Group Category ID is not defined for the group.');
+    }
+
+    await dbPool
+      .insert(db.groups)
+      .values({
+        name: group.name,
+        groupCategoryId: group.groupCategoryId,
+      })
+      .execute();
+  }
+}
+
+async function createUsers(dbPool: PostgresJsDatabase<typeof db>, userData: UserData[]) {
+  for (const user of userData) {
+    await dbPool
+      .insert(db.users)
+      .values({
+        username: user.username,
+        email: user.email,
+        telegram: user.telegram,
+      })
+      .execute();
+  }
+}
+
+async function createUsersToGroups(
+  dbPool: PostgresJsDatabase<typeof db>,
+  usersToGroupsData: UsersToGroupsData[],
+) {
+  if (usersToGroupsData.length === 0) {
+    throw new Error('Group Data is empty.');
+  }
+
+  for (const group of usersToGroupsData) {
+    if (!group.groupId) {
+      throw new Error('Group ID is not defined for the users to groups relationship.');
+    }
+
+    await dbPool
+      .insert(db.usersToGroups)
+      .values({
+        userId: group.userId,
+        groupId: group.groupId,
+        groupCategoryId: group.groupCategoryId,
+      })
+      .execute();
+  }
+}
+
+async function createQuestionsToGroupCategories(
+  dbPool: PostgresJsDatabase<typeof db>,
+  questionsToGroupCategoriesData: QuestionsToGroupCategoriesData[],
+) {
+  if (questionsToGroupCategoriesData.length === 0) {
+    throw new Error('Questions to Group Categories Data is empty.');
+  }
+
+  for (const groupCategories of questionsToGroupCategoriesData) {
+    if (!groupCategories.questionId) {
+      throw new Error('Question ID is not defined for the group Category.');
+    }
+
+    await dbPool
+      .insert(db.questionsToGroupCategories)
+      .values({
+        questionId: groupCategories.questionId,
+        groupCategoryId: groupCategories.groupCategoryId,
+      })
+      .execute();
+  }
+}
+
+export { seed, cleanup };
 
 /*
 async function seed(dbPool: PostgresJsDatabase<typeof db>) {
@@ -242,143 +389,3 @@ async function createEvent(dbPool: PostgresJsDatabase<typeof db>) {
 }
 
 */
-
-
-async function createQuestionOptions(dbPool: PostgresJsDatabase<typeof db>, questionId?: string) {
-  if (questionId === undefined) {
-    throw new Error('Question ID is undefined.');
-  }
-
-  return dbPool
-    .insert(db.questionOptions)
-    .values([
-      {
-        questionId,
-        optionTitle: randMovie(),
-        accepted: true,
-      },
-      { questionId, optionTitle: randMovie(), accepted: true },
-    ])
-    .returning();
-}
-
-async function createGroupCategories(dbPool: PostgresJsDatabase<typeof db>, eventId?: string) {
-  if (eventId === undefined) {
-    throw new Error('Event ID is undefined.');
-  }
-
-  return dbPool
-    .insert(db.groupCategories)
-    .values([
-      {
-        name: 'affiliation',
-        eventId: eventId,
-        userCanView: true,
-      },
-      {
-        name: 'category A',
-        eventId: eventId,
-        userCanView: true,
-      },
-      {
-        name: 'category B',
-        eventId: eventId,
-        userCanView: true,
-      },
-      {
-        name: 'secrets',
-        eventId: eventId,
-        userCanCreate: true,
-      },
-    ])
-    .returning();
-}
-
-async function createGroups(
-  dbPool: PostgresJsDatabase<typeof db>,
-  baselineCategory?: string,
-  categoryOne?: string,
-  categoryTwo?: string,
-  secretCategory?: string,
-) {
-  return dbPool
-    .insert(db.groups)
-    .values([
-      {
-        name: randCompanyName(),
-        groupCategoryId: baselineCategory,
-      },
-      {
-        name: randCompanyName(),
-        groupCategoryId: categoryOne,
-      },
-      {
-        name: randCompanyName(),
-        groupCategoryId: categoryOne,
-      },
-      {
-        name: randCompanyName(),
-        groupCategoryId: categoryTwo,
-      },
-      {
-        name: randCompanyName(),
-        groupCategoryId: secretCategory,
-      },
-    ])
-    .returning();
-}
-
-async function createUsers(dbPool: PostgresJsDatabase<typeof db>) {
-  const fakeUsers = [randUser(), randUser(), randUser()];
-  return dbPool
-    .insert(db.users)
-    .values(fakeUsers.map((fUser) => ({ email: fUser.email, username: fUser.username })))
-    .returning();
-}
-
-async function createUsersToGroups(
-  dbPool: PostgresJsDatabase<typeof db>,
-  userIds: string[],
-  groupIds: string[],
-  baselineGroupCategory: string | undefined,
-  otherGroupCategory: string | undefined,
-) {
-  // assign users to groups
-  const usersToGroups = userIds.map((userId, index) => ({
-    userId,
-    groupId: index < 2 ? groupIds[1]! : groupIds[2]!,
-    groupCategoryId: otherGroupCategory,
-  }));
-
-  // Add baseline group for each user (i.e. each user must be assigned to at least one group at all times)
-  userIds.forEach((userId) => {
-    usersToGroups.push({
-      userId,
-      groupId: groupIds[0]!,
-      groupCategoryId: baselineGroupCategory,
-    });
-  });
-
-  return dbPool.insert(db.usersToGroups).values(usersToGroups).returning();
-}
-
-async function createQuestionsToGroupCategories(
-  dbPool: PostgresJsDatabase<typeof db>,
-  questionId: string,
-  groupCategoryIdOne?: string,
-  groupCategoryIdTwo?: string,
-) {
-  return dbPool
-    .insert(db.questionsToGroupCategories)
-    .values([
-      {
-        questionId: questionId,
-        groupCategoryId: groupCategoryIdOne,
-      },
-      {
-        questionId: questionId,
-        groupCategoryId: groupCategoryIdTwo,
-      },
-    ])
-    .returning();
-}
