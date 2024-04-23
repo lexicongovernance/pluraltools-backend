@@ -12,36 +12,21 @@ import {
   UserData,
   UsersToGroupsData,
   QuestionsToGroupCategoriesData,
+  generateEventData,
+  generateCycleData,
 } from './seed-data-generators';
 
-async function seed(dbPool: PostgresJsDatabase<typeof db>, seedData: SeedData) {
-  const {
+async function seed(dbPool: PostgresJsDatabase<typeof db>) {
+  const events = await createEvent(dbPool, generateEventData(5));
+  const cycles = await createCycle(dbPool, generateCycleData(2, events[1]!.id));
+
+  return {
     events,
     cycles,
-    forumQuestions,
-    questionOptions,
-    groupCategories,
-    groups,
-    users,
-    usersToGroups,
-    registrationFields,
-    questionsToGroupCategories,
-    registrationFieldOptions,
-  } = seedData;
+  }  
 
-  await createEvent(dbPool, events);
-  await createCycle(dbPool, cycles);
-  await createRegistrationFields(dbPool, registrationFields);
-  await createRegistrationFieldOptions(dbPool, registrationFieldOptions);
-  await createForumQuestions(dbPool, forumQuestions);
-  await createQuestionOptions(dbPool, questionOptions);
-  await createGroupCategories(dbPool, groupCategories);
-  await createGroups(dbPool, groups);
-  await createUsers(dbPool, users);
-  await createUsersToGroups(dbPool, usersToGroups);
-  await createQuestionsToGroupCategories(dbPool, questionsToGroupCategories);
 }
-
+    
 async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.userAttributes);
   await dbPool.delete(db.votes);
@@ -61,29 +46,18 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.events);
 }
 
-interface SeedData {
-  events: EventData[];
-  cycles: CycleData[];
-  registrationFields: RegistrationFieldData[];
-  registrationFieldOptions: RegistrationFieldOptionData[];
-  forumQuestions: ForumQuestionData[];
-  questionOptions: QuestionOptionData[];
-  groupCategories: GroupCategoryData[];
-  groups: GroupData[];
-  users: UserData[];
-  usersToGroups: UsersToGroupsData[];
-  questionsToGroupCategories: QuestionsToGroupCategoriesData[];
-}
-
 async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: EventData[]) {
+  const events = [];
   for (const eventName of eventData) {
-    await dbPool
+    const result = await dbPool
       .insert(db.events)
       .values({
         name: eventName.name,
       })
-      .returning();
+      .returning(); 
+    events.push(result[0]);
   }
+  return events;
 }
 
 async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: CycleData[]) {
@@ -104,7 +78,7 @@ async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: Cyc
         status: cycle.status,
         eventId: cycle.eventId,
       })
-      .execute();
+      .returning();
   }
 }
 

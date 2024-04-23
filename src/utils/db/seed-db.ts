@@ -18,7 +18,7 @@ import {
 async function defaultSeed(dbPool: PostgresJsDatabase<typeof db>) {
   const eventsData = generateEventData(1);
   const events = createEvents(dbPool, eventsData)
-  const cycles = generateCycleData(1, events[0]?.id); // Example: Generate 3 cycles for event_id
+  const cycl = generateCycleData(1, events[0]?.id); // Example: Generate 3 cycles for event_id
   const registrationFields = generateRegistrationFieldData('event_id', [{}, {}, {}]); // Example: Generate registration fields for event_id
   const registrationFieldOptions = generateRegistrationFieldOptionsData('registration_field_id', ['Option 1', 'Option 2']); // Example: Generate registration field options
   const forumQuestions = generateForumQuestionData('cycle_id', ['Question 1', 'Question 2']); // Example: Generate forum questions
