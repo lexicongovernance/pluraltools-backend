@@ -22,7 +22,7 @@ describe('service: usersToGroups', function () {
     // seed
     const { users, groups } = await seed(dbPool);
     user = users[0];
-    defaultGroups = groups;
+    defaultGroups = groups.filter((group) => group !== undefined) as db.Group[];
     // insert users without group assignment
     await dbPool.insert(db.users).values({ username: 'NewUser', email: 'SomeEmail' });
   });

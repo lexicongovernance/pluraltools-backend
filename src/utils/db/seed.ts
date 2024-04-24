@@ -366,7 +366,6 @@ async function createUsers(dbPool: PostgresJsDatabase<typeof db>, userData: User
       .values({
         username: user.username,
         email: user.email,
-        telegram: user.telegram,
       })
       .returning();
 

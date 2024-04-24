@@ -1,4 +1,4 @@
-import { randAccount, randCompanyName, randCountry, randEmail, randUser } from '@ngneat/falso';
+import { randCompanyName, randCountry, randUser } from '@ngneat/falso';
 import {
   Cycle,
   Event,
@@ -31,7 +31,7 @@ export type GroupCategoryData = Pick<
   'name' | 'eventId' | 'userCanCreate' | 'userCanView'
 >;
 export type GroupData = Pick<Group, 'name' | 'groupCategoryId'>;
-export type UserData = Pick<User, 'username' | 'email' | 'telegram'>;
+export type UserData = Pick<User, 'username' | 'email'>;
 export type UsersToGroupsData = Pick<UsersToGroups, 'userId' | 'groupId' | 'groupCategoryId'>;
 export type QuestionsToGroupCategoriesData = Pick<
   QuestionsToGroupCategories,
@@ -154,7 +154,7 @@ export function generateGroupData(
 export function generateUserData(numUsers: number): UserData[] {
   const users: UserData[] = [];
   for (let i = 0; i < numUsers; i++) {
-    users.push({ username: randUser().toString(), email: randEmail(), telegram: randAccount() });
+    users.push({ username: randUser().username, email: randUser().email });
   }
   return users;
 }
