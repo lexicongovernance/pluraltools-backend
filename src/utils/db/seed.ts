@@ -63,23 +63,43 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     generateGroupCategoryData(events[0]!.id, groupCategoriesData),
   );
 
-  const categoryIdsData = [groupCategories[0]!.id, groupCategories[1]!.id, groupCategories[2]!.id, groupCategories[3]!.id];
+  const categoryIdsData = [
+    groupCategories[0]!.id,
+    groupCategories[1]!.id,
+    groupCategories[2]!.id,
+    groupCategories[3]!.id,
+  ];
   const numOfGroupsData = [1, 2, 1, 1];
 
-  const groups = await createGroups(
-    dbPool,
-    generateGroupData(categoryIdsData, numOfGroupsData),
-  );
+  const groups = await createGroups(dbPool, generateGroupData(categoryIdsData, numOfGroupsData));
 
-  const users = await createUsers(
-    dbPool,
-    generateUserData(3),
-  );
+  const users = await createUsers(dbPool, generateUserData(3));
 
-  // Specify users to groups relationships  
-  const userData = [users[0]!.id, users[1]!.id, users[2]!.id, users[0]!.id, users[1]!.id, users[2]!.id]
-  const groupData = [groups[0]!.id, groups[0]!.id, groups[0]!.id, groups[1]!.id, groups[1]!.id, groups[2]!.id]
-  const categoryData = [groupCategories[0]!.id, groupCategories[0]!.id, groupCategories[0]!.id, groupCategories[1]!.id, groupCategories[1]!.id, groupCategories[1]!.id]
+  // Specify users to groups relationships
+  const userData = [
+    users[0]!.id,
+    users[1]!.id,
+    users[2]!.id,
+    users[0]!.id,
+    users[1]!.id,
+    users[2]!.id,
+  ];
+  const groupData = [
+    groups[0]!.id,
+    groups[0]!.id,
+    groups[0]!.id,
+    groups[1]!.id,
+    groups[1]!.id,
+    groups[2]!.id,
+  ];
+  const categoryData = [
+    groupCategories[0]!.id,
+    groupCategories[0]!.id,
+    groupCategories[0]!.id,
+    groupCategories[1]!.id,
+    groupCategories[1]!.id,
+    groupCategories[1]!.id,
+  ];
 
   const usersToGroups = await createUsersToGroups(
     dbPool,
@@ -88,7 +108,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
 
   const questionsToGroupCategories = await createQuestionsToGroupCategories(
     dbPool,
-    generateQuestionsToGroupCategoriesData([forumQuestions[0]!.id,], [groupCategories[0]!.id]),
+    generateQuestionsToGroupCategoriesData([forumQuestions[0]!.id], [groupCategories[0]!.id]),
   );
 
   return {
@@ -100,9 +120,9 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     questionOptions,
     groupCategories,
     groups,
-    users, 
+    users,
     usersToGroups,
-    questionsToGroupCategories
+    questionsToGroupCategories,
   };
 }
 
@@ -414,4 +434,3 @@ async function createQuestionsToGroupCategories(
 }
 
 export { seed, cleanup };
-
