@@ -17,6 +17,11 @@ import {
   generateRegistrationFieldData,
   generateRegistrationFieldOptionsData,
   generateForumQuestionData,
+  generateQuestionOptionsData,
+  generateGroupCategoryData,
+  generateGroupData,
+  generateUserData,
+  generateUsersToGroupsData,
 } from './seed-data-generators';
 
 async function seed(dbPool: PostgresJsDatabase<typeof db>) {
@@ -40,6 +45,42 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     dbPool,
     generateForumQuestionData(cycles[0]!.id, ['Question One', 'Question Two']),
   );
+  const questionOptions = await createQuestionOptions(
+    dbPool,
+    generateQuestionOptionsData(forumQuestions[0]!.id, ['Option A', 'Option B'], [true, true]),
+  );
+
+  const groupCategoriesData = [
+    { name: 'affiliation', userCanView: true },
+    { name: 'category A', userCanView: true },
+    { name: 'category B', userCanView: true },
+    { name: 'secrets', userCanCreate: true },
+  ];
+
+  const groupCategories = await createGroupCategories(
+    dbPool,
+    generateGroupCategoryData(events[0]!.id, groupCategoriesData),
+  );
+
+  const categoryIdsData = [groupCategories[0]!.id, groupCategories[1]!.id, groupCategories[2]!.id, groupCategories[3]!.id];
+  const numOfGroupsData = [1, 2, 1, 1];
+
+  const groups = await createGroups(
+    dbPool,
+    generateGroupData(categoryIdsData, numOfGroupsData),
+  );
+
+  const users = await createUsers(
+    dbPool,
+    generateUserData(3),
+  );
+
+  const userData = [users[0]!.id, users[1]!.id, users[2]!.id]
+
+  const usersToGroups = await createUsersToGroups(
+    dbPool,
+    generateUsersToGroupsData(categoryIdsData, numOfGroupsData, categoryIdsData),
+  );
 
   return {
     events,
@@ -47,6 +88,10 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     registrationFields,
     registrationFieldOptions,
     forumQuestions,
+    questionOptions,
+    groupCategories,
+    groups,
+    users
   };
 }
 
@@ -358,3 +403,4 @@ async function createQuestionsToGroupCategories(
 }
 
 export { seed, cleanup };
+
