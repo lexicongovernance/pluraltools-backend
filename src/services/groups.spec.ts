@@ -8,6 +8,36 @@ import { createSecretGroup, generateSecret, getSecretGroup } from './groups';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
+// Define sample wordlist to test the secret generator
+const wordlist: string[] = [
+  'apple',
+  'banana',
+  'cherry',
+  'date',
+  'eggplant',
+  'fig',
+  'grape',
+  'honey',
+  'ice',
+  'juice',
+  'kiwi',
+  'lemon',
+  'melon',
+  'nut',
+  'orange',
+  'pear',
+  'quince',
+  'raspberry',
+  'strawberry',
+  'tomato',
+  'umbrella',
+  'vanilla',
+  'watermelon',
+  'xylophone',
+  'yogurt',
+  'zebra',
+];
+
 describe('service: groups', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
@@ -20,12 +50,13 @@ describe('service: groups', () => {
   });
 
   test('generate secret:', async function () {
-    const secret = generateSecret();
-    expect(secret).toHaveLength(12);
+    const secret = generateSecret(wordlist, 3);
+    const words = secret.split('-');
+    expect(words).toHaveLength(3);
   });
 
   test('generate multiple secrets:', async function () {
-    const secrets = Array.from({ length: 10 }, () => generateSecret());
+    const secrets = Array.from({ length: 10 }, () => generateSecret(wordlist, 3));
 
     expect(secrets).toHaveLength(10);
     expect(secrets).toEqual(expect.arrayContaining(secrets));
@@ -43,7 +74,9 @@ describe('service: groups', () => {
     expect(rows[0]?.name).toBe('Test Group');
     expect(rows[0]?.description).toBe('Test Description');
     // secret should be generated
-    expect(rows[0]?.secret).toHaveLength(12);
+    const secret = rows[0]?.secret;
+    const words = secret!.split('-');
+    expect(words).toHaveLength(3);
   });
 
   test('get a group:', async function () {
