@@ -22,6 +22,7 @@ import {
   generateGroupData,
   generateUserData,
   generateUsersToGroupsData,
+  generateQuestionsToGroupCategoriesData,
 } from './seed-data-generators';
 
 async function seed(dbPool: PostgresJsDatabase<typeof db>) {
@@ -75,11 +76,19 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     generateUserData(3),
   );
 
-  const userData = [users[0]!.id, users[1]!.id, users[2]!.id]
+  // Specify users to groups relationships  
+  const userData = [users[0]!.id, users[1]!.id, users[2]!.id, users[0]!.id, users[1]!.id, users[2]!.id]
+  const groupData = [groups[0]!.id, groups[0]!.id, groups[0]!.id, groups[1]!.id, groups[1]!.id, groups[2]!.id]
+  const categoryData = [groupCategories[0]!.id, groupCategories[0]!.id, groupCategories[0]!.id, groupCategories[1]!.id, groupCategories[1]!.id, groupCategories[1]!.id]
 
   const usersToGroups = await createUsersToGroups(
     dbPool,
-    generateUsersToGroupsData(categoryIdsData, numOfGroupsData, categoryIdsData),
+    generateUsersToGroupsData(userData, groupData, categoryData),
+  );
+
+  const questionsToGroupCategories = await createQuestionsToGroupCategories(
+    dbPool,
+    generateQuestionsToGroupCategoriesData([forumQuestions[0]!.id,], [groupCategories[0]!.id]),
   );
 
   return {
@@ -91,7 +100,9 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     questionOptions,
     groupCategories,
     groups,
-    users
+    users, 
+    usersToGroups,
+    questionsToGroupCategories
   };
 }
 
