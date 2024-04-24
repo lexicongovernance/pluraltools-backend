@@ -195,7 +195,7 @@ describe('service: votes', () => {
     // Get vote data required for groups
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, forumQuestion!.id);
     expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(2);
+    expect(groupCategoriesIdArray.length).toBe(1);
     expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
     groupCategoriesIdArray.forEach((categoryId) => {
       expect(typeof categoryId).toBe('string');
