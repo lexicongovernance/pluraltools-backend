@@ -9,3 +9,7 @@ export const joinPublicGroupsSchema = z.object({
 });
 
 export const joinGroupsSchema = z.union([joinSecretGroupsSchema, joinPublicGroupsSchema]);
+
+export const leaveGroupsSchema = z.object({
+  usersToGroupsId: z.string().min(1),
+});
