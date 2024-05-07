@@ -64,3 +64,14 @@ export async function upsertUsersToGroups(
     return null;
   }
 }
+
+export async function deleteUsersToGroups(
+  dbPool: PostgresJsDatabase<typeof db>,
+  userId: string,
+  usersToGroupsId: string,
+) {
+  return await dbPool
+    .delete(db.usersToGroups)
+    .where(and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)))
+    .returning();
+}
