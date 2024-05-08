@@ -2,7 +2,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { insertRegistrationSchema } from '../types';
-import { validateRequiredRegistrationFields } from '../services/registrationFields';
+import { validateRequiredRegistrationFields } from '../services/registration-fields';
 import {
   saveRegistration,
   updateRegistration,

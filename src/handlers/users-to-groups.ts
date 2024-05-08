@@ -1,9 +1,9 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { joinGroupsSchema, leaveGroupsSchema } from '../types/usersToGroups';
+import { joinGroupsSchema, leaveGroupsSchema } from '../types/users-to-groups';
 import { getSecretGroup } from '../services/groups';
-import { deleteUsersToGroups, upsertUsersToGroups } from '../services/usersToGroups';
+import { deleteUsersToGroups, upsertUsersToGroups } from '../services/users-to-groups';
 import { eq } from 'drizzle-orm';
 
 export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {

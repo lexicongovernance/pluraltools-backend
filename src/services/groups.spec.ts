@@ -1,8 +1,8 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/createDbPool';
-import { runMigrations } from '../utils/db/runMigrations';
+import { createDbPool } from '../utils/db/create-db-pool';
+import { runMigrations } from '../utils/db/run-migrations';
 import { cleanup } from '../utils/db/seed';
 import { createSecretGroup, generateSecret, getSecretGroup } from './groups';
 

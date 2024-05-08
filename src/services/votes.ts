@@ -2,11 +2,11 @@ import { and, eq, sql } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { votes } from '../db/votes';
-import { PluralVoting } from '../modules/pluralVoting';
+import { PluralVoting } from '../modules/plural-voting';
 import { insertVotesSchema } from '../types';
 import { CycleStatusType } from '../types/cycles';
 import { z } from 'zod';
-import { quadraticVoting } from '../modules/quadraticVoting';
+import { quadraticVoting } from '../modules/quadratic-voting';
 
 /**
  * Saves votes submitted by a user.

@@ -1,8 +1,8 @@
 import { default as express } from 'express';
 import { apiRouter } from './routers/api';
 import { environmentVariables } from './types';
-import { createDbPool } from './utils/db/createDbPool';
-import { runMigrations } from './utils/db/runMigrations';
+import { createDbPool } from './utils/db/create-db-pool';
+import { runMigrations } from './utils/db/run-migrations';
 const app = express();
 
 async function main() {

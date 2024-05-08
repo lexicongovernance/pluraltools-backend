@@ -2,8 +2,8 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
-import { upsertUsersToGroups } from './usersToGroups';
-import { upsertUserAttributes } from './userAttributes';
+import { upsertUsersToGroups } from './users-to-groups';
+import { upsertUserAttributes } from './user-attributes';
 import { z } from 'zod';
 
 /**
