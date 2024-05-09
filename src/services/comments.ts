@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { insertCommentSchema } from '../types';
 import { z } from 'zod';
@@ -128,4 +128,83 @@ export async function userCanComment(
   }
 
   return true;
+}
+
+type AuthorData = {
+  optionId: string;
+  registrationId: string;
+  userId: string;
+  groupId: string;
+  usersInGroup: string[];
+};
+
+/**
+ * Executes a query to retrieve author data related to a forum question from the database.
+ *
+ * @param {string} optionId - The ID of the question option for which author data is to be retrieved.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
+ * @returns {Promise<AuthorData | null>} - A promise resolving to author data related to the forum question or null if no data found.
+ */
+export async function getOptionAuthors(
+  optionId: string,
+  dbPool: PostgresJsDatabase<typeof db>,
+): Promise<AuthorData | null> {
+  try {
+    // Execute the query
+    const queryAuthors = await dbPool.execute<{
+      optionId: string;
+      registrationId: string;
+      userId: string;
+      groupId: string;
+      usersInGroup: string[];
+    }>(
+      sql.raw(`
+        WITH secret_groups AS (
+          SELECT id AS "group_id"
+          FROM groups
+          WHERE secret IS NOT NULL
+        ),
+
+        users_secret_groups AS (
+          SELECT user_id, group_id
+          FROM users_to_groups
+          WHERE group_id IN (SELECT group_id FROM secret_groups)
+        ),
+
+        agg_users_secret_groups AS (
+          SELECT group_id, STRING_TO_ARRAY(STRING_AGG(CAST(user_id AS VARCHAR), ';'), ';') AS "users_in_group"
+          FROM users_secret_groups
+          GROUP BY group_id
+        ),
+
+        registrations_secret_groups AS (
+          SELECT id, user_id, registrations."group_id",
+            agg_users_secret_groups."users_in_group"
+          FROM registrations
+          LEFT JOIN agg_users_secret_groups ON registrations."group_id" = agg_users_secret_groups."group_id"
+        )
+      
+      result AS (
+        SELECT 
+          question_options."id" AS "optionId",
+          question_options."registration_id" AS "registrationId",
+          question_options."user_id" AS "userId",
+          registrations_secret_groups."group_id" AS "groupId",
+          registrations_secret_groups."users_in_group" AS "usersInGroup" 
+        FROM question_options
+        LEFT JOIN registrations_secret_groups ON question_options."registration_id" = registrations_secret_groups."id"
+      )
+
+      SELECT * 
+      FROM result 
+      WHERE optionId = '${optionId}'
+        `),
+    );
+
+    // Return the first row of query result or null if no data found
+    return queryAuthors[0] || null;
+  } catch (error) {
+    console.error('Error in getOptionAuthors:', error);
+    throw new Error('Error executing database query');
+  }
 }
