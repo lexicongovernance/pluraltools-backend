@@ -143,7 +143,7 @@ type AuthorData = {
  *
  * @param {string} optionId - The ID of the question option for which author data is to be retrieved.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Promise<AuthorData | null>} - A promise resolving to author data related to the forum question or null if no data found.
+ * @returns {Promise<AuthorData | null>} - A promise resolving to author data related to the question question or null if no data found.
  */
 export async function getOptionAuthors(
   optionId: string,
