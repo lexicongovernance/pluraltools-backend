@@ -49,7 +49,6 @@ describe('service: groups', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     const { groups } = await seed(dbPool);
-    // Insert registration fields for the user
     group = groups.filter((group) => group !== undefined) as db.Group[];
   });
 
