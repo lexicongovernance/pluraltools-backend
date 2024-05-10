@@ -7,14 +7,14 @@ import cors from 'cors';
 import { usersRouter } from './users';
 import { cyclesRouter } from './cycles';
 import { eventsRouter } from './events';
-import { forumQuestionsRouter } from './forumQuestions';
+import { forumQuestionsRouter } from './forum-questions';
 import { groupsRouter } from './groups';
 import { commentsRouter } from './comments';
 import { optionsRouter } from './options';
 import { votesRouter } from './votes';
 import { registrationsRouter } from './registrations';
-import { usersToGroupsRouter } from './usersToGroups';
-import { groupCategoriesRouter } from './groupCategories';
+import { usersToGroupsRouter } from './users-to-groups';
+import { groupCategoriesRouter } from './group-categories';
 import { alertsRouter } from './alerts';
 
 const router = express.Router();

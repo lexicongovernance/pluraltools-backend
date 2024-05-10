@@ -1,10 +1,10 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { upsertUsersToGroups } from './usersToGroups';
+import { upsertUsersToGroups } from './users-to-groups';
 import { eq, and } from 'drizzle-orm';
-import { createDbPool } from '../utils/db/createDbPool';
+import { createDbPool } from '../utils/db/create-db-pool';
 import postgres from 'postgres';
-import { runMigrations } from '../utils/db/runMigrations';
+import { runMigrations } from '../utils/db/run-migrations';
 import { cleanup, seed } from '../utils/db/seed';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';

@@ -1,8 +1,8 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/createDbPool';
+import { createDbPool } from '../utils/db/create-db-pool';
 import postgres from 'postgres';
-import { runMigrations } from '../utils/db/runMigrations';
+import { runMigrations } from '../utils/db/run-migrations';
 import { saveRegistration } from './registrations';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';

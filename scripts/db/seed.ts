@@ -1,4 +1,4 @@
-import { createDbPool } from '../../src/utils/db/createDbPool';
+import { createDbPool } from '../../src/utils/db/create-db-pool';
 import { cleanup, seed } from '../../src/utils/db/seed';
 
 const DEFAULT_DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';

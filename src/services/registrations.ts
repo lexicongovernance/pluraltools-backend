@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
-import { upsertRegistrationData } from './registrationData';
+import { upsertRegistrationData } from './registration-data';
 
 export async function validateCreateRegistrationPermissions({
   dbPool,

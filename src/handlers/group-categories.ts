@@ -2,7 +2,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { and, eq } from 'drizzle-orm';
-import { canViewGroupsInGroupCategory } from '../services/groupCategories';
+import { canViewGroupsInGroupCategory } from '../services/group-categories';
 
 export function getGroupCategoriesHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {

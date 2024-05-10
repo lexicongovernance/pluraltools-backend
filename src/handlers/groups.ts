@@ -3,9 +3,9 @@ import type { Request, Response } from 'express';
 import * as db from '../db';
 import { eq } from 'drizzle-orm';
 import { insertGroupsSchema } from '../types/groups';
-import { canCreateGroupInGroupCategory } from '../services/groupCategories';
+import { canCreateGroupInGroupCategory } from '../services/group-categories';
 import { createSecretGroup } from '../services/groups';
-import { upsertUsersToGroups } from '../services/usersToGroups';
+import { upsertUsersToGroups } from '../services/users-to-groups';
 
 export function getGroupRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {

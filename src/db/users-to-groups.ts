@@ -2,7 +2,7 @@ import { pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { groups } from './groups';
 import { relations } from 'drizzle-orm';
-import { groupCategories } from './groupCategories';
+import { groupCategories } from './group-categories';
 
 export const usersToGroups = pgTable('users_to_groups', {
   id: uuid('id').primaryKey().defaultRandom(),

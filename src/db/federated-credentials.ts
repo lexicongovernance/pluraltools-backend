@@ -1,5 +1,5 @@
 import { pgTable, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
-import { users } from '.';
+import { users } from './users';
 import { relations } from 'drizzle-orm';
 
 export const federatedCredentials = pgTable(

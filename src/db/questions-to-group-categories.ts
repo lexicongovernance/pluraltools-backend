@@ -1,7 +1,7 @@
 import { pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { groupCategories } from './groupCategories';
-import { forumQuestions } from './forumQuestions';
+import { groupCategories } from './group-categories';
+import { forumQuestions } from './forum-questions';
 
 export const questionsToGroupCategories = pgTable('questions_to_group_categories', {
   id: uuid('id').primaryKey().defaultRandom(),
