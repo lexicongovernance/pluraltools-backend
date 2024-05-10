@@ -182,7 +182,7 @@ export async function getOptionAuthors(
             agg_users_secret_groups."users_in_group"
           FROM registrations
           LEFT JOIN agg_users_secret_groups ON registrations."group_id" = agg_users_secret_groups."group_id"
-        )
+        ),
       
       result AS (
         SELECT 
@@ -193,11 +193,11 @@ export async function getOptionAuthors(
           registrations_secret_groups."users_in_group" AS "usersInGroup" 
         FROM question_options
         LEFT JOIN registrations_secret_groups ON question_options."registration_id" = registrations_secret_groups."id"
+        WHERE question_options."id" = '${optionId}'
       )
 
       SELECT * 
       FROM result 
-      WHERE optionId = '${optionId}'
         `),
     );
 
