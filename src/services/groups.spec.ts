@@ -97,8 +97,8 @@ describe('service: groups', () => {
   test('get group members of a group', async () => {
     const groupId = group[1]?.id ?? '';
 
-    // Call getOptionAuthors with the required parameters
     const result = await getGroupMembers(dbPool, groupId);
+    console.log(result);
     expect(result).toBeDefined();
   });
 

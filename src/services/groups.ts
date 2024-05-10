@@ -62,25 +62,11 @@ export async function getGroupMembers(dbPool: PostgresJsDatabase<typeof db>, gro
   // Extract user objects from each usersToGroups entry
   const groupMembers = response.flatMap((group) =>
     group.usersToGroups.map((usersToGroup) => {
-      const { telegram, createdAt, updatedAt, username, email, ...userWithoutSensitiveInfo } =
+      const { telegram, createdAt, updatedAt, email, ...userWithoutSensitiveInfo } =
         usersToGroup.user;
       return userWithoutSensitiveInfo;
     }),
   );
 
-  // Clean response
-  const cleanResponse = response.map((group) => {
-    const {
-      usersToGroups,
-      description,
-      secret,
-      groupCategoryId,
-      createdAt,
-      updatedAt,
-      ...groupWithoutSensitiveInfo
-    } = group;
-    return groupWithoutSensitiveInfo;
-  });
-
-  return { group: cleanResponse, groupMembers };
+  return groupMembers;
 }
