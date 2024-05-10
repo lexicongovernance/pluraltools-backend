@@ -71,20 +71,16 @@ describe('service: comments', () => {
     await dbPool.update(db.groups).set({ secret: '12345' }).where(eq(db.groups.id, secretGroupId));
 
     // insert users to groups
-    await dbPool
-      .insert(db.usersToGroups)
-      .values({
-        userId: user?.id ?? '',
-        groupId: secretGroupId,
-        groupCategoryId: secretCategory!.id,
-      });
-    await dbPool
-      .insert(db.usersToGroups)
-      .values({
-        userId: otherUser?.id ?? '',
-        groupId: secretGroupId,
-        groupCategoryId: secretCategory!.id,
-      });
+    await dbPool.insert(db.usersToGroups).values({
+      userId: user?.id ?? '',
+      groupId: secretGroupId,
+      groupCategoryId: secretCategory!.id,
+    });
+    await dbPool.insert(db.usersToGroups).values({
+      userId: otherUser?.id ?? '',
+      groupId: secretGroupId,
+      groupCategoryId: secretCategory!.id,
+    });
   });
 
   test('should return author data when all queries return valid data', async () => {
