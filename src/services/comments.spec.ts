@@ -39,16 +39,14 @@ describe('service: comments', () => {
     otherUser = users[1];
     cycle = cycles[0];
     secretGroup = groups.filter((group) => group !== undefined) as db.Group[];
-
     const secretGroupId = secretGroup[4]?.id ?? '';
-    console.log(secretGroupId);
+
     groupRegistrationData = {
       userId: user?.id ?? '',
       eventId: cycle?.eventId ?? '',
       status: 'APPROVED',
       groupId: secretGroupId,
     };
-    console.log(groupRegistrationData);
 
     // Insert group registration data
     await dbPool.insert(db.registrations).values(groupRegistrationData);
@@ -85,13 +83,9 @@ describe('service: comments', () => {
 
   test('should return author data when all queries return valid data', async () => {
     const optionId = questionOption!.id;
-    console.log(optionId);
 
     // Call getOptionAuthors with the required parameters
     const result = await getOptionAuthors(optionId, dbPool);
-    console.log('Author data', result);
-
-    // Test aggregate result statistics
     expect(result).toBeDefined();
   });
 
