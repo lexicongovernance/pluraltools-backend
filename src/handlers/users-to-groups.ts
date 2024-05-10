@@ -85,7 +85,9 @@ export function updateGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.json({ data: userToGroup });
     } catch (e) {
       console.error(e);
-      return res.status(500).json({ errors: ['An error occurred while joining the group'] });
+      return res
+        .status(500)
+        .json({ errors: ['An error occurred while updating group membership'] });
     }
   };
 }
