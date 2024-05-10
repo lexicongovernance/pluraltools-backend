@@ -64,7 +64,6 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
     const canRegisterGroup = await validateCreateRegistrationPermissions({
       dbPool,
       userId,
-      eventId: body.data.eventId,
       groupId: body.data.groupId,
     });
 

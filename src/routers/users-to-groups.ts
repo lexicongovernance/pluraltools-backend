@@ -8,6 +8,7 @@ const router = express.Router();
 
 export function usersToGroupsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.post('/', isLoggedIn(dbPool), joinGroupsHandler(dbPool));
+  router.put('/:id', isLoggedIn(dbPool), joinGroupsHandler(dbPool));
   router.delete('/:id', isLoggedIn(dbPool), leaveGroupsHandler(dbPool));
   return router;
 }

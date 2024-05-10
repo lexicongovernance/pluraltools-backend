@@ -2,7 +2,6 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
-import { upsertUsersToGroups } from './users-to-groups';
 import { upsertUserAttributes } from './user-attributes';
 import { z } from 'zod';
 
@@ -100,9 +99,7 @@ export async function updateUser(
 
   const user = await upsertUserData(dbPool, userId, userData);
 
-  const updatedGroups = await upsertUsersToGroups(dbPool, userId, userData.groupIds);
-
   const updatedUserAttributes = await upsertUserAttributes(dbPool, userId, userData.userAttributes);
 
-  return { data: { user, updatedGroups, updatedUserAttributes } };
+  return { data: { user, updatedUserAttributes } };
 }
