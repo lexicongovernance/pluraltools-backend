@@ -70,9 +70,9 @@ export function updateUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
         return res.status(500).json({ errors: ['Failed to update user'] });
       }
 
-      const { user, updatedGroups, updatedUserAttributes } = updatedUser.data;
+      const { user, updatedUserAttributes } = updatedUser.data;
 
-      return res.json({ data: { user, updatedGroups, updatedUserAttributes } });
+      return res.json({ data: { user, updatedUserAttributes } });
     } catch (e) {
       console.error(`[ERROR] ${JSON.stringify(e)}`);
       return res.sendStatus(500);
