@@ -166,19 +166,31 @@ export async function getOptionAuthors(
         ),
 
         users_secret_groups AS (
-          SELECT user_id, group_id
+          SELECT users."id" AS "user_id", users."username", users."first_name", users."last_name", users_to_groups."group_id" 
           FROM users_to_groups
-          WHERE group_id IN (SELECT group_id FROM secret_groups)
+		      LEFT JOIN users 
+		      ON users_to_groups."user_id" = users."id"
+		      WHERE group_id IN (SELECT group_id FROM secret_groups)
         ),
 
         agg_users_secret_groups AS (
-          SELECT group_id, STRING_TO_ARRAY(STRING_AGG(CAST(user_id AS VARCHAR), ';'), ';') AS "users_in_group"
+          SELECT 
+              group_id, 
+              json_agg(
+                  json_build_object(
+                      'id', user_id,
+                      'username', username,
+                      'firstName', first_name,
+                      'lastName', last_name
+                  )
+              ) AS "users_in_group"
           FROM users_secret_groups
           GROUP BY group_id
-        ),
+      ),
+      
 
         registrations_secret_groups AS (
-          SELECT id, user_id, registrations."group_id",
+          SELECT id, registrations."group_id",
             agg_users_secret_groups."users_in_group"
           FROM registrations
           LEFT JOIN agg_users_secret_groups ON registrations."group_id" = agg_users_secret_groups."group_id"
@@ -188,7 +200,6 @@ export async function getOptionAuthors(
         SELECT 
           question_options."id" AS "optionId",
           question_options."registration_id" AS "registrationId",
-          question_options."user_id" AS "userId",
           registrations_secret_groups."group_id" AS "groupId",
           registrations_secret_groups."users_in_group" AS "usersInGroup" 
         FROM question_options
