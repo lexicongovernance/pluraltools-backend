@@ -12,10 +12,11 @@
     "dev:node": "node --watch --env-file=.env dist/index.js",
     "dev:esbuild": "pnpm run build:watch",
     "dev": "run-p dev:*",
-    "db:generate": "drizzle-kit generate:pg",
+    "db:generate": "drizzle-kit generate",
     "db:drop": "drizzle-kit drop",
-    "db:check": "drizzle-kit check:pg",
+    "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
+    "db:up": "drizzle-kit up",
     "db:seed": "pnpx esbuild ./scripts/db/seed.ts --bundle --platform=node --outfile=dist/seed.js && node --env-file=.env dist/seed.js",
     "db:seed:cleanup": "pnpm run db:seed --cleanup",
     "db:insert:groups": "pnpx esbuild ./scripts/db/insertCustomGroups.ts --bundle --platform=node --format=cjs | node --env-file=.env",
@@ -41,7 +42,7 @@
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
     "csv-parser": "^3.0.0",
-    "drizzle-kit": "^0.20.14",
+    "drizzle-kit": "^0.21.1",
     "esbuild": "^0.19.8",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
@@ -56,7 +57,7 @@
     "@pcd/semaphore-signature-pcd": "^0.9.0",
     "@pcd/util": "^0.3.0",
     "cors": "^2.8.5",
-    "drizzle-orm": "^0.29.1",
+    "drizzle-orm": "^0.30.10",
     "drizzle-zod": "^0.5.1",
     "express": "^4.18.2",
     "iron-session": "^6.3.1",
@@ -64,4 +65,3 @@
     "postgres": "^3.4.3",
     "zod": "^3.22.4"
   }
-}

@@ -1,10 +1,8 @@
 {
-  "id": "42753659-744c-4283-9ddd-c15bdf1b49aa",
-  "prevId": "2a60b9ce-b8d9-49f7-96e5-626397f18f22",
-  "version": "5",
-  "dialect": "pg",
+  "version": "6",
+  "dialect": "postgresql",
   "tables": {
-    "comments": {
+    "public.comments": {
       "name": "comments",
       "schema": "",
       "columns": {
@@ -53,34 +51,34 @@
         "comments_user_id_users_id_fk": {
           "name": "comments_user_id_users_id_fk",
           "tableFrom": "comments",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "comments_question_option_id_question_options_id_fk": {
           "name": "comments_question_option_id_question_options_id_fk",
           "tableFrom": "comments",
-          "tableTo": "question_options",
           "columnsFrom": [
             "question_option_id"
           ],
+          "tableTo": "question_options",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "cycles": {
+    "public.cycles": {
       "name": "cycles",
       "schema": "",
       "columns": {
@@ -136,21 +134,21 @@
         "cycles_event_id_events_id_fk": {
           "name": "cycles_event_id_events_id_fk",
           "tableFrom": "cycles",
-          "tableTo": "events",
           "columnsFrom": [
             "event_id"
           ],
+          "tableTo": "events",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "events": {
+    "public.events": {
       "name": "events",
       "schema": "",
       "columns": {
@@ -211,7 +209,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "federated_credentials": {
+    "public.federated_credentials": {
       "name": "federated_credentials",
       "schema": "",
       "columns": {
@@ -260,30 +258,30 @@
         "federated_credentials_user_id_users_id_fk": {
           "name": "federated_credentials_user_id_users_id_fk",
           "tableFrom": "federated_credentials",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "provider_subject_idx": {
           "name": "provider_subject_idx",
-          "nullsNotDistinct": false,
           "columns": [
             "provider",
             "subject"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "forum_questions": {
+    "public.forum_questions": {
       "name": "forum_questions",
       "schema": "",
       "columns": {
@@ -332,21 +330,21 @@
         "forum_questions_cycle_id_cycles_id_fk": {
           "name": "forum_questions_cycle_id_cycles_id_fk",
           "tableFrom": "forum_questions",
-          "tableTo": "cycles",
           "columnsFrom": [
             "cycle_id"
           ],
+          "tableTo": "cycles",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "groups": {
+    "public.groups": {
       "name": "groups",
       "schema": "",
       "columns": {
@@ -389,7 +387,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -446,21 +444,21 @@
       "uniqueConstraints": {
         "users_username_unique": {
           "name": "users_username_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "registrations": {
+    "public.registrations": {
       "name": "registrations",
       "schema": "",
       "columns": {
@@ -510,34 +508,34 @@
         "registrations_user_id_users_id_fk": {
           "name": "registrations_user_id_users_id_fk",
           "tableFrom": "registrations",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "registrations_event_id_events_id_fk": {
           "name": "registrations_event_id_events_id_fk",
           "tableFrom": "registrations",
-          "tableTo": "events",
           "columnsFrom": [
             "event_id"
           ],
+          "tableTo": "events",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "registration_field_options": {
+    "public.registration_field_options": {
       "name": "registration_field_options",
       "schema": "",
       "columns": {
@@ -580,21 +578,21 @@
         "registration_field_options_registration_field_id_registration_fields_id_fk": {
           "name": "registration_field_options_registration_field_id_registration_fields_id_fk",
           "tableFrom": "registration_field_options",
-          "tableTo": "registration_fields",
           "columnsFrom": [
             "registration_field_id"
           ],
+          "tableTo": "registration_fields",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "question_options": {
+    "public.question_options": {
       "name": "question_options",
       "schema": "",
       "columns": {
@@ -663,34 +661,34 @@
         "question_options_registration_data_id_registration_data_id_fk": {
           "name": "question_options_registration_data_id_registration_data_id_fk",
           "tableFrom": "question_options",
-          "tableTo": "registration_data",
           "columnsFrom": [
             "registration_data_id"
           ],
+          "tableTo": "registration_data",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "question_options_question_id_forum_questions_id_fk": {
           "name": "question_options_question_id_forum_questions_id_fk",
           "tableFrom": "question_options",
-          "tableTo": "forum_questions",
           "columnsFrom": [
             "question_id"
           ],
+          "tableTo": "forum_questions",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "votes": {
+    "public.votes": {
       "name": "votes",
       "schema": "",
       "columns": {
@@ -745,47 +743,47 @@
         "votes_user_id_users_id_fk": {
           "name": "votes_user_id_users_id_fk",
           "tableFrom": "votes",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "votes_option_id_question_options_id_fk": {
           "name": "votes_option_id_question_options_id_fk",
           "tableFrom": "votes",
-          "tableTo": "question_options",
           "columnsFrom": [
             "option_id"
           ],
+          "tableTo": "question_options",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "votes_question_id_forum_questions_id_fk": {
           "name": "votes_question_id_forum_questions_id_fk",
           "tableFrom": "votes",
-          "tableTo": "forum_questions",
           "columnsFrom": [
             "question_id"
           ],
+          "tableTo": "forum_questions",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "registration_fields": {
+    "public.registration_fields": {
       "name": "registration_fields",
       "schema": "",
       "columns": {
@@ -867,34 +865,34 @@
         "registration_fields_event_id_events_id_fk": {
           "name": "registration_fields_event_id_events_id_fk",
           "tableFrom": "registration_fields",
-          "tableTo": "events",
           "columnsFrom": [
             "event_id"
           ],
+          "tableTo": "events",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "registration_fields_question_id_forum_questions_id_fk": {
           "name": "registration_fields_question_id_forum_questions_id_fk",
           "tableFrom": "registration_fields",
-          "tableTo": "forum_questions",
           "columnsFrom": [
             "question_id"
           ],
+          "tableTo": "forum_questions",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "registration_data": {
+    "public.registration_data": {
       "name": "registration_data",
       "schema": "",
       "columns": {
@@ -943,34 +941,34 @@
         "registration_data_registration_id_registrations_id_fk": {
           "name": "registration_data_registration_id_registrations_id_fk",
           "tableFrom": "registration_data",
-          "tableTo": "registrations",
           "columnsFrom": [
             "registration_id"
           ],
+          "tableTo": "registrations",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "registration_data_registration_field_id_registration_fields_id_fk": {
           "name": "registration_data_registration_field_id_registration_fields_id_fk",
           "tableFrom": "registration_data",
-          "tableTo": "registration_fields",
           "columnsFrom": [
             "registration_field_id"
           ],
+          "tableTo": "registration_fields",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "users_to_groups": {
+    "public.users_to_groups": {
       "name": "users_to_groups",
       "schema": "",
       "columns": {
@@ -1013,34 +1011,34 @@
         "users_to_groups_user_id_users_id_fk": {
           "name": "users_to_groups_user_id_users_id_fk",
           "tableFrom": "users_to_groups",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "users_to_groups_group_id_groups_id_fk": {
           "name": "users_to_groups_group_id_groups_id_fk",
           "tableFrom": "users_to_groups",
-          "tableTo": "groups",
           "columnsFrom": [
             "group_id"
           ],
+          "tableTo": "groups",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "user_attributes": {
+    "public.user_attributes": {
       "name": "user_attributes",
       "schema": "",
       "columns": {
@@ -1089,15 +1087,15 @@
         "user_attributes_user_id_users_id_fk": {
           "name": "user_attributes_user_id_users_id_fk",
           "tableFrom": "user_attributes",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1107,8 +1105,10 @@
   "enums": {},
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "42753659-744c-4283-9ddd-c15bdf1b49aa",
+  "prevId": "2a60b9ce-b8d9-49f7-96e5-626397f18f22"
 }
