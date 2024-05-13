@@ -6,7 +6,7 @@ import { runMigrations } from '../utils/db/run-migrations';
 import { insertSimpleRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { getOptionAuthors } from './comments';
+import { getOptionUsers } from './comments';
 import { eq } from 'drizzle-orm';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
@@ -85,13 +85,13 @@ describe('service: comments', () => {
     const optionId = questionOption!.id;
 
     // Call getOptionAuthors with the required parameters
-    const result = await getOptionAuthors(optionId, dbPool);
+    const result = await getOptionUsers(optionId, dbPool);
     expect(result).toBeDefined();
   });
 
   test('should return null if optionId does not exist', async () => {
     const nonExistentOptionId = '00000000-0000-0000-0000-000000000000';
-    const result = await getOptionAuthors(nonExistentOptionId, dbPool);
+    const result = await getOptionUsers(nonExistentOptionId, dbPool);
     expect(result).toBeNull();
   });
 

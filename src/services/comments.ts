@@ -130,12 +130,19 @@ export async function userCanComment(
   return true;
 }
 
-type AuthorData = {
+type GetOptionUsersResponse = {
   optionId: string;
   registrationId: string;
   userId: string;
-  groupId: string;
-  usersInGroup: string[];
+  group: {
+    id: string;
+    users: {
+      id: string;
+      username: string;
+      firstName: string;
+      lastName: string;
+    }[];
+  };
 };
 
 /**
@@ -143,20 +150,26 @@ type AuthorData = {
  *
  * @param {string} optionId - The ID of the question option for which author data is to be retrieved.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Promise<AuthorData | null>} - A promise resolving to author data related to the question question or null if no data found.
+ * @returns {Promise<UserData | null>} - A promise resolving to user data related to the question question or null if no data found.
  */
-export async function getOptionAuthors(
+export async function getOptionUsers(
   optionId: string,
   dbPool: PostgresJsDatabase<typeof db>,
-): Promise<AuthorData | null> {
+): Promise<GetOptionUsersResponse | null> {
   try {
-    // Execute the query
-    const queryAuthors = await dbPool.execute<{
+    const queryUsers = await dbPool.execute<{
       optionId: string;
       registrationId: string;
       userId: string;
-      groupId: string;
-      usersInGroup: string[];
+      group: {
+        id: string;
+        users: {
+          id: string;
+          username: string;
+          firstName: string;
+          lastName: string;
+        }[];
+      };
     }>(
       sql.raw(`
         WITH secret_groups AS (
@@ -187,33 +200,57 @@ export async function getOptionAuthors(
           FROM users_secret_groups
           GROUP BY group_id
       ),
-      
 
-        registrations_secret_groups AS (
-          SELECT id, registrations."group_id",
-            agg_users_secret_groups."users_in_group"
-          FROM registrations
-          LEFT JOIN agg_users_secret_groups ON registrations."group_id" = agg_users_secret_groups."group_id"
-        ),
+      registration_owner AS (
+        SELECT 
+            registrations."id", users."id" AS "user_id",
+            json_build_object(
+                'id', users."id",
+                'username', users."username",
+                'firstName', users."first_name",
+                'lastName', users."last_name"
+            ) AS registration_owner,
+            group_id
+        FROM registrations
+        LEFT JOIN users ON registrations."user_id" = users."id"
+      ),
+    
+      registrations_secret_groups AS (
+        SELECT "id", registration_owner."user_id", registration_owner, registration_owner."group_id",
+          agg_users_secret_groups."users_in_group"
+        FROM registration_owner
+        LEFT JOIN agg_users_secret_groups ON registration_owner."group_id" = agg_users_secret_groups."group_id"
+      ),
       
       result AS (
         SELECT 
           question_options."id" AS "optionId",
           question_options."registration_id" AS "registrationId",
+          registrations_secret_groups."user_id" AS "userId",
+          registrations_secret_groups."registration_owner" AS "user",
           registrations_secret_groups."group_id" AS "groupId",
           registrations_secret_groups."users_in_group" AS "usersInGroup" 
         FROM question_options
         LEFT JOIN registrations_secret_groups ON question_options."registration_id" = registrations_secret_groups."id"
         WHERE question_options."id" = '${optionId}'
+      ),
+
+      nested_result AS (
+        SELECT "optionId", "registrationId", result."userId", "user", result."groupId",
+          json_build_object(
+                'id', result."groupId",
+                'users', result."usersInGroup"
+          ) AS group
+        FROM result
       )
 
       SELECT * 
-      FROM result 
+      FROM nested_result 
         `),
     );
 
     // Return the first row of query result or null if no data found
-    return queryAuthors[0] || null;
+    return queryUsers[0] || null;
   } catch (error) {
     console.error('Error in getOptionAuthors:', error);
     throw new Error('Error executing database query');
