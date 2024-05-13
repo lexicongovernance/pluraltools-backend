@@ -2,7 +2,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { default as express } from 'express';
 import type * as db from '../db';
 import {
-  getOptionAuthorsHandler,
+  getOptionUsersHandler,
   getOptionCommentsHandler,
   getOptionHandler,
 } from '../handlers/options';
@@ -13,6 +13,6 @@ const router = express.Router();
 export function optionsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
   router.get('/:optionId', isLoggedIn(dbPool), getOptionHandler(dbPool));
   router.get('/:optionId/comments', isLoggedIn(dbPool), getOptionCommentsHandler(dbPool));
-  router.get('/:optionId/users', isLoggedIn(dbPool), getOptionAuthorsHandler(dbPool));
+  router.get('/:optionId/users', isLoggedIn(dbPool), getOptionUsersHandler(dbPool));
   return router;
 }

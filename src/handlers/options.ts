@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { getOptionAuthors, getOptionComments } from '../services/comments';
+import { getOptionUsers, getOptionComments } from '../services/comments';
 
 export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -49,7 +49,7 @@ export function getOptionCommentsHandler(dbPool: PostgresJsDatabase<typeof db>) 
  * @param {Response} res - The Express response object.
  * @returns {Promise<Response>} - A promise that resolves with the Express response containing the author data.
  */
-export function getOptionAuthorsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getOptionUsersHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const optionId = req.params.optionId;
@@ -60,7 +60,7 @@ export function getOptionAuthorsHandler(dbPool: PostgresJsDatabase<typeof db>) {
       }
 
       // Execute queries
-      const responseData = await getOptionAuthors(optionId, dbPool);
+      const responseData = await getOptionUsers(optionId, dbPool);
 
       // Send response
       return res.status(200).json({ data: responseData });
