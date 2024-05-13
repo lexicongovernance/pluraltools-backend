@@ -4,8 +4,8 @@ import * as db from '../db';
 import { eq } from 'drizzle-orm';
 import { insertGroupsSchema } from '../types/groups';
 import { canCreateGroupInGroupCategory } from '../services/group-categories';
-import { createSecretGroup } from '../services/groups';
 import { createUsersToGroups } from '../services/users-to-groups';
+import { createSecretGroup, getGroupMembers } from '../services/groups';
 
 export function getGroupRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -56,6 +56,37 @@ export function createGroupHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.json({ data: newGroupRows[0] });
     } catch (error) {
       return res.status(500).json({ error: 'An error occurred while creating the group' });
+    }
+  };
+}
+
+/**
+ * Retrieves author and co-author data for a given question option created as a secret group.
+ *
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
+ * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @returns {Promise<Response>} - A promise that resolves with the Express response containing the author data.
+ */
+export function getGroupMembersHandler(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    try {
+      const groupId = req.params.groupId;
+
+      // Check if groupId is provided
+      if (!groupId) {
+        return res.status(400).json({ error: 'Missing groupId parameter' });
+      }
+
+      // Execute query
+      const responseData = await getGroupMembers(dbPool, groupId);
+
+      // Send response
+      return res.status(200).json({ data: responseData });
+    } catch (error) {
+      console.error('Error in getGroupMembers:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
 }
