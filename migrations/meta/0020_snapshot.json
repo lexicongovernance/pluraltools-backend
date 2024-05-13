@@ -2,6 +2,74 @@
   "version": "6",
   "dialect": "postgresql",
   "tables": {
+    "public.alerts": {
+      "name": "alerts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(1024)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "link": {
+          "name": "link",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "start_at": {
+          "name": "start_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_at": {
+          "name": "end_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.comments": {
       "name": "comments",
       "schema": "",
@@ -987,18 +1055,6 @@
           "notNull": false,
           "default": false
         },
-        "question_id": {
-          "name": "question_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "question_option_type": {
-          "name": "question_option_type",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
         "fields_display_rank": {
           "name": "fields_display_rank",
           "type": "integer",
@@ -1012,12 +1068,19 @@
           "notNull": false,
           "default": 0
         },
-        "display_on_group_registration": {
-          "name": "display_on_group_registration",
+        "for_group": {
+          "name": "for_group",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
           "default": false
+        },
+        "for_user": {
+          "name": "for_user",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -1043,19 +1106,6 @@
             "event_id"
           ],
           "tableTo": "events",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        },
-        "registration_fields_question_id_forum_questions_id_fk": {
-          "name": "registration_fields_question_id_forum_questions_id_fk",
-          "tableFrom": "registration_fields",
-          "columnsFrom": [
-            "question_id"
-          ],
-          "tableTo": "forum_questions",
           "columnsTo": [
             "id"
           ],
@@ -1557,6 +1607,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "0d20d2de-c589-4e94-a0b1-fbd54238e209",
-  "prevId": "3bca2de9-9a2c-46ce-87c8-226969d43ec7"
+  "id": "2277a7bf-ba33-4f91-97ae-fdc79e59b663",
+  "prevId": "9c2a63ef-990b-4651-b9b2-b6e490f83942"
 }
