@@ -50,7 +50,7 @@ export async function updateUsersToGroups({
     throw new Error('Users to Groups not found');
   }
 
-  await dbPool
+  return await dbPool
     .update(db.usersToGroups)
     .set({ userId, groupId, groupCategoryId: group.groupCategoryId, updatedAt: new Date() })
     .where(and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)))
