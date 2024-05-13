@@ -24,7 +24,7 @@ export function createSecretGroup(
 
 export function getSecretGroup(dbPool: PostgresJsDatabase<typeof db>, secret: string) {
   const group = dbPool.query.groups.findFirst({
-    where: (fields, { eq }) => eq(fields.secret, secret),
+    where: eq(db.groups.secret, secret),
   });
 
   return group;

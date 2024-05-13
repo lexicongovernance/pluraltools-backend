@@ -9,11 +9,9 @@ export async function validateCreateRegistrationPermissions({
   dbPool,
   userId,
   groupId,
-  eventId,
 }: {
   dbPool: PostgresJsDatabase<typeof db>;
   userId: string;
-  eventId: string;
   groupId?: string | null;
 }) {
   if (groupId) {
@@ -22,15 +20,6 @@ export async function validateCreateRegistrationPermissions({
     });
 
     if (!userGroup) {
-      return false;
-    }
-
-    // limit one registration per group per event
-    const existingRegistration = await dbPool.query.registrations.findFirst({
-      where: and(eq(db.registrations.eventId, eventId), eq(db.registrations.groupId, groupId)),
-    });
-
-    if (existingRegistration) {
       return false;
     }
   }

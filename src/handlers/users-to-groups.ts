@@ -1,9 +1,17 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { joinGroupsSchema, leaveGroupsSchema } from '../types/users-to-groups';
+import {
+  joinGroupsSchema,
+  leaveGroupsSchema,
+  updateUsersToGroupsSchema,
+} from '../types/users-to-groups';
 import { getSecretGroup } from '../services/groups';
-import { deleteUsersToGroups, upsertUsersToGroups } from '../services/users-to-groups';
+import {
+  deleteUsersToGroups,
+  createUsersToGroups,
+  updateUsersToGroups,
+} from '../services/users-to-groups';
 import { eq } from 'drizzle-orm';
 
 export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
@@ -31,7 +39,7 @@ export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
           return res.status(400).json({ error: 'Group is secret' });
         }
 
-        const userToGroup = await upsertUsersToGroups(dbPool, userId, [body.data.groupId]);
+        const userToGroup = await createUsersToGroups(dbPool, userId, body.data.groupId);
 
         return res.json({ data: userToGroup });
       }
@@ -43,12 +51,43 @@ export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
         return res.status(404).json({ error: 'Group not found' });
       }
 
-      const userToGroup = await upsertUsersToGroups(dbPool, userId, [secretGroup.id]);
+      const userToGroup = await createUsersToGroups(dbPool, userId, secretGroup.id);
 
       return res.json({ data: userToGroup });
     } catch (e) {
       console.error(e);
       return res.status(500).json({ errors: ['An error occurred while joining the group'] });
+    }
+  };
+}
+
+export function updateGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const userId = req.session.userId;
+    const body = updateUsersToGroupsSchema.safeParse({
+      ...req.body,
+      userId,
+      id: req.params.id,
+    });
+
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.errors });
+    }
+
+    try {
+      const userToGroup = await updateUsersToGroups({
+        dbPool,
+        groupId: body.data.groupId,
+        userId: body.data.userId,
+        usersToGroupsId: body.data.id,
+      });
+
+      return res.json({ data: userToGroup });
+    } catch (e) {
+      console.error(e);
+      return res
+        .status(500)
+        .json({ errors: ['An error occurred while updating group membership'] });
     }
   };
 }

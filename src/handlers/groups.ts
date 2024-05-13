@@ -4,8 +4,8 @@ import * as db from '../db';
 import { eq } from 'drizzle-orm';
 import { insertGroupsSchema } from '../types/groups';
 import { canCreateGroupInGroupCategory } from '../services/group-categories';
+import { createUsersToGroups } from '../services/users-to-groups';
 import { createSecretGroup, getGroupMembers } from '../services/groups';
-import { upsertUsersToGroups } from '../services/users-to-groups';
 
 export function getGroupRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -51,7 +51,7 @@ export function createGroupHandler(dbPool: PostgresJsDatabase<typeof db>) {
       }
 
       // assign user to new group
-      await upsertUsersToGroups(dbPool, userId, [newGroupRows[0].id]);
+      await createUsersToGroups(dbPool, userId, newGroupRows[0].id);
 
       return res.json({ data: newGroupRows[0] });
     } catch (error) {
