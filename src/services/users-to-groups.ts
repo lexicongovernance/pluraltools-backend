@@ -53,7 +53,8 @@ export async function updateUsersToGroups({
   await dbPool
     .update(db.usersToGroups)
     .set({ userId, groupId, groupCategoryId: group.groupCategoryId, updatedAt: new Date() })
-    .where(and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)));
+    .where(and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)))
+    .returning();
 }
 
 export async function deleteUsersToGroups(
