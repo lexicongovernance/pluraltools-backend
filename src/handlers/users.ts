@@ -85,7 +85,7 @@ export function updateUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
  * @param dbPool The database connection pool.
  * @returns An asynchronous function that handles the HTTP request and response.
  */
-export function getUserGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUsersToGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const paramsUserId = req.params.userId;
     const userId = req.session.userId;
@@ -103,8 +103,8 @@ export function getUserGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
         },
         where: eq(db.usersToGroups.userId, userId),
       });
-      const out = query.map((r) => r.group);
-      return res.json({ data: out });
+
+      return res.json({ data: query });
     } catch (e) {
       console.log('error getting groups per user ' + JSON.stringify(e));
       return res.status(500).json({ error: 'internal server error' });
