@@ -1,14 +1,14 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { federatedCredentials } from '.';
+import { federatedCredentials } from './federated-credentials';
 import { comments } from './comments';
 import { likes } from './likes';
-import { questionOptions } from './questionOptions';
+import { questionOptions } from './question-options';
 import { registrations } from './registrations';
-import { userAttributes } from './userAttributes';
-import { usersToGroups } from './usersToGroups';
+import { userAttributes } from './user-attributes';
+import { usersToGroups } from './users-to-groups';
 import { votes } from './votes';
-import { usersToNotifications } from './usersToNotifications';
+import { usersToNotifications } from './users-to-notifications';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -1,5 +1,5 @@
 import { boolean, pgTable, timestamp, uuid, varchar, numeric } from 'drizzle-orm/pg-core';
-import { forumQuestions } from './forumQuestions';
+import { forumQuestions } from './forum-questions';
 import { relations } from 'drizzle-orm';
 import { votes } from './votes';
 import { registrations } from './registrations';

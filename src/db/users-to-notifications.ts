@@ -1,6 +1,6 @@
 import { boolean, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './users';
-import { notificationTypes } from './notificationTypes';
+import { notificationTypes } from './notification-types';
 import { relations } from 'drizzle-orm';
 
 export const usersToNotifications = pgTable('users_to_notifications', {

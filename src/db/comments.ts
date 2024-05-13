@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { questionOptions } from './questionOptions';
+import { questionOptions } from './question-options';
 import { users } from './users';
 import { likes } from './likes';
 

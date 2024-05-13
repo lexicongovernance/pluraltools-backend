@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { forumQuestions } from './forumQuestions';
+import { forumQuestions } from './forum-questions';
 import { events } from './events';
 
 export const cycles = pgTable('cycles', {

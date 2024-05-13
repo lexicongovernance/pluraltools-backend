@@ -1,12 +1,12 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/createDbPool';
-import { runMigrations } from '../utils/db/runMigrations';
+import { createDbPool } from '../utils/db/create-db-pool';
+import { runMigrations } from '../utils/db/run-migrations';
 import { insertRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
-import { upsertRegistrationData } from './registrationData';
+import { upsertRegistrationData } from './registration-data';
 import { saveRegistration } from './registrations';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';

@@ -1,8 +1,8 @@
 import { integer, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { relations } from 'drizzle-orm';
-import { questionOptions } from './questionOptions';
-import { forumQuestions } from './forumQuestions';
+import { questionOptions } from './question-options';
+import { forumQuestions } from './forum-questions';
 
 export const votes = pgTable('votes', {
   id: uuid('id').primaryKey().defaultRandom(),

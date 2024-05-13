@@ -9,7 +9,7 @@ import {
   getUserRegistrationsHandler,
   updateUserHandler,
 } from '../handlers/users';
-import { isLoggedIn } from '../middleware/isLoggedIn';
+import { isLoggedIn } from '../middleware/is-logged-in';
 
 const router = express.Router();
 

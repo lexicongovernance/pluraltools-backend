@@ -1,10 +1,10 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/createDbPool';
-import { runMigrations } from '../utils/db/runMigrations';
-import { cleanup } from '../utils/db/seed';
-import { createSecretGroup, generateSecret, getSecretGroup } from './groups';
+import { createDbPool } from '../utils/db/create-db-pool';
+import { runMigrations } from '../utils/db/run-migrations';
+import { cleanup, seed } from '../utils/db/seed';
+import { createSecretGroup, generateSecret, getSecretGroup, getGroupMembers } from './groups';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -41,12 +41,15 @@ const wordlist: string[] = [
 describe('service: groups', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
+  let group: db.Group[];
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
     await runMigrations(DB_CONNECTION_URL);
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
+    const { groups } = await seed(dbPool);
+    group = groups.filter((group) => group !== undefined) as db.Group[];
   });
 
   test('generate secret:', async function () {
@@ -89,6 +92,14 @@ describe('service: groups', () => {
 
     expect(group?.name).toBe('Test Group');
     expect(group?.description).toBe('Test Description');
+  });
+
+  test('get group members of a group', async () => {
+    const groupId = group[1]?.id ?? '';
+
+    const result = await getGroupMembers(dbPool, groupId);
+    console.log(result);
+    expect(result).toBeDefined();
   });
 
   afterAll(async () => {

@@ -1,5 +1,5 @@
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { registrationFields } from './registrationFields';
+import { registrationFields } from './registration-fields';
 import { registrations } from './registrations';
 import { relations } from 'drizzle-orm';
 

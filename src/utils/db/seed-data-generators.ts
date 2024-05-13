@@ -31,7 +31,7 @@ export type GroupCategoryData = Pick<
   'name' | 'eventId' | 'userCanCreate' | 'userCanView'
 >;
 export type GroupData = Pick<Group, 'name' | 'groupCategoryId'>;
-export type UserData = Pick<User, 'username' | 'email'>;
+export type UserData = Pick<User, 'username' | 'email' | 'firstName' | 'lastName'>;
 export type UsersToGroupsData = Pick<UsersToGroups, 'userId' | 'groupId' | 'groupCategoryId'>;
 export type QuestionsToGroupCategoriesData = Pick<
   QuestionsToGroupCategories,
@@ -154,7 +154,12 @@ export function generateGroupData(
 export function generateUserData(numUsers: number): UserData[] {
   const users: UserData[] = [];
   for (let i = 0; i < numUsers; i++) {
-    users.push({ username: randUser().username, email: randUser().email });
+    users.push({
+      username: randUser().username,
+      email: randUser().email,
+      firstName: randUser().firstName,
+      lastName: randUser().lastName,
+    });
   }
   return users;
 }

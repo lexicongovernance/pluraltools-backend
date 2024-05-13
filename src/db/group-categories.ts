@@ -1,9 +1,9 @@
 import { pgTable, timestamp, uuid, varchar, boolean } from 'drizzle-orm/pg-core';
 import { events } from './events';
 import { groups } from './groups';
-import { usersToGroups } from './usersToGroups';
+import { usersToGroups } from './users-to-groups';
 import { relations } from 'drizzle-orm';
-import { questionsToGroupCategories } from './questionsToGroupCategories';
+import { questionsToGroupCategories } from './questions-to-group-categories';
 
 export const groupCategories = pgTable('group_categories', {
   id: uuid('id').primaryKey().defaultRandom(),

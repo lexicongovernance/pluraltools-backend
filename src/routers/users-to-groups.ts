@@ -1,8 +1,8 @@
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { default as express } from 'express';
 import type * as db from '../db';
-import { isLoggedIn } from '../middleware/isLoggedIn';
-import { joinGroupsHandler, leaveGroupsHandler } from '../handlers/usersToGroups';
+import { isLoggedIn } from '../middleware/is-logged-in';
+import { joinGroupsHandler, leaveGroupsHandler } from '../handlers/users-to-groups';
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { events } from './events';
-import { registrationData } from './registrationData';
+import { registrationData } from './registration-data';
 import { users } from './users';
 import { groups } from './groups';
 
