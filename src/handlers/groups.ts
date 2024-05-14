@@ -55,7 +55,7 @@ export function createGroupHandler(dbPool: PostgresJsDatabase<typeof db>) {
 export function getGroupMembersHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
-      const groupId = req.params.groupId;
+      const groupId = req.params.id;
 
       // Check if groupId is provided
       if (!groupId) {
