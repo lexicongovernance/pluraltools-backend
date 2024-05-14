@@ -4,7 +4,15 @@ import * as db from '../db';
 import { createDbPool } from '../utils/db/create-db-pool';
 import { runMigrations } from '../utils/db/run-migrations';
 import { cleanup, seed } from '../utils/db/seed';
-import { createSecretGroup, generateSecret, getSecretGroup, getGroupMembers } from './groups';
+import {
+  createSecretGroup,
+  generateSecret,
+  getSecretGroup,
+  getGroupMembers,
+  getGroupRegistrations,
+} from './groups';
+import { insertSimpleRegistrationSchema } from '../types';
+import { z } from 'zod';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -42,14 +50,32 @@ describe('service: groups', () => {
   let dbPool: PostgresJsDatabase<typeof db>;
   let dbConnection: postgres.Sql<NonNullable<unknown>>;
   let group: db.Group[];
+  let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
+  let secretGroup: db.Group[];
+  let cycle: db.Cycle | undefined;
+  let user: db.User | undefined;
 
   beforeAll(async () => {
     const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
     await runMigrations(DB_CONNECTION_URL);
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
-    const { groups } = await seed(dbPool);
+    const { users, cycles, groups } = await seed(dbPool);
     group = groups.filter((group) => group !== undefined) as db.Group[];
+    user = users[0];
+    cycle = cycles[0];
+    secretGroup = groups.filter((group) => group !== undefined) as db.Group[];
+    const secretGroupId = secretGroup[4]?.id ?? '';
+
+    groupRegistrationData = {
+      userId: user?.id ?? '',
+      eventId: cycle?.eventId ?? '',
+      status: 'APPROVED',
+      groupId: secretGroupId,
+    };
+
+    // Insert group registration data
+    await dbPool.insert(db.registrations).values(groupRegistrationData);
   });
 
   test('generate secret:', async function () {
@@ -96,9 +122,14 @@ describe('service: groups', () => {
 
   test('get group members of a group', async () => {
     const groupId = group[1]?.id ?? '';
-
     const result = await getGroupMembers(dbPool, groupId);
-    console.log(result);
+    expect(result).toBeDefined();
+  });
+
+  test('get group registrations', async () => {
+    const groupId = group[4]?.id ?? '';
+    const result = await getGroupRegistrations(dbPool, groupId);
+    console.log(JSON.stringify(result, null, 2));
     expect(result).toBeDefined();
   });
 
