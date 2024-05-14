@@ -1,4 +1,4 @@
-import { quadraticVoting } from './quadraticVoting';
+import { quadraticVoting } from './quadratic-voting';
 
 describe('quadraticVoting', () => {
   test('calculates quadratic votes for each agent and sum of quadratic votes', () => {

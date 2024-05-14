@@ -1,8 +1,8 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/createDbPool';
-import { runMigrations } from '../utils/db/runMigrations';
+import { createDbPool } from '../utils/db/create-db-pool';
+import { runMigrations } from '../utils/db/run-migrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
@@ -195,7 +195,7 @@ describe('service: votes', () => {
     // Get vote data required for groups
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, forumQuestion!.id);
     expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(2);
+    expect(groupCategoriesIdArray.length).toBe(1);
     expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
     groupCategoriesIdArray.forEach((categoryId) => {
       expect(typeof categoryId).toBe('string');

@@ -3,20 +3,15 @@ import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
-import {
-  upsertRegistrationData,
-  upsertQuestionOptionFromRegistrationData,
-} from './registrationData';
+import { upsertRegistrationData } from './registration-data';
 
 export async function validateCreateRegistrationPermissions({
   dbPool,
   userId,
   groupId,
-  eventId,
 }: {
   dbPool: PostgresJsDatabase<typeof db>;
   userId: string;
-  eventId: string;
   groupId?: string | null;
 }) {
   if (groupId) {
@@ -25,15 +20,6 @@ export async function validateCreateRegistrationPermissions({
     });
 
     if (!userGroup) {
-      return false;
-    }
-
-    // limit one registration per group per event
-    const existingRegistration = await dbPool.query.registrations.findFirst({
-      where: and(eq(db.registrations.eventId, eventId), eq(db.registrations.groupId, groupId)),
-    });
-
-    if (existingRegistration) {
       return false;
     }
   }
@@ -80,7 +66,6 @@ export async function validateUpdateRegistrationPermissions({
 export async function saveRegistration(
   dbPool: PostgresJsDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
-  userId: string,
 ) {
   const newRegistration = await createRegistrationInDB(dbPool, data);
   if (!newRegistration) {
@@ -93,19 +78,16 @@ export async function saveRegistration(
     registrationData: data.registrationData,
   });
 
-  try {
-    await upsertQuestionOptionFromRegistrationData(dbPool, userId, updatedRegistrationData);
-
-    const out = {
-      ...newRegistration,
-      registrationData: updatedRegistrationData,
-    };
-
-    return out;
-  } catch (error) {
-    console.error('Error in updateQuestionOptions: ', error);
-    throw new Error('Failed to update question options');
+  if (!updatedRegistrationData) {
+    throw new Error('Failed to upsert registration data');
   }
+
+  const out = {
+    ...newRegistration,
+    registrationData: updatedRegistrationData,
+  };
+
+  return out;
 }
 
 export async function updateRegistration({
@@ -136,23 +118,19 @@ export async function updateRegistration({
   const updatedRegistrationData = await upsertRegistrationData({
     dbPool,
     registrationId: updatedRegistration.id,
-
     registrationData: data.registrationData,
   });
 
-  try {
-    await upsertQuestionOptionFromRegistrationData(dbPool, userId, updatedRegistrationData);
-
-    const out = {
-      ...updatedRegistration,
-      registrationData: updatedRegistrationData,
-    };
-
-    return out;
-  } catch (error) {
-    console.error('Error in updateQuestionOptions: ', error);
-    throw new Error('Failed to update question options');
+  if (!updatedRegistrationData) {
+    throw new Error('Failed to upsert registration data');
   }
+
+  const out = {
+    ...updatedRegistration,
+    registrationData: updatedRegistrationData,
+  };
+
+  return out;
 }
 
 async function createRegistrationInDB(

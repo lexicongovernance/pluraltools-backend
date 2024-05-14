@@ -3,10 +3,10 @@ import postgres from 'postgres';
 import { z } from 'zod';
 import * as db from '../db';
 import { insertRegistrationSchema } from '../types';
-import { createDbPool } from '../utils/db/createDbPool';
-import { runMigrations } from '../utils/db/runMigrations';
+import { createDbPool } from '../utils/db/create-db-pool';
+import { runMigrations } from '../utils/db/run-migrations';
 import { cleanup, seed } from '../utils/db/seed';
-import { validateRequiredRegistrationFields } from './registrationFields';
+import { validateRequiredRegistrationFields } from './registration-fields';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 

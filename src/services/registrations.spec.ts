@@ -1,8 +1,8 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/createDbPool';
+import { createDbPool } from '../utils/db/create-db-pool';
 import postgres from 'postgres';
-import { runMigrations } from '../utils/db/runMigrations';
+import { runMigrations } from '../utils/db/run-migrations';
 import { saveRegistration } from './registrations';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
@@ -37,7 +37,7 @@ describe('service: registrations', () => {
   });
   test('send registration data', async function () {
     // Call the saveRegistration function
-    const response = await saveRegistration(dbPool, testData, testData.userId);
+    const response = await saveRegistration(dbPool, testData);
     // Check if response is defined
     expect(response).toBeDefined();
     // Check property existence and types
@@ -66,7 +66,7 @@ describe('service: registrations', () => {
       },
     ];
     // Call the saveRegistration function
-    const response = await saveRegistration(dbPool, testData, testData.userId);
+    const response = await saveRegistration(dbPool, testData);
     // Check if response is defined
     expect(response).toBeDefined();
     // Check property existence and types

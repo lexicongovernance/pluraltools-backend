@@ -1,11 +1,12 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
-import { upsertUsersToGroups } from './usersToGroups';
+import { createUsersToGroups, updateUsersToGroups } from './users-to-groups';
 import { eq, and } from 'drizzle-orm';
-import { createDbPool } from '../utils/db/createDbPool';
+import { createDbPool } from '../utils/db/create-db-pool';
 import postgres from 'postgres';
-import { runMigrations } from '../utils/db/runMigrations';
+import { runMigrations } from '../utils/db/run-migrations';
 import { cleanup, seed } from '../utils/db/seed';
+import { randUuid } from '@ngneat/falso';
 
 const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
@@ -22,7 +23,7 @@ describe('service: usersToGroups', function () {
     // seed
     const { users, groups } = await seed(dbPool);
     user = users[0];
-    defaultGroups = groups;
+    defaultGroups = groups.filter((group) => group !== undefined) as db.Group[];
     // insert users without group assignment
     await dbPool.insert(db.users).values({ username: 'NewUser', email: 'SomeEmail' });
   });
@@ -33,7 +34,7 @@ describe('service: usersToGroups', function () {
       where: eq(db.users.username, 'NewUser'),
     });
 
-    await upsertUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[0]?.id ?? '']);
+    await createUsersToGroups(dbPool, newUser?.id ?? '', defaultGroups[0]?.id ?? '');
 
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
@@ -50,7 +51,7 @@ describe('service: usersToGroups', function () {
       where: eq(db.users.username, 'NewUser'),
     });
 
-    await upsertUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[2]?.id ?? '']);
+    await createUsersToGroups(dbPool, newUser?.id ?? '', defaultGroups[2]?.id ?? '');
 
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
@@ -65,12 +66,21 @@ describe('service: usersToGroups', function () {
     expect(newUserGroup?.groupId).toBe(defaultGroups[2]?.id);
   });
 
-  test('can overwrite old user groups', async function () {
+  test('can update user groups', async function () {
     const newUser = await dbPool.query.users.findFirst({
       where: eq(db.users.username, 'NewUser'),
     });
 
-    await upsertUsersToGroups(dbPool, newUser?.id ?? '', [defaultGroups[1]?.id ?? '']);
+    const userGroup = await dbPool.query.usersToGroups.findFirst({
+      where: eq(db.usersToGroups.userId, newUser?.id ?? ''),
+    });
+
+    await updateUsersToGroups({
+      dbPool,
+      userId: newUser?.id ?? '',
+      groupId: defaultGroups[1]?.id ?? '',
+      usersToGroupsId: userGroup?.id ?? '',
+    });
 
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
@@ -87,9 +97,16 @@ describe('service: usersToGroups', function () {
   });
 
   test('handles non-existent group IDs', async function () {
-    const nonExistentGroupId = 'non-existent-group-id';
-    const result = await upsertUsersToGroups(dbPool, user?.id ?? '', [nonExistentGroupId]);
-    expect(result).toBeNull();
+    const nonExistentGroupId = randUuid();
+
+    await expect(
+      updateUsersToGroups({
+        dbPool,
+        userId: user?.id ?? '',
+        groupId: nonExistentGroupId,
+        usersToGroupsId: '',
+      }),
+    ).rejects.toThrow();
   });
 
   afterAll(async () => {

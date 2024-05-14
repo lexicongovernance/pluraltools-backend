@@ -1,7 +1,7 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { getQuestionHearts } from '../services/forumQuestions';
+import { getQuestionHearts } from '../services/forum-questions';
 import { executeResultQueries } from '../services/statistics';
 
 export function getQuestionHeartsHandler(dbPool: PostgresJsDatabase<typeof db>) {

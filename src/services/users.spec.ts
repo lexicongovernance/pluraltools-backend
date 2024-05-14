@@ -10,7 +10,6 @@ describe('service: users', function () {
         firstName: '',
         lastName: '',
         telegram: '',
-        groupIds: ['1'],
         userAttributes: {},
       };
 
