@@ -14,7 +14,7 @@ export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
     const option = await dbPool
       .select({
-        Id: db.questionOptions.id,
+        id: db.questionOptions.id,
         userId: db.questionOptions.userId,
         registrationId: db.questionOptions.registrationId,
         questionId: db.questionOptions.questionId,
