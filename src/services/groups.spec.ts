@@ -129,7 +129,6 @@ describe('service: groups', () => {
   test('get group registrations', async () => {
     const groupId = group[4]?.id ?? '';
     const result = await getGroupRegistrations(dbPool, groupId);
-    console.log(JSON.stringify(result, null, 2));
     expect(result).toBeDefined();
   });
 
