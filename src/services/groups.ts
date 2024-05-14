@@ -84,7 +84,15 @@ export async function getGroupRegistrations(
   const response = await dbPool.query.groups.findMany({
     where: eq(db.groups.id, groupId),
     with: {
-      registrations: true,
+      registrations: {
+        with: {
+          registrationData: {
+            with: {
+              registrationField: true,
+            },
+          },
+        },
+      },
     },
   });
 
