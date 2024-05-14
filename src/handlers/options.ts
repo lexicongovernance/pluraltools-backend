@@ -12,9 +12,20 @@ export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing optionId' });
     }
 
-    const option = await dbPool.query.questionOptions.findFirst({
-      where: eq(db.questionOptions.id, optionId),
-    });
+    const option = await dbPool
+      .select({
+        id: db.questionOptions.id,
+        userId: db.questionOptions.userId,
+        registrationId: db.questionOptions.registrationId,
+        questionId: db.questionOptions.questionId,
+        optionTitle: db.questionOptions.optionTitle,
+        optionSubTitle: db.questionOptions.optionSubTitle,
+        accepted: db.questionOptions.accepted,
+        createdAt: db.questionOptions.createdAt,
+        updatedAt: db.questionOptions.updatedAt,
+      })
+      .from(db.questionOptions)
+      .where(eq(db.questionOptions.id, optionId));
 
     return res.json({ data: option });
   };
