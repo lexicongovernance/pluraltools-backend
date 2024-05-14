@@ -19,7 +19,6 @@ describe('service: comments', () => {
   let questionOption: db.QuestionOption | undefined;
   let secretGroup: db.Group[];
   let cycle: db.Cycle | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
   let user: db.User | undefined;
   let otherUser: db.User | undefined;
 
@@ -29,11 +28,9 @@ describe('service: comments', () => {
     dbPool = initDb.dbPool;
     dbConnection = initDb.connection;
     // seed
-    const { users, questionOptions, forumQuestions, cycles, groups, groupCategories } =
-      await seed(dbPool);
+    const { users, questionOptions, cycles, groups, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
-    forumQuestion = forumQuestions[0];
     secretCategory = groupCategories[3];
     user = users[0];
     otherUser = users[1];

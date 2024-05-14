@@ -70,3 +70,29 @@ export async function getGroupMembers(dbPool: PostgresJsDatabase<typeof db>, gro
 
   return groupMembers;
 }
+
+/**
+ * Executes a query to retrieve the registrations of a group.
+
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {string} groupId - The ID of the user.
+ */
+export async function getGroupRegistrations(
+  dbPool: PostgresJsDatabase<typeof db>,
+  groupId: string,
+) {
+  const response = await dbPool.query.groups.findMany({
+    where: eq(db.groups.id, groupId),
+    with: {
+      registrations: true,
+    },
+  });
+
+  // Exclude unnecessary information
+  const groupRegistrations = response.map((group) => {
+    const { secret, ...groupWithoutSecret } = group;
+    return groupWithoutSecret;
+  });
+
+  return groupRegistrations;
+}
