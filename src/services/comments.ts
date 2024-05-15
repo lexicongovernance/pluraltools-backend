@@ -146,7 +146,7 @@ type GetOptionUsersResponse = {
 };
 
 /**
- * Executes a query to retrieve author data related to a forum question from the database.
+ * Executes a query to retrieve user data related to a question option from the database.
  *
  * @param {string} optionId - The ID of the question option for which author data is to be retrieved.
  * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
@@ -201,37 +201,37 @@ export async function getOptionUsers(
           GROUP BY group_id
       ),
 
-      registration_owner AS (
+      option_owner AS (
         SELECT 
-            registrations."id", users."id" AS "user_id",
+        question_options."id", users."id" AS "user_id",
             json_build_object(
                 'id', users."id",
                 'username', users."username",
                 'firstName', users."first_name",
                 'lastName', users."last_name"
-            ) AS registration_owner,
-            group_id
-        FROM registrations
-        LEFT JOIN users ON registrations."user_id" = users."id"
+            ) AS option_owner
+        FROM question_options
+        LEFT JOIN users ON question_options."user_id" = users."id"
       ),
     
       registrations_secret_groups AS (
-        SELECT "id", registration_owner."user_id", registration_owner, registration_owner."group_id",
-          agg_users_secret_groups."users_in_group"
-        FROM registration_owner
-        LEFT JOIN agg_users_secret_groups ON registration_owner."group_id" = agg_users_secret_groups."group_id"
+        SELECT registrations."id", registrations."group_id", agg_users_secret_groups."users_in_group"
+        FROM registrations
+        LEFT JOIN agg_users_secret_groups ON registrations."group_id" = agg_users_secret_groups."group_id"
+        WHERE registrations."group_id" IS NOT NULL
       ),
       
       result AS (
         SELECT 
           question_options."id" AS "optionId",
           question_options."registration_id" AS "registrationId",
-          registrations_secret_groups."user_id" AS "userId",
-          registrations_secret_groups."registration_owner" AS "user",
+          question_options."user_id" AS "userId",
+          option_owner."option_owner" AS "user",
           registrations_secret_groups."group_id" AS "groupId",
           registrations_secret_groups."users_in_group" AS "usersInGroup" 
         FROM question_options
         LEFT JOIN registrations_secret_groups ON question_options."registration_id" = registrations_secret_groups."id"
+        LEFT JOIN option_owner ON question_options."user_id" = option_owner."user_id"
         WHERE question_options."id" = '${optionId}'
       ),
 
@@ -252,7 +252,7 @@ export async function getOptionUsers(
     // Return the first row of query result or null if no data found
     return queryUsers[0] || null;
   } catch (error) {
-    console.error('Error in getOptionAuthors:', error);
+    console.error('Error in getOptionUsers:', error);
     throw new Error('Error executing database query');
   }
 }
