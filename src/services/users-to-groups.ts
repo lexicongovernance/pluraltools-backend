@@ -16,6 +16,15 @@ export async function createUsersToGroups(
     throw new Error('Group not found');
   }
 
+  const existingUserToGroup = await dbPool.query.usersToGroups.findFirst({
+    where: and(eq(db.usersToGroups.groupId, groupId), eq(db.usersToGroups.userId, userId)),
+  });
+
+  if (existingUserToGroup) {
+    console.error(userId, 'is already part of group:', groupId);
+    throw new Error('User is already part of the group');
+  }
+
   await dbPool
     .insert(db.usersToGroups)
     .values({ userId, groupId, groupCategoryId: group.groupCategoryId })
