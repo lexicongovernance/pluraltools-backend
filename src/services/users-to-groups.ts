@@ -25,7 +25,7 @@ export async function createUsersToGroups(
     throw new Error('User is already part of the group');
   }
 
-  await dbPool
+  return await dbPool
     .insert(db.usersToGroups)
     .values({ userId, groupId, groupCategoryId: group.groupCategoryId })
     .returning();
