@@ -12,7 +12,7 @@ export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing optionId' });
     }
 
-    const option = await dbPool
+    const rows = await dbPool
       .select({
         id: db.questionOptions.id,
         userId: db.questionOptions.userId,
@@ -27,7 +27,11 @@ export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
       .from(db.questionOptions)
       .where(eq(db.questionOptions.id, optionId));
 
-    return res.json({ data: option });
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Option not found' });
+    }
+
+    return res.json({ data: rows[0] });
   };
 }
 
