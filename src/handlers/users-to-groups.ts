@@ -39,9 +39,16 @@ export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
           return res.status(400).json({ error: 'Group is secret' });
         }
 
-        const userToGroup = await createUsersToGroups(dbPool, userId, body.data.groupId);
+        try {
+          const userToGroup = await createUsersToGroups(dbPool, userId, body.data.groupId);
+          return res.json({ data: userToGroup });
+        } catch (e) {
+          if (e instanceof Error) {
+            return res.status(400).json({ errors: [e.message] });
+          }
 
-        return res.json({ data: userToGroup });
+          return res.status(500).json({ errors: ['An error occurred while joining the group'] });
+        }
       }
 
       // secret group
@@ -51,9 +58,16 @@ export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
         return res.status(404).json({ error: 'Group not found' });
       }
 
-      const userToGroup = await createUsersToGroups(dbPool, userId, secretGroup.id);
+      try {
+        const userToGroup = await createUsersToGroups(dbPool, userId, secretGroup.id);
+        return res.json({ data: userToGroup });
+      } catch (e) {
+        if (e instanceof Error) {
+          return res.status(400).json({ errors: [e.message] });
+        }
 
-      return res.json({ data: userToGroup });
+        return res.status(500).json({ errors: ['An error occurred while joining the group'] });
+      }
     } catch (e) {
       console.error(e);
       return res.status(500).json({ errors: ['An error occurred while joining the group'] });
