@@ -142,11 +142,19 @@ export async function executeResultQueries(
           ),
           
           /* Query distinct groups and group names by option id */
+
+          relevant_categories AS (
+            SELECT group_category_id
+            FROM questions_to_group_categories
+            WHERE question_id = '${forumQuestionId}'
+          ),
+
           user_group_name AS (
               SELECT users_to_groups."user_id", users_to_groups."group_id", groups."name" 
               FROM users_to_groups
               LEFT JOIN groups
               ON users_to_groups."group_id" = groups."id"
+              WHERE users_to_groups.group_category_id IN (SELECT group_category_id FROM relevant_categories)
           ),
           
           option_user AS (
