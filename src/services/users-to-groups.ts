@@ -87,7 +87,7 @@ export async function deleteUsersToGroups(
   });
 
   if (isRegistrationAttached) {
-    throw new Error('Cannot leave group because of attached registration');
+    throw new Error('Please reassign your proposal to leave this group');
   }
 
   return await dbPool
