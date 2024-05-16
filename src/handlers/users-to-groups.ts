@@ -113,6 +113,9 @@ export function leaveGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
       return res.json({ data: deletedUserToGroup });
     } catch (e) {
+      if (e instanceof Error) {
+        return res.status(400).json({ errors: [e.message] });
+      }
       console.error(e);
       return res.status(500).json({ errors: ['An error occurred while leaving the group'] });
     }

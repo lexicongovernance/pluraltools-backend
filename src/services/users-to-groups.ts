@@ -71,6 +71,25 @@ export async function deleteUsersToGroups(
   userId: string,
   usersToGroupsId: string,
 ) {
+  const groupToLeave = await dbPool.query.usersToGroups.findFirst({
+    where: eq(db.usersToGroups.id, usersToGroupsId),
+  });
+
+  if (!groupToLeave) {
+    throw new Error('Users to Groups not found');
+  }
+
+  const isRegistrationAttached = await dbPool.query.registrations.findFirst({
+    where: and(
+      eq(db.registrations.userId, userId),
+      eq(db.registrations.groupId, groupToLeave.groupId),
+    ),
+  });
+
+  if (isRegistrationAttached) {
+    throw new Error('Cannot leave group because of attached registration');
+  }
+
   return await dbPool
     .delete(db.usersToGroups)
     .where(and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)))
