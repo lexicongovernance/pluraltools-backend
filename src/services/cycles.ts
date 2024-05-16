@@ -8,6 +8,7 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
     with: {
       forumQuestions: {
         with: {
+          questionsToGroupCategories: true,
           questionOptions: {
             with: {
               user: {
@@ -27,6 +28,10 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
     },
   });
 
+  const relevantCategories = cycle?.forumQuestions.flatMap((question) =>
+    question.questionsToGroupCategories.map((q) => q.groupCategoryId),
+  );
+
   const out = {
     ...cycle,
     forumQuestions: cycle?.forumQuestions.map((question) => {
@@ -45,7 +50,10 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
               username: option.user?.username,
               firstName: option.user?.firstName,
               lastName: option.user?.lastName,
-              group: option.user?.usersToGroups[0]?.group,
+              // return a group if the user is in a group that is relevant to the cycle
+              group: option.user?.usersToGroups.find(
+                (userToGroup) => relevantCategories?.includes(userToGroup.groupCategoryId),
+              )?.group,
             },
             createdAt: option.createdAt,
             updatedAt: option.updatedAt,
