@@ -79,15 +79,15 @@ export async function deleteUsersToGroups(
     throw new Error('Users to Groups not found');
   }
 
-  const isGroupLeader = await dbPool.query.registrations.findFirst({
+  const isRegistrationAttached = await dbPool.query.registrations.findFirst({
     where: and(
       eq(db.registrations.userId, userId),
       eq(db.registrations.groupId, groupToLeave.groupId),
     ),
   });
 
-  if (isGroupLeader) {
-    throw new Error('Leader is not allowed to leave the Group');
+  if (isRegistrationAttached) {
+    throw new Error('Cannot leave group because of attached registration');
   }
 
   return await dbPool
