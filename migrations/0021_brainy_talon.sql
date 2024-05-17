@@ -1,0 +1,1 @@
+ALTER TABLE "group_categories" ADD COLUMN "user_can_leave" boolean DEFAULT true NOT NULL;
