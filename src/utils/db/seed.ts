@@ -52,7 +52,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   );
 
   const groupCategoriesData = [
-    { name: 'affiliation', userCanView: true },
+    { name: 'affiliation', userCanView: true, userCanLeave: false },
     { name: 'category A', userCanView: true },
     { name: 'category B', userCanView: true },
     { name: 'secrets', userCanCreate: true, userCanView: false },
@@ -324,6 +324,7 @@ async function createGroupCategories(
         eventId: data.eventId,
         userCanCreate: data.userCanCreate,
         userCanView: data.userCanView,
+        userCanLeave: data.userCanLeave,
       })
       .returning();
 
