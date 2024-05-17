@@ -144,7 +144,6 @@ async function createRegistrationInDB(
       userId: body.userId,
       groupId: body.groupId,
       eventId: body.eventId,
-      status: body.status,
     })
     .returning();
   return newRegistration[0];
@@ -160,7 +159,6 @@ async function updateRegistrationInDB(
     .set({
       eventId: body.eventId,
       groupId: body.groupId,
-      status: body.status,
       updatedAt: new Date(),
     })
     .where(eq(db.registrations.id, registration.id))
