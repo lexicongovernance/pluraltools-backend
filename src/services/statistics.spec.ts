@@ -61,6 +61,7 @@ describe('service: statistics', () => {
     expect(result.numProposals).toEqual(2);
     expect(result.sumNumOfHearts).toEqual(8);
     expect(result.numOfParticipants).toEqual(2);
+    expect(result.numOfGroups).toEqual(1);
 
     // Test option stats
     expect(result.optionStats).toBeDefined();
