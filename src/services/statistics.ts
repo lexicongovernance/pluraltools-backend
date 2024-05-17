@@ -82,11 +82,18 @@ export async function executeResultQueries(
               SELECT DISTINCT user_id
               FROM votes 
               WHERE question_id = '${forumQuestionId}'
+          ),
+
+          question_categories AS (
+            SELECT group_category_id
+            FROM questions_to_group_categories
+            WHERE question_id = '${forumQuestionId}'
           )
   
           SELECT count(DISTINCT group_id)::int AS "numOfGroups"
           FROM users_to_groups
           WHERE user_id IN (SELECT user_id FROM votes_users)
+          AND users_to_groups.group_category_id IN (SELECT group_category_id FROM question_categories)
           `),
       ),
 
