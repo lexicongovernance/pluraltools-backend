@@ -1,0 +1,1 @@
+ALTER TABLE "question_options" ADD COLUMN "funding_request" numeric DEFAULT '0.0';

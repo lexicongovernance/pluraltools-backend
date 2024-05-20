@@ -17,6 +17,7 @@ export const questionOptions = pgTable('question_options', {
   optionSubTitle: varchar('option_sub_title'),
   accepted: boolean('accepted').default(false),
   voteScore: numeric('vote_score').notNull().default('0.0'),
+  fundingRequest: numeric('funding_request').default('0.0'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
