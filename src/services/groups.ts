@@ -66,7 +66,9 @@ export async function getGroupMembers(dbPool: PostgresJsDatabase<typeof db>, gro
     },
   });
 
-  return response;
+  const out = response[0]?.usersToGroups.map((userToGroup) => userToGroup.user);
+
+  return out;
 }
 
 /**
