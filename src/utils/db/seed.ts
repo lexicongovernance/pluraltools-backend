@@ -53,8 +53,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
 
   const groupCategoriesData = [
     { name: 'affiliation', userCanView: true, userCanLeave: false },
-    { name: 'category A', userCanView: true },
-    { name: 'category B', userCanView: true },
+    { name: 'public', userCanView: true, userCanCreate: true },
     { name: 'secrets', userCanCreate: true, userCanView: false },
   ];
 

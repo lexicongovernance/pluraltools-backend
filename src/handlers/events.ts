@@ -17,6 +17,9 @@ export function getEventCyclesHandler(dbPool: PostgresJsDatabase<typeof db>) {
         forumQuestions: {
           with: {
             questionOptions: {
+              columns: {
+                voteScore: false,
+              },
               where: eq(db.questionOptions.accepted, true),
             },
           },

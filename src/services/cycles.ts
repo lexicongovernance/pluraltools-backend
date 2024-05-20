@@ -10,12 +10,19 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
         with: {
           questionsToGroupCategories: true,
           questionOptions: {
+            columns: {
+              voteScore: false,
+            },
             with: {
               user: {
                 with: {
                   usersToGroups: {
                     with: {
-                      group: true,
+                      group: {
+                        columns: {
+                          secret: false,
+                        },
+                      },
                     },
                   },
                 },
@@ -43,7 +50,6 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
             accepted: option.accepted,
             optionTitle: option.optionTitle,
             optionSubTitle: option.optionSubTitle,
-            voteScore: option.voteScore,
             questionId: option.questionId,
             registrationId: option.registrationId,
             user: {
@@ -51,8 +57,8 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
               firstName: option.user?.firstName,
               lastName: option.user?.lastName,
               // return a group if the user is in a group that is relevant to the cycle
-              group: option.user?.usersToGroups.find((userToGroup) =>
-                relevantCategories?.includes(userToGroup.groupCategoryId),
+              group: option.user?.usersToGroups.find(
+                (userToGroup) => relevantCategories?.includes(userToGroup.groupCategoryId),
               )?.group,
             },
             createdAt: option.createdAt,
@@ -82,6 +88,9 @@ export async function getCycleVotes(
       forumQuestions: {
         with: {
           questionOptions: {
+            columns: {
+              voteScore: false,
+            },
             with: {
               votes: {
                 where: ({ optionId }) =>

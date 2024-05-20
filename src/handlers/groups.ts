@@ -99,7 +99,7 @@ export function getGroupRegistrationsHandler(dbPool: PostgresJsDatabase<typeof d
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getGroupRegistrtions:', error);
+      console.error('Error in getGroupRegistrationsHandler:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   };

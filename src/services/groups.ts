@@ -53,22 +53,20 @@ export async function getGroupMembers(dbPool: PostgresJsDatabase<typeof db>, gro
     with: {
       usersToGroups: {
         with: {
-          user: true,
+          user: {
+            columns: {
+              telegram: false,
+              createdAt: false,
+              updatedAt: false,
+              email: false,
+            },
+          },
         },
       },
     },
   });
 
-  // Extract user objects from each usersToGroups entry
-  const groupMembers = response.flatMap((group) =>
-    group.usersToGroups.map((usersToGroup) => {
-      const { telegram, createdAt, updatedAt, email, ...userWithoutSensitiveInfo } =
-        usersToGroup.user;
-      return userWithoutSensitiveInfo;
-    }),
-  );
-
-  return groupMembers;
+  return response;
 }
 
 /**
@@ -83,6 +81,9 @@ export async function getGroupRegistrations(
 ) {
   const response = await dbPool.query.groups.findMany({
     where: eq(db.groups.id, groupId),
+    columns: {
+      secret: false,
+    },
     with: {
       registrations: {
         with: {
@@ -96,11 +97,5 @@ export async function getGroupRegistrations(
     },
   });
 
-  // Exclude unnecessary information
-  const groupRegistrations = response.map((group) => {
-    const { secret, ...groupWithoutSecret } = group;
-    return groupWithoutSecret;
-  });
-
-  return groupRegistrations;
+  return response;
 }

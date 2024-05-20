@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, getTableColumns } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
@@ -12,17 +12,11 @@ export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing optionId' });
     }
 
+    const { voteScore, ...rest } = getTableColumns(db.questionOptions);
+
     const rows = await dbPool
       .select({
-        id: db.questionOptions.id,
-        userId: db.questionOptions.userId,
-        registrationId: db.questionOptions.registrationId,
-        questionId: db.questionOptions.questionId,
-        optionTitle: db.questionOptions.optionTitle,
-        optionSubTitle: db.questionOptions.optionSubTitle,
-        accepted: db.questionOptions.accepted,
-        createdAt: db.questionOptions.createdAt,
-        updatedAt: db.questionOptions.updatedAt,
+        ...rest,
       })
       .from(db.questionOptions)
       .where(eq(db.questionOptions.id, optionId));
