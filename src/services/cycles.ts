@@ -57,8 +57,8 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
               firstName: option.user?.firstName,
               lastName: option.user?.lastName,
               // return a group if the user is in a group that is relevant to the cycle
-              group: option.user?.usersToGroups.find(
-                (userToGroup) => relevantCategories?.includes(userToGroup.groupCategoryId),
+              group: option.user?.usersToGroups.find((userToGroup) =>
+                relevantCategories?.includes(userToGroup.groupCategoryId),
               )?.group,
             },
             createdAt: option.createdAt,
