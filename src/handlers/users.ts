@@ -147,7 +147,18 @@ export function getUserAttributesHandler(dbPool: PostgresJsDatabase<typeof db>) 
 
 export function getUserOptionsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const { userId } = req.params;
+    const userId = req.session.userId;
+    const paramsUserId = req.params.userId;
+
+    if (userId !== paramsUserId) {
+      return res.status(400).json({
+        errors: [
+          {
+            message: 'Not authorized to query this user',
+          },
+        ],
+      });
+    }
 
     if (!userId) {
       return res.status(400).json({ error: 'Missing userId' });
@@ -167,8 +178,18 @@ export function getUserOptionsHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
 export function getUserRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    // parse input
     const userId = req.session.userId;
+    const paramsUserId = req.params.userId;
+
+    if (userId !== paramsUserId) {
+      return res.status(400).json({
+        errors: [
+          {
+            message: 'Not authorized to query this user',
+          },
+        ],
+      });
+    }
 
     try {
       const out = await dbPool

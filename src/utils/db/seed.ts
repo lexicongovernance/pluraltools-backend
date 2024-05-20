@@ -53,8 +53,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
 
   const groupCategoriesData = [
     { name: 'affiliation', userCanView: true, userCanLeave: false },
-    { name: 'category A', userCanView: true },
-    { name: 'category B', userCanView: true },
+    { name: 'public', userCanView: true, userCanCreate: false },
     { name: 'secrets', userCanCreate: true, userCanView: false },
   ];
 
@@ -63,13 +62,8 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
     generateGroupCategoryData(events[0]!.id, groupCategoriesData),
   );
 
-  const categoryIdsData = [
-    groupCategories[0]!.id,
-    groupCategories[1]!.id,
-    groupCategories[2]!.id,
-    groupCategories[3]!.id,
-  ];
-  const numOfGroupsData = [1, 2, 1, 1];
+  const categoryIdsData = [groupCategories[0]!.id, groupCategories[1]!.id, groupCategories[2]!.id];
+  const numOfGroupsData = [5, 4, 3];
 
   const groups = await createGroups(dbPool, generateGroupData(categoryIdsData, numOfGroupsData));
 

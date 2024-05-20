@@ -72,7 +72,7 @@ export async function deleteUsersToGroups(
   usersToGroupsId: string,
 ) {
   const groupToLeave = await dbPool.query.usersToGroups.findFirst({
-    where: eq(db.usersToGroups.id, usersToGroupsId),
+    where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)),
   });
 
   if (!groupToLeave) {

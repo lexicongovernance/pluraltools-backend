@@ -31,7 +31,7 @@ describe('service: comments', () => {
     const { users, questionOptions, cycles, groups, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user
     questionOption = questionOptions[0];
-    secretCategory = groupCategories[3];
+    secretCategory = groupCategories[2];
     user = users[0];
     otherUser = users[1];
     cycle = cycles[0];
