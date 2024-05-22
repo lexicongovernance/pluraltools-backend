@@ -88,7 +88,6 @@ describe('test funding mechanism', () => {
     };
 
     const result = allocateFunding(availableFunding, maxFunding, getOptionData);
-    console.log(result);
     expect(result).toEqual(expectedResult);
   });
 
