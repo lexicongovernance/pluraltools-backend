@@ -52,6 +52,7 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
             optionSubTitle: option.optionSubTitle,
             questionId: option.questionId,
             registrationId: option.registrationId,
+            fundingRequest: option.fundingRequest,
             user: {
               username: option.user?.username,
               firstName: option.user?.firstName,
