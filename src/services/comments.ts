@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { insertCommentSchema } from '../types';
 import { z } from 'zod';
@@ -128,4 +128,131 @@ export async function userCanComment(
   }
 
   return true;
+}
+
+type GetOptionUsersResponse = {
+  optionId: string;
+  registrationId: string;
+  userId: string;
+  group: {
+    id: string;
+    users: {
+      id: string;
+      username: string;
+      firstName: string;
+      lastName: string;
+    }[];
+  };
+};
+
+/**
+ * Executes a query to retrieve user data related to a question option from the database.
+ *
+ * @param {string} optionId - The ID of the question option for which author data is to be retrieved.
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
+ * @returns {Promise<UserData | null>} - A promise resolving to user data related to the question question or null if no data found.
+ */
+export async function getOptionUsers(
+  optionId: string,
+  dbPool: PostgresJsDatabase<typeof db>,
+): Promise<GetOptionUsersResponse | null> {
+  try {
+    const queryUsers = await dbPool.execute<{
+      optionId: string;
+      registrationId: string;
+      userId: string;
+      group: {
+        id: string;
+        users: {
+          id: string;
+          username: string;
+          firstName: string;
+          lastName: string;
+        }[];
+      };
+    }>(
+      sql.raw(`
+        WITH secret_groups AS (
+          SELECT id AS "group_id"
+          FROM groups
+          WHERE secret IS NOT NULL
+        ),
+
+        users_secret_groups AS (
+          SELECT users."id" AS "user_id", users."username", users."first_name", users."last_name", users_to_groups."group_id" 
+          FROM users_to_groups
+		      LEFT JOIN users 
+		      ON users_to_groups."user_id" = users."id"
+		      WHERE group_id IN (SELECT group_id FROM secret_groups)
+        ),
+
+        agg_users_secret_groups AS (
+          SELECT 
+              group_id, 
+              json_agg(
+                  json_build_object(
+                      'id', user_id,
+                      'username', username,
+                      'firstName', first_name,
+                      'lastName', last_name
+                  )
+              ) AS "users_in_group"
+          FROM users_secret_groups
+          GROUP BY group_id
+      ),
+
+      option_owner AS (
+        SELECT 
+        question_options."id", users."id" AS "user_id",
+            json_build_object(
+                'id', users."id",
+                'username', users."username",
+                'firstName', users."first_name",
+                'lastName', users."last_name"
+            ) AS option_owner
+        FROM question_options
+        LEFT JOIN users ON question_options."user_id" = users."id"
+      ),
+    
+      registrations_secret_groups AS (
+        SELECT registrations."id", registrations."group_id", agg_users_secret_groups."users_in_group"
+        FROM registrations
+        LEFT JOIN agg_users_secret_groups ON registrations."group_id" = agg_users_secret_groups."group_id"
+        WHERE registrations."group_id" IS NOT NULL
+      ),
+      
+      result AS (
+        SELECT 
+          question_options."id" AS "optionId",
+          question_options."registration_id" AS "registrationId",
+          question_options."user_id" AS "userId",
+          option_owner."option_owner" AS "user",
+          registrations_secret_groups."group_id" AS "groupId",
+          registrations_secret_groups."users_in_group" AS "usersInGroup" 
+        FROM question_options
+        LEFT JOIN registrations_secret_groups ON question_options."registration_id" = registrations_secret_groups."id"
+        LEFT JOIN option_owner ON question_options."user_id" = option_owner."user_id"
+        WHERE question_options."id" = '${optionId}'
+      ),
+
+      nested_result AS (
+        SELECT "optionId", "registrationId", result."userId", "user", result."groupId",
+          json_build_object(
+                'id', result."groupId",
+                'users', result."usersInGroup"
+          ) AS group
+        FROM result
+      )
+
+      SELECT * 
+      FROM nested_result 
+        `),
+    );
+
+    // Return the first row of query result or null if no data found
+    return queryUsers[0] || null;
+  } catch (error) {
+    console.error('Error in getOptionUsers:', error);
+    throw new Error('Error executing database query');
+  }
 }

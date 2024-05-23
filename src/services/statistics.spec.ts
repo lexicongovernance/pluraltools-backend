@@ -1,8 +1,8 @@
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/createDbPool';
-import { runMigrations } from '../utils/db/runMigrations';
+import { createDbPool } from '../utils/db/create-db-pool';
+import { runMigrations } from '../utils/db/run-migrations';
 import { insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
@@ -61,6 +61,7 @@ describe('service: statistics', () => {
     expect(result.numProposals).toEqual(2);
     expect(result.sumNumOfHearts).toEqual(8);
     expect(result.numOfParticipants).toEqual(2);
+    expect(result.numOfGroups).toEqual(1);
 
     // Test option stats
     expect(result.optionStats).toBeDefined();
@@ -84,7 +85,7 @@ describe('service: statistics', () => {
         expect(optionStat?.distinctUsers).toEqual(2);
         expect(optionStat?.allocatedHearts).toEqual(8);
         expect(optionStat?.quadraticScore).toEqual('4');
-        expect(optionStat?.distinctGroups).toEqual(2);
+        expect(optionStat?.distinctGroups).toEqual(1);
         const listOfGroupNames = optionStat?.listOfGroupNames;
         // Check if the array is not empty
         expect(listOfGroupNames).toBeDefined();

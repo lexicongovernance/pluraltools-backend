@@ -2,7 +2,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { insertRegistrationSchema } from '../types';
-import { validateRequiredRegistrationFields } from '../services/registrationFields';
+import { validateRequiredRegistrationFields } from '../services/registration-fields';
 import {
   saveRegistration,
   updateRegistration,
@@ -64,7 +64,6 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
     const canRegisterGroup = await validateCreateRegistrationPermissions({
       dbPool,
       userId,
-      eventId: body.data.eventId,
       groupId: body.data.groupId,
     });
 
@@ -73,7 +72,7 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
     }
 
     try {
-      const out = await saveRegistration(dbPool, body.data, userId);
+      const out = await saveRegistration(dbPool, body.data);
       return res.json({ data: out });
     } catch (e) {
       console.log('error saving registration ' + e);

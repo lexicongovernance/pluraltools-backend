@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { usersToGroups } from './usersToGroups';
-import { groupCategories } from './groupCategories';
+import { usersToGroups } from './users-to-groups';
+import { groupCategories } from './group-categories';
 import { registrations } from './registrations';
 
 export const groups = pgTable('groups', {

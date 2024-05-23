@@ -13,3 +13,5 @@ export const registrationDataSchema = z
 export const insertRegistrationSchema = createInsertSchema(registrations).extend({
   registrationData: registrationDataSchema,
 });
+
+export const insertSimpleRegistrationSchema = createInsertSchema(registrations);

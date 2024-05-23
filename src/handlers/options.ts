@@ -1,8 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { eq, getTableColumns } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { getOptionComments } from '../services/comments';
+import { getOptionUsers, getOptionComments } from '../services/comments';
 
 export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -12,11 +12,20 @@ export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing optionId' });
     }
 
-    const option = await dbPool.query.questionOptions.findFirst({
-      where: eq(db.questionOptions.id, optionId),
-    });
+    const { voteScore, ...rest } = getTableColumns(db.questionOptions);
 
-    return res.json({ data: option });
+    const rows = await dbPool
+      .select({
+        ...rest,
+      })
+      .from(db.questionOptions)
+      .where(eq(db.questionOptions.id, optionId));
+
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Option not found' });
+    }
+
+    return res.json({ data: rows[0] });
   };
 }
 
@@ -36,6 +45,37 @@ export function getOptionCommentsHandler(dbPool: PostgresJsDatabase<typeof db>) 
     } catch (error) {
       console.error('Error getting comments: ', error);
       return res.sendStatus(500);
+    }
+  };
+}
+
+/**
+ * Retrieves author and co-author data for a given question option created as a secret group.
+ *
+ * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
+ * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @returns {Promise<Response>} - A promise that resolves with the Express response containing the author data.
+ */
+export function getOptionUsersHandler(dbPool: PostgresJsDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    try {
+      const optionId = req.params.optionId;
+
+      // Check if optionId is provided
+      if (!optionId) {
+        return res.status(400).json({ error: 'Missing optionId parameter' });
+      }
+
+      // Execute queries
+      const responseData = await getOptionUsers(optionId, dbPool);
+
+      // Send response
+      return res.status(200).json({ data: responseData });
+    } catch (error) {
+      console.error('Error in getOptionUsers:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
 }
