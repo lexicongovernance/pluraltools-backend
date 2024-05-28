@@ -8,7 +8,11 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
     with: {
       forumQuestions: {
         with: {
-          questionsToGroupCategories: true,
+          questionsToGroupCategories: {
+            with: {
+              groupCategory: true,
+            },
+          },
           questionOptions: {
             columns: {
               voteScore: false,
@@ -36,7 +40,10 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
   });
 
   const relevantCategories = cycle?.forumQuestions.flatMap((question) =>
-    question.questionsToGroupCategories.map((q) => q.groupCategoryId),
+    question.questionsToGroupCategories
+      // TODO: This is a workaround to only show affiliation
+      .filter((q) => !q.groupCategory?.userCanLeave)
+      .map((q) => q.groupCategoryId),
   );
 
   const out = {
