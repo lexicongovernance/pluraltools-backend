@@ -92,6 +92,8 @@ export async function getOptionComments(
       user: {
         id: row.users?.id,
         username: row.users?.username,
+        firstName: row.users?.firstName,
+        lastName: row.users?.lastName,
       },
     };
   });
