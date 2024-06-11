@@ -1,12 +1,12 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { z } from 'zod';
 import { insertGroupsSchema } from '../types/groups';
 import { wordlist } from '../utils/db/mnemonics';
 import { eq } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export function createSecretGroup(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   body: z.infer<typeof insertGroupsSchema>,
 ) {
   const secret = generateSecret(wordlist, 3);
@@ -22,7 +22,7 @@ export function createSecretGroup(
   return rows;
 }
 
-export function getSecretGroup(dbPool: PostgresJsDatabase<typeof db>, secret: string) {
+export function getSecretGroup(dbPool: NodePgDatabase<typeof db>, secret: string) {
   const group = dbPool.query.groups.findFirst({
     where: eq(db.groups.secret, secret),
   });
@@ -44,10 +44,10 @@ export function generateSecret(wordlist: string[], length: number): string {
 /**
  * Executes a query to retrieve the members of a group.
 
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} groupId - The ID of the user.
  */
-export async function getGroupMembers(dbPool: PostgresJsDatabase<typeof db>, groupId: string) {
+export async function getGroupMembers(dbPool: NodePgDatabase<typeof db>, groupId: string) {
   const response = await dbPool.query.groups.findMany({
     where: eq(db.groups.id, groupId),
     with: {
@@ -74,13 +74,10 @@ export async function getGroupMembers(dbPool: PostgresJsDatabase<typeof db>, gro
 /**
  * Executes a query to retrieve the registrations of a group.
 
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} groupId - The ID of the user.
  */
-export async function getGroupRegistrations(
-  dbPool: PostgresJsDatabase<typeof db>,
-  groupId: string,
-) {
+export async function getGroupRegistrations(dbPool: NodePgDatabase<typeof db>, groupId: string) {
   const response = await dbPool.query.groups.findMany({
     where: eq(db.groups.id, groupId),
     columns: {

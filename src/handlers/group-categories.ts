@@ -1,17 +1,17 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { and, eq } from 'drizzle-orm';
 import { canViewGroupsInGroupCategory } from '../services/group-categories';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getGroupCategoriesHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getGroupCategoriesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const groupCategories = await dbPool.query.groupCategories.findMany();
     return res.json({ data: groupCategories });
   };
 }
 
-export function getGroupCategoryHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getGroupCategoryHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const groupCategoryId = req.params.id;
 
@@ -27,7 +27,7 @@ export function getGroupCategoryHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function getGroupCategoriesGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getGroupCategoriesGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const groupCategoryName = req.params.name;
 

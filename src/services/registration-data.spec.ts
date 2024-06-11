@@ -1,28 +1,41 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/create-db-pool';
+import { createDbClient } from '../utils/db/create-db-connection';
 import { runMigrations } from '../utils/db/run-migrations';
-import { insertRegistrationSchema } from '../types';
+import { environmentVariables, insertRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import { upsertRegistrationData } from './registration-data';
 import { saveRegistration } from './registrations';
-
-const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Client } from 'pg';
 
 describe('service: registrationData', () => {
-  let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<NonNullable<unknown>>;
+  let dbPool: NodePgDatabase<typeof db>;
+  let dbConnection: Client;
   let registrationField: db.RegistrationField | undefined;
   let registration: db.Registration | undefined;
   let testRegistration: z.infer<typeof insertRegistrationSchema>;
 
   beforeAll(async () => {
-    const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
-    await runMigrations(DB_CONNECTION_URL);
-    dbPool = initDb.dbPool;
-    dbConnection = initDb.connection;
+    const envVariables = environmentVariables.parse(process.env);
+    const initDb = await createDbClient({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    await runMigrations({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    dbPool = initDb.db;
+    dbConnection = initDb.client;
     // seed
     const { events, users, registrationFields } = await seed(dbPool);
 

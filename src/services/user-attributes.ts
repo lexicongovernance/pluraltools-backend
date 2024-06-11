@@ -1,9 +1,9 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { and, eq, inArray } from 'drizzle-orm';
 
 export async function upsertUserAttributes(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   // key -> value pairs
   userAttributes: { [key: string]: string },

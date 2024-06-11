@@ -1,4 +1,4 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { sql } from 'drizzle-orm';
 
@@ -39,7 +39,7 @@ export function availableHearts(
 }
 
 export async function getQuestionHearts(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: {
     forumQuestionId: string;
   },
@@ -55,7 +55,7 @@ export async function getQuestionHearts(
           `),
   );
 
-  const countOptions = numOptions[0]?.countOptions;
+  const countOptions = numOptions.rows[0]?.countOptions;
 
   // Calculate available hearts
   if (countOptions !== undefined) {

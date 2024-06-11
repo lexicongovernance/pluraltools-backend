@@ -1,9 +1,9 @@
 import { and, eq } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getEventCyclesHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const { eventId } = req.params;
 
@@ -31,14 +31,14 @@ export function getEventCyclesHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function getEventsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getEventsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const events = await dbPool.query.events.findMany();
     return res.json({ data: events });
   };
 }
 
-export function getEventHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getEventHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const { eventId } = req.params;
 
@@ -54,7 +54,7 @@ export function getEventHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function getEventRegistrationFieldsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getEventRegistrationFieldsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const eventId = req.params.eventId;
     if (!eventId) {
@@ -76,7 +76,7 @@ export function getEventRegistrationFieldsHandler(dbPool: PostgresJsDatabase<typ
   };
 }
 
-export function getEventRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getEventRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     // parse input
     const eventId = req.params.eventId ?? '';

@@ -1,9 +1,9 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { and, eq, gte, lte, or } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getActiveAlerts(dbPool: PostgresJsDatabase<typeof db>) {
+export function getActiveAlerts(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const alerts = await dbPool.query.alerts.findMany({

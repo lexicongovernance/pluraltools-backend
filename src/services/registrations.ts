@@ -1,16 +1,16 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertRegistrationSchema } from '../types';
 import * as db from '../db';
 import { upsertRegistrationData } from './registration-data';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export async function validateCreateRegistrationPermissions({
   dbPool,
   userId,
   groupId,
 }: {
-  dbPool: PostgresJsDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof db>;
   userId: string;
   groupId?: string | null;
 }) {
@@ -33,7 +33,7 @@ export async function validateUpdateRegistrationPermissions({
   userId,
   groupId,
 }: {
-  dbPool: PostgresJsDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof db>;
   userId: string;
   registrationId: string;
   groupId?: string | null;
@@ -64,7 +64,7 @@ export async function validateUpdateRegistrationPermissions({
 }
 
 export async function saveRegistration(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
 ) {
   const newRegistration = await createRegistrationInDB(dbPool, data);
@@ -96,7 +96,7 @@ export async function updateRegistration({
   registrationId,
   userId,
 }: {
-  dbPool: PostgresJsDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof db>;
   data: z.infer<typeof insertRegistrationSchema>;
   registrationId: string;
   userId: string;
@@ -134,7 +134,7 @@ export async function updateRegistration({
 }
 
 async function createRegistrationInDB(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   body: z.infer<typeof insertRegistrationSchema>,
 ) {
   // insert to registration table
@@ -150,7 +150,7 @@ async function createRegistrationInDB(
 }
 
 async function updateRegistrationInDB(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   registration: db.Registration,
   body: z.infer<typeof insertRegistrationSchema>,
 ) {

@@ -1,18 +1,16 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/create-db-pool';
+import { createDbClient } from '../utils/db/create-db-connection';
 import { runMigrations } from '../utils/db/run-migrations';
-import { insertVotesSchema } from '../types';
+import { environmentVariables, insertVotesSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import { executeResultQueries } from './statistics';
-
-const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Client } from 'pg';
 
 describe('service: statistics', () => {
-  let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<NonNullable<unknown>>;
+  let dbPool: NodePgDatabase<typeof db>;
+  let dbConnection: Client;
   let userTestData: z.infer<typeof insertVotesSchema>;
   let otherUserTestData: z.infer<typeof insertVotesSchema>;
   let questionOption: db.QuestionOption | undefined;
@@ -21,10 +19,25 @@ describe('service: statistics', () => {
   let otherUser: db.User | undefined;
 
   beforeAll(async () => {
-    const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
-    await runMigrations(DB_CONNECTION_URL);
-    dbPool = initDb.dbPool;
-    dbConnection = initDb.connection;
+    const envVariables = environmentVariables.parse(process.env);
+    const initDb = await createDbClient({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    await runMigrations({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    dbPool = initDb.db;
+    dbConnection = initDb.client;
     // seed
     const { users, questionOptions, forumQuestions } = await seed(dbPool);
     // Insert registration fields for the user

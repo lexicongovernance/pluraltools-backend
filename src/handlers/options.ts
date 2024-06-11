@@ -1,10 +1,10 @@
 import { eq, getTableColumns } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { getOptionUsers, getOptionComments } from '../services/comments';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const { optionId } = req.params;
 
@@ -31,10 +31,10 @@ export function getOptionHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
 /**
  * Retrieves comments related to a specific question option from the database and associates them with corresponding user information.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database pool connection.
  * @returns {Promise<void>} - A promise that resolves with the retrieved comments, each associated with user information if available.
  */
-export function getOptionCommentsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const optionId = req.params.optionId ?? '';
 
@@ -52,13 +52,13 @@ export function getOptionCommentsHandler(dbPool: PostgresJsDatabase<typeof db>) 
 /**
  * Retrieves author and co-author data for a given question option created as a secret group.
  *
- * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
+ * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
  * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  * @returns {Promise<Response>} - A promise that resolves with the Express response containing the author data.
  */
-export function getOptionUsersHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const optionId = req.params.optionId;

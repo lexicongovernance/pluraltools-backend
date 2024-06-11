@@ -1,4 +1,4 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { and, eq } from 'drizzle-orm';
 
@@ -8,7 +8,7 @@ export async function validateRequiredRegistrationFields({
   forGroup,
   forUser,
 }: {
-  dbPool: PostgresJsDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof db>;
   data: {
     eventId: string;
     registrationData: {

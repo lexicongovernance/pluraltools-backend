@@ -1,19 +1,19 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
 import { upsertUserAttributes } from './user-attributes';
 import { z } from 'zod';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Checks user data for existing entries in the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user to check.
  * @param {UserData} userData - The user data to check.
  * @returns {Promise<Array<string> | null>} - An array of errors if user data conflicts, otherwise null.
  */
 async function validateUserData(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   userData: UserData,
 ) {
@@ -48,12 +48,12 @@ async function validateUserData(
 
 /**
  * Upserts user data in the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user to update.
  * @param {UserData} userData - The updated user data.
  */
 async function upsertUserData(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   userData: UserData,
 ) {
@@ -79,11 +79,11 @@ async function upsertUserData(
 
 /**
  * Updates user data in the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Function} - Express middleware function to handle the request.
  */
 export async function updateUser(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: {
     userId: string;
     userData: z.infer<typeof insertUserSchema>;
