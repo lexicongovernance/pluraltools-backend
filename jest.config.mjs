@@ -1,5 +1,10 @@
 import { loadEnvFile } from 'node:process';
-loadEnvFile();
+
+try {
+  loadEnvFile();
+} catch {
+  // do nothing
+}
 
 /**
  * @type {import('@jest/types').Config.InitialOptions}
