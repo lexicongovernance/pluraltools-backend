@@ -16,4 +16,5 @@ services:
     image: us-east1-docker.pkg.dev/forum-lexicon-backend/lexicon/cycle-manager:latest
     container_name: lexicon-cycle-manager
     environment:
-      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:${DATABASE_PORT}/${DATABASE_NAME}
+      DB_CONNECTION_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:${DATABASE_PORT}/${DATABASE_NAME}?sslmode=disable
+      CRON_DURATION_SECONDS: 15
