@@ -19,10 +19,10 @@
    2. sudo apt install -y nodejs
    ```
 2. install [pnpm](https://pnpm.io/installation#using-npm)
-3. start a postgres `docker run --name postgres  -e POSTGRES_PASSWORD=secretpassword -e POSTGRES_USER=postgres -p 5432:5432 -d postgres`
-4. update .env with connection string `postgresql://postgres:secretpassword@localhost:5432` & cookie password.
-5. pnpm i
-6. pnpm dev
+3. update .env with custom values
+4. start services needed to run backend `make docker-run`
+5. `pnpm install`
+6. `pnpm dev`
 
 ### database list of commands
 
@@ -36,7 +36,7 @@
 
 ### unit testing
 
-- expects a database to be available at `postgresql://postgres:secretpassword@localhost:5432`
+- expects env variables to be defined
 
 ### db migrations
 
