@@ -50,3 +50,9 @@ jobs:
 
       - name: Run unit tests
         run: pnpm test
+        env:
+          DATABASE_PASSWORD: secretpassword
+          DATABASE_USER: postgres
+          DATABASE_NAME: postgres
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
