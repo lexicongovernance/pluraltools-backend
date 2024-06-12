@@ -27,16 +27,6 @@ export function createDbPool({
     ssl: false,
   });
 
-  // the pool created a new client
-  pool.on('connect', () => {
-    console.log('client connected');
-  });
-
-  // the pool disconnected a client
-  pool.on('remove', () => {
-    console.log('client removed');
-  });
-
   // the pool will emit an error on behalf of any idle clients
   // it contains if a backend error or network partition happens
   pool.on('error', (err) => {
