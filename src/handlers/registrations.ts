@@ -28,7 +28,7 @@ export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
         with: {
           registrationData: true,
         },
-        where: and(eq(db.registrations.userId, userId), eq(db.registrations.id, registrationId)),
+        where: eq(db.registrations.id, registrationId),
       });
 
       const out = [...(registration?.registrationData ?? [])];
