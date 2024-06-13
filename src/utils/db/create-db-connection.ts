@@ -68,6 +68,6 @@ export async function createDbClient({
   await client.connect();
   return {
     client,
-    db: drizzle(client, { schema: db }),
+    db: drizzle(client, { schema: db, logger: true }),
   };
 }

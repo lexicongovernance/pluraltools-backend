@@ -3,7 +3,7 @@ import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
 import * as db from '../db';
 import { createOrSignInPCD } from '../services/auth';
 import { verifyUserSchema } from '../types';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export function destroySessionHandler() {
   return function (req: Request, res: Response) {

@@ -2,7 +2,7 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { GetCycleById, getCycleVotes } from '../services/cycles';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export function getActiveCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
