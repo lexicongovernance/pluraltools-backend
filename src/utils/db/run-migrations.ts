@@ -1,8 +1,20 @@
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import { createDbPool } from './create-db-pool';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { createDbClient } from './create-db-connection';
 
-export async function runMigrations(dbConnectionUrl: string) {
-  const { dbPool, connection } = createDbPool(dbConnectionUrl, { max: 1 });
-  await migrate(dbPool, { migrationsFolder: 'migrations' });
-  await connection.end();
+export async function runMigrations({
+  database,
+  host,
+  password,
+  user,
+  port,
+}: {
+  host: string;
+  port?: number;
+  user: string;
+  password: string;
+  database: string;
+}) {
+  const { db, client } = await createDbClient({ database, host, password, user, port });
+  await migrate(db, { migrationsFolder: 'migrations' });
+  await client.end();
 }

@@ -1,8 +1,8 @@
 import { eq, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleId: string) {
+export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: string) {
   const cycle = await dbPool.query.cycles.findFirst({
     where: eq(db.cycles.id, cycleId),
     with: {
@@ -82,12 +82,12 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
 
 /**
  * Retrieves the votes for a specific cycle and user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user.
  * @param {string} cycleId - The ID of the cycle.
  */
 export async function getCycleVotes(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   cycleId: string,
 ) {

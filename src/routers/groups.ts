@@ -1,4 +1,3 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { default as express } from 'express';
 import type * as db from '../db';
 import { isLoggedIn } from '../middleware/is-logged-in';
@@ -7,9 +6,10 @@ import {
   getGroupRegistrationsHandler,
   getGroupMembersHandler,
 } from '../handlers/groups';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 const router = express.Router();
 
-export function groupsRouter({ dbPool }: { dbPool: PostgresJsDatabase<typeof db> }) {
+export function groupsRouter({ dbPool }: { dbPool: NodePgDatabase<typeof db> }) {
   router.post('/', isLoggedIn(dbPool), createGroupHandler(dbPool));
   router.get('/:id/registrations', isLoggedIn(dbPool), getGroupRegistrationsHandler(dbPool));
   router.get('/:id/users-to-groups', isLoggedIn(dbPool), getGroupMembersHandler(dbPool));

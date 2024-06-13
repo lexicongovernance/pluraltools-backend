@@ -1,4 +1,3 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import {
@@ -13,8 +12,9 @@ import {
   updateUsersToGroups,
 } from '../services/users-to-groups';
 import { eq } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function joinGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async (req: Request, res: Response) => {
     const userId = req.session.userId;
     const body = joinGroupsSchema.safeParse(req.body);
@@ -75,7 +75,7 @@ export function joinGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function updateGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function updateGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const body = updateUsersToGroupsSchema.safeParse({
@@ -106,7 +106,7 @@ export function updateGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function leaveGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function leaveGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const id = req.params.id;

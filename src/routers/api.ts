@@ -1,4 +1,4 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type * as db from '../db';
 import { default as express } from 'express';
 import { ironSession } from 'iron-session/express';
@@ -30,7 +30,7 @@ export function apiRouter({
   dbPool,
   cookiePassword,
 }: {
-  dbPool: PostgresJsDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof db>;
   cookiePassword: string;
 }) {
   // setup

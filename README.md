@@ -12,34 +12,33 @@
 
 ## For developers
 
-1. install [nodejs v20](https://nodejs.org/en/download)
+1. install [nodejs v20.14.0](https://nodejs.org/en/download)
    - On WSL (Windows Subsystems for Linux) install `node.js v20` as follows:
    ```
    1. curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
    2. sudo apt install -y nodejs
    ```
 2. install [pnpm](https://pnpm.io/installation#using-npm)
-3. start a postgres `docker run --name postgres  -e POSTGRES_PASSWORD=secretpassword -e POSTGRES_USER=postgres -p 5432:5432 -d postgres`
-4. update .env with connection string `postgresql://postgres:secretpassword@localhost:5432` & cookie password.
-5. pnpm i
-6. pnpm dev
-
-### database list of commands
-
-1. It is possible to visualize the database. Run: `pnpm db:studio`
-
-2. It is possible to fill the database with random data. Run:
-   `pnpm db:seed`
-
-3. It is possible to delete all entries from the database. Run:
-   `pnpm db:seed:cleanup`
+3. update .env with custom values
+4. start services needed to run backend `make docker-run`
+5. `pnpm install`
+6. `pnpm build` only required on the first run
+7. `pnpm dev`
 
 ### unit testing
 
-- expects a database to be available at `postgresql://postgres:secretpassword@localhost:5432`
+- you can test you have set everything up correctly by running `pnpm test`
+
+### database list of commands
+
+- It is possible to visualize the database. Run: `pnpm db:studio`
+- It is possible to fill the database with random data. Run:
+  `pnpm db:seed`
+- It is possible to delete all entries from the database. Run:
+  `pnpm db:seed:cleanup`
 
 ### db migrations
 
 1. create a file in the [db](./src/db/) with the new table schema
-2. run `pnpm generate`
+2. run `pnpm db:generate`
 3. restart server and migrations should auto run

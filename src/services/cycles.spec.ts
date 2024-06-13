@@ -1,15 +1,15 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { Client } from 'pg';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/create-db-pool';
+import { createDbClient } from '../utils/db/create-db-connection';
 import { runMigrations } from '../utils/db/run-migrations';
 import { cleanup, seed } from '../utils/db/seed';
 import { GetCycleById, getCycleVotes } from './cycles';
-const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { environmentVariables } from '../types';
 
 describe('service: cycles', () => {
-  let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<NonNullable<unknown>>;
+  let dbPool: NodePgDatabase<typeof db>;
+  let dbConnection: Client;
   let cycle: db.Cycle | undefined;
   let questionOption: db.QuestionOption | undefined;
   let forumQuestion: db.ForumQuestion | undefined;
@@ -17,10 +17,25 @@ describe('service: cycles', () => {
   let secondUser: db.User | undefined;
 
   beforeAll(async () => {
-    const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
-    await runMigrations(DB_CONNECTION_URL);
-    dbPool = initDb.dbPool;
-    dbConnection = initDb.connection;
+    const envVariables = environmentVariables.parse(process.env);
+    const initDb = await createDbClient({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    await runMigrations({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    dbPool = initDb.db;
+    dbConnection = initDb.client;
     // Seed the database
     const { cycles, questionOptions, forumQuestions, users } = await seed(dbPool);
     cycle = cycles[0];

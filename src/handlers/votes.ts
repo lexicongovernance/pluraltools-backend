@@ -1,16 +1,16 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import * as db from '../db';
 import { saveVotes } from '../services/votes';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Handler function that saves votes submitted by a user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {Request} req - The Express request object containing the user's submitted votes.
  * @param {Response} res - The Express response object to send the result.
  */
-export function saveVotesHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function saveVotesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
 

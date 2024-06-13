@@ -1,4 +1,4 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../../db';
 import {
   EventData,
@@ -25,7 +25,7 @@ import {
   generateQuestionsToGroupCategoriesData,
 } from './seed-data-generators';
 
-async function seed(dbPool: PostgresJsDatabase<typeof db>) {
+async function seed(dbPool: NodePgDatabase<typeof db>) {
   const events = await createEvent(dbPool, generateEventData(1));
   const cycles = await createCycle(dbPool, generateCycleData(1, events[0]!.id));
   const registrationFieldsData = [
@@ -120,7 +120,7 @@ async function seed(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
+async function cleanup(dbPool: NodePgDatabase<typeof db>) {
   await dbPool.delete(db.userAttributes);
   await dbPool.delete(db.votes);
   await dbPool.delete(db.federatedCredentials);
@@ -139,7 +139,7 @@ async function cleanup(dbPool: PostgresJsDatabase<typeof db>) {
   await dbPool.delete(db.events);
 }
 
-async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: EventData[]) {
+async function createEvent(dbPool: NodePgDatabase<typeof db>, eventData: EventData[]) {
   const events = [];
   for (const eventName of eventData) {
     const result = await dbPool
@@ -153,7 +153,7 @@ async function createEvent(dbPool: PostgresJsDatabase<typeof db>, eventData: Eve
   return events;
 }
 
-async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: CycleData[]) {
+async function createCycle(dbPool: NodePgDatabase<typeof db>, cycleData: CycleData[]) {
   if (cycleData.length === 0) {
     throw new Error('Cycle data is empty.');
   }
@@ -181,7 +181,7 @@ async function createCycle(dbPool: PostgresJsDatabase<typeof db>, cycleData: Cyc
 }
 
 async function createRegistrationFields(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   registrationFieldData: RegistrationFieldData[],
 ) {
   if (registrationFieldData.length === 0) {
@@ -213,7 +213,7 @@ async function createRegistrationFields(
 }
 
 async function createRegistrationFieldOptions(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   registrationFieldOptionsData: RegistrationFieldOptionData[],
 ) {
   if (registrationFieldOptionsData.length === 0) {
@@ -241,7 +241,7 @@ async function createRegistrationFieldOptions(
 }
 
 async function createForumQuestions(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   forumQuestionData: ForumQuestionData[],
 ) {
   if (forumQuestionData.length === 0) {
@@ -269,7 +269,7 @@ async function createForumQuestions(
 }
 
 async function createQuestionOptions(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   questionOptionData: QuestionOptionData[],
 ) {
   if (questionOptionData.length === 0) {
@@ -298,7 +298,7 @@ async function createQuestionOptions(
 }
 
 async function createGroupCategories(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   groupCategoriesData: GroupCategoryData[],
 ) {
   if (groupCategoriesData.length === 0) {
@@ -328,7 +328,7 @@ async function createGroupCategories(
   return groupCategories;
 }
 
-async function createGroups(dbPool: PostgresJsDatabase<typeof db>, groupData: GroupData[]) {
+async function createGroups(dbPool: NodePgDatabase<typeof db>, groupData: GroupData[]) {
   if (groupData.length === 0) {
     throw new Error('Group Data is empty.');
   }
@@ -353,7 +353,7 @@ async function createGroups(dbPool: PostgresJsDatabase<typeof db>, groupData: Gr
   return groups;
 }
 
-async function createUsers(dbPool: PostgresJsDatabase<typeof db>, userData: UserData[]) {
+async function createUsers(dbPool: NodePgDatabase<typeof db>, userData: UserData[]) {
   const users = [];
   for (const user of userData) {
     const result = await dbPool
@@ -373,7 +373,7 @@ async function createUsers(dbPool: PostgresJsDatabase<typeof db>, userData: User
 }
 
 async function createUsersToGroups(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   usersToGroupsData: UsersToGroupsData[],
 ) {
   if (usersToGroupsData.length === 0) {
@@ -402,7 +402,7 @@ async function createUsersToGroups(
 }
 
 async function createQuestionsToGroupCategories(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   questionsToGroupCategoriesData: QuestionsToGroupCategoriesData[],
 ) {
   if (questionsToGroupCategoriesData.length === 0) {

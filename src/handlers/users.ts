@@ -1,16 +1,16 @@
 import { eq } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { updateUser } from '../services/users';
 import { insertUserSchema } from '../types';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Retrieves user data from the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Function} - Express middleware function to handle the request.
  */
-export function getUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
@@ -32,10 +32,10 @@ export function getUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
 /**
  * Updates user data in the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Function} - Express middleware function to handle the request.
  */
-export function updateUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function updateUserHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const queryUserId = req.params.userId;
     const userId = req.session.userId;
@@ -85,7 +85,7 @@ export function updateUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
  * @param dbPool The database connection pool.
  * @returns An asynchronous function that handles the HTTP request and response.
  */
-export function getUsersToGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUsersToGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const paramsUserId = req.params.userId;
     const userId = req.session.userId;
@@ -114,10 +114,10 @@ export function getUsersToGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
 /**
  * Retrieves user attributes from the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Function} - Express middleware function to handle the request.
  */
-export function getUserAttributesHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserAttributesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
@@ -145,7 +145,7 @@ export function getUserAttributesHandler(dbPool: PostgresJsDatabase<typeof db>) 
   };
 }
 
-export function getUserOptionsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserOptionsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const paramsUserId = req.params.userId;
@@ -176,7 +176,7 @@ export function getUserOptionsHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function getUserRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const paramsUserId = req.params.userId;

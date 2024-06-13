@@ -1,5 +1,4 @@
 import { and, eq, sql } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { votes } from '../db/votes';
 import { PluralVoting } from '../modules/plural-voting';
@@ -7,12 +6,13 @@ import { insertVotesSchema } from '../types';
 import { CycleStatusType } from '../types/cycles';
 import { z } from 'zod';
 import { quadraticVoting } from '../modules/quadratic-voting';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Saves votes submitted by a user.
  */
 export async function saveVotes(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: { optionId: string; numOfVotes: number }[],
   userId: string,
 ): Promise<{ data: db.Vote[]; errors: string[] }> {
@@ -41,10 +41,10 @@ export async function saveVotes(
 
 /**
 Queries latest vote data by users for a specified option ID.
-@param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+@param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to query vote data.
 */
-export async function queryVoteData(dbPool: PostgresJsDatabase<typeof db>, optionId: string) {
+export async function queryVoteData(dbPool: NodePgDatabase<typeof db>, optionId: string) {
   const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
     sql.raw(`
           SELECT user_id AS "userId", num_of_votes AS "numOfVotes" 
@@ -57,7 +57,7 @@ export async function queryVoteData(dbPool: PostgresJsDatabase<typeof db>, optio
           WHERE row_num = 1
       `),
   );
-  return voteArray;
+  return voteArray.rows;
 }
 
 /**
@@ -79,7 +79,7 @@ export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVot
 }
 
 export async function queryGroupCategories(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   questionId: string,
 ): Promise<string[]> {
   const groupCategories = await dbPool
@@ -107,7 +107,7 @@ export async function queryGroupCategories(
  * @returns {Promise<Record<string, string[]>>} - Dictionary of group IDs and their corresponding user IDs.
  */
 export async function groupsDictionary(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   numOfVotesDictionary: Record<string, number>,
   groupCategories: Array<string>,
 ) {
@@ -123,7 +123,7 @@ export async function groupsDictionary(
     `),
   );
 
-  const groupsDictionary = groupArray.reduce(
+  const groupsDictionary = groupArray.rows.reduce(
     (acc, group) => {
       acc[group.groupId] = group.userIds ?? [];
       return acc;
@@ -158,12 +158,12 @@ export function calculateQuadraticScore(numOfVotesDictionary: Record<string, num
 
 /**
 Updates the vote score for a specific option in the database.
-@param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+@param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to update the vote score.
 @param {number} score - The new vote score to be set.
 */
 export async function updateVoteScoreInDatabase(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   optionId: string,
   score: number,
 ) {
@@ -184,11 +184,11 @@ export async function updateVoteScoreInDatabase(
  * combines them, calculates the score using plural voting, updates
  * the vote score in the database, and returns the calculated score.
  *
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} optionId - The ID of the option for which to update the vote score.
  */
 export async function updateVoteScore(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   optionId: string,
 ): Promise<number> {
   // Query vote data and multiplier from the database
@@ -229,12 +229,12 @@ export async function updateVoteScore(
  * This function validates the provided vote object, checks if the option exists,
  * inserts the vote into the database, and returns the saved vote data or an error message.
  *
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {{ optionId: string; numOfVotes: number }} vote - The vote object containing option ID and number of votes.
  * @param {string} userId - The ID of the user who is voting.
  */
 async function validateAndSaveVote(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   vote: { optionId: string; numOfVotes: number },
   userId: string,
 ): Promise<{ data: db.Vote | null | undefined; error: string | null | undefined }> {
@@ -288,11 +288,11 @@ async function validateAndSaveVote(
  * This function checks if the cycle for the given question is open,
  * then inserts the provided vote data into the database and returns the saved vote data.
  *
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {z.infer<typeof insertVotesSchema>} vote - The vote data to be saved.
  */
 export async function saveVote(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   vote: z.infer<typeof insertVotesSchema>,
 ) {
   // check if cycle is open
@@ -323,13 +323,13 @@ export async function saveVote(
 
 /**
  * Checks whether a user can vote on an option based on their registration status.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool.
  * @param {string} userId - The ID of the user attempting to vote.
  * @param {string} optionId - The ID of the option to be voted on.
  * @returns {Promise<boolean>} A promise that resolves to true if the user can vote on the option, false otherwise.
  */
 export async function userCanVote(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   optionId: string,
 ) {
