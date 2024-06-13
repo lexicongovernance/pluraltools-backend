@@ -1,4 +1,3 @@
-/* eslint-disable drizzle/enforce-delete-with-where */
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../../db';
 import {
