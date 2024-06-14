@@ -8,11 +8,6 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
     with: {
       forumQuestions: {
         with: {
-          questionsToGroupCategories: {
-            with: {
-              groupCategory: true,
-            },
-          },
           questionOptions: {
             with: {
               user: {
@@ -22,6 +17,9 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
                       group: {
                         columns: {
                           secret: false,
+                        },
+                        with: {
+                          groupCategory: true,
                         },
                       },
                     },
