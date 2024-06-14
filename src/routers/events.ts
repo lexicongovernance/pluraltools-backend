@@ -3,6 +3,7 @@ import type * as db from '../db';
 import { isLoggedIn } from '../middleware/is-logged-in';
 import {
   getEventCyclesHandler,
+  getEventGroupCategoriesHandler,
   getEventHandler,
   getEventRegistrationFieldsHandler,
   getEventRegistrationsHandler,
@@ -14,6 +15,11 @@ const router = express.Router();
 export function eventsRouter({ dbPool }: { dbPool: NodePgDatabase<typeof db> }) {
   router.get('/', isLoggedIn(dbPool), getEventsHandler(dbPool));
   router.get('/:eventId', isLoggedIn(dbPool), getEventHandler(dbPool));
+  router.get(
+    '/:eventId/group-categories',
+    isLoggedIn(dbPool),
+    getEventGroupCategoriesHandler(dbPool),
+  );
   router.get(
     '/:eventId/registration-fields',
     isLoggedIn(dbPool),
