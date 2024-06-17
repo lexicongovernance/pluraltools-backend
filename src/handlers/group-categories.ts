@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { ConsoleLogWriter, and, eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { canViewGroupsInGroupCategory } from '../services/group-categories';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
