@@ -52,6 +52,7 @@ describe('service: groups', () => {
   let secretGroup: db.Group[];
   let cycle: db.Cycle | undefined;
   let user: db.User | undefined;
+  let groupCategory: db.GroupCategory | undefined;
 
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
@@ -74,10 +75,11 @@ describe('service: groups', () => {
     dbPool = initDb.db;
     dbConnection = initDb.client;
 
-    const { users, cycles, groups } = await seed(dbPool);
+    const { users, cycles, groups, groupCategories } = await seed(dbPool);
     group = groups.filter((group) => group !== undefined) as db.Group[];
     user = users[0];
     cycle = cycles[0];
+    groupCategory = groupCategories[0];
     secretGroup = groups.filter((group) => group !== undefined) as db.Group[];
     const secretGroupId = secretGroup[4]?.id ?? '';
 
@@ -111,6 +113,7 @@ describe('service: groups', () => {
     const rows = await createSecretGroup(dbPool, {
       name: 'Test Group',
       description: 'Test Description',
+      groupCategoryId: groupCategory!.id,
     });
 
     expect(rows).toHaveLength(1);
@@ -126,6 +129,7 @@ describe('service: groups', () => {
     const rows = await createSecretGroup(dbPool, {
       name: 'Test Group',
       description: 'Test Description',
+      groupCategoryId: groupCategory!.id,
     });
 
     const group = await getSecretGroup(dbPool, rows[0]?.secret ?? '');
