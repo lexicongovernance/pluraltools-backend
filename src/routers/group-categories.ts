@@ -13,7 +13,7 @@ const router = express.Router();
 export function groupCategoriesRouter({ dbPool }: { dbPool: NodePgDatabase<typeof db> }) {
   router.get('/', isLoggedIn(dbPool), getGroupCategoriesHandler(dbPool));
   router.get('/:id', isLoggedIn(dbPool), getGroupCategoryHandler(dbPool));
-  router.get('/:name/groups', isLoggedIn(dbPool), getGroupCategoriesGroupsHandler(dbPool));
+  router.get('/:id/groups', isLoggedIn(dbPool), getGroupCategoriesGroupsHandler(dbPool));
 
   return router;
 }
