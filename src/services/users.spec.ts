@@ -10,7 +10,6 @@ describe('service: users', function () {
         firstName: '',
         lastName: '',
         telegram: '',
-        userAttributes: {},
       };
 
       const transformedUser: { [key: string]: string | null | string[] | object } =

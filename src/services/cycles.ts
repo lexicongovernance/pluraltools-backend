@@ -8,15 +8,7 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
     with: {
       forumQuestions: {
         with: {
-          questionsToGroupCategories: {
-            with: {
-              groupCategory: true,
-            },
-          },
           questionOptions: {
-            columns: {
-              voteScore: false,
-            },
             with: {
               user: {
                 with: {
@@ -25,6 +17,9 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
                       group: {
                         columns: {
                           secret: false,
+                        },
+                        with: {
+                          groupCategory: true,
                         },
                       },
                     },
@@ -39,13 +34,6 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
     },
   });
 
-  const relevantCategories = cycle?.forumQuestions.flatMap((question) =>
-    question.questionsToGroupCategories
-      // TODO: This is a workaround to only show affiliation
-      .filter((q) => !q.groupCategory?.userCanLeave)
-      .map((q) => q.groupCategoryId),
-  );
-
   const out = {
     ...cycle,
     forumQuestions: cycle?.forumQuestions.map((question) => {
@@ -58,16 +46,14 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
             optionTitle: option.optionTitle,
             optionSubTitle: option.optionSubTitle,
             questionId: option.questionId,
+            voteScore: question.showScore ? option.voteScore : undefined,
             registrationId: option.registrationId,
             fundingRequest: option.fundingRequest,
             user: {
               username: option.user?.username,
               firstName: option.user?.firstName,
               lastName: option.user?.lastName,
-              // return a group if the user is in a group that is relevant to the cycle
-              group: option.user?.usersToGroups.find((userToGroup) =>
-                relevantCategories?.includes(userToGroup.groupCategoryId),
-              )?.group,
+              groups: option.user?.usersToGroups.map((userToGroup) => userToGroup.group),
             },
             createdAt: option.createdAt,
             updatedAt: option.updatedAt,

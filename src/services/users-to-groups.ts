@@ -83,7 +83,7 @@ export async function deleteUsersToGroups(
     where: eq(db.groupCategories.id, groupToLeave.groupCategoryId!),
   });
 
-  if (leavingAllowed?.userCanLeave === false) {
+  if (leavingAllowed?.required === true) {
     throw new Error('You are not allowed to leave this group');
   }
 

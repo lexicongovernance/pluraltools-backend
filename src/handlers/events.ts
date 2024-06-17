@@ -31,6 +31,22 @@ export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
+export function getEventGroupCategoriesHandler(dbPool: NodePgDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const { eventId } = req.params;
+
+    if (!eventId) {
+      return res.status(400).json({ error: 'Missing eventId' });
+    }
+
+    const eventGroupCategories = await dbPool.query.groupCategories.findMany({
+      where: eq(db.groupCategories.eventId, eventId),
+    });
+
+    return res.json({ data: eventGroupCategories });
+  };
+}
+
 export function getEventsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const events = await dbPool.query.events.findMany();

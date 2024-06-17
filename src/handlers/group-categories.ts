@@ -29,14 +29,14 @@ export function getGroupCategoryHandler(dbPool: NodePgDatabase<typeof db>) {
 
 export function getGroupCategoriesGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
-    const groupCategoryName = req.params.name;
+    const groupCategoryId = req.params.id;
 
-    if (!groupCategoryName) {
-      return res.status(400).json({ error: 'Group Category Name is required' });
+    if (!groupCategoryId) {
+      return res.status(400).json({ errors: ['expected group category id'] });
     }
 
     const groupCategory = await dbPool.query.groupCategories.findFirst({
-      where: eq(db.groupCategories.name, groupCategoryName),
+      where: eq(db.groupCategories.id, groupCategoryId),
     });
 
     if (!groupCategory) {

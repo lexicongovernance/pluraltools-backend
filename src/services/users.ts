@@ -1,7 +1,6 @@
 import * as db from '../db';
 import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
-import { upsertUserAttributes } from './user-attributes';
 import { z } from 'zod';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
@@ -99,7 +98,5 @@ export async function updateUser(
 
   const user = await upsertUserData(dbPool, userId, userData);
 
-  const updatedUserAttributes = await upsertUserAttributes(dbPool, userId, userData.userAttributes);
-
-  return { data: { user, updatedUserAttributes } };
+  return { data: user };
 }

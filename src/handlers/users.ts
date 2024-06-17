@@ -70,9 +70,9 @@ export function updateUserHandler(dbPool: NodePgDatabase<typeof db>) {
         return res.status(500).json({ errors: ['Failed to update user'] });
       }
 
-      const { user, updatedUserAttributes } = updatedUser.data;
+      const user = updatedUser.data;
 
-      return res.json({ data: { user, updatedUserAttributes } });
+      return res.json({ data: user });
     } catch (e) {
       console.error(`[ERROR] ${JSON.stringify(e)}`);
       return res.sendStatus(500);
