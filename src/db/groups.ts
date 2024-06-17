@@ -9,7 +9,9 @@ export const groups = pgTable('groups', {
   name: varchar('name', { length: 256 }).notNull(),
   description: varchar('description', { length: 256 }),
   secret: varchar('secret', { length: 256 }).unique(),
-  groupCategoryId: uuid('group_category_id').references(() => groupCategories.id),
+  groupCategoryId: uuid('group_category_id')
+    .references(() => groupCategories.id)
+    .notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
