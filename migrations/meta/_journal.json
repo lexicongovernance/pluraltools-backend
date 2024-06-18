@@ -169,6 +169,13 @@
       "when": 1718372781765,
       "tag": "0023_hard_natasha_romanoff",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1718642230920,
+      "tag": "0024_sturdy_randall_flagg",
+      "breakpoints": true
     }
   ]
 }
