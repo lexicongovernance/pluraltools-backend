@@ -1,6 +1,6 @@
 ## Getting started
 
-After following the steps in the [installation guide](./installation.md), you can start using the tool in action by following these steps:
+After following the steps in the [self-host](./self-host.md), you can start using the tool in action by following these steps:
 
 1. Run seed data to populate the database with initial data:
 
