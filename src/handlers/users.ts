@@ -164,15 +164,14 @@ export function getUserOptionsHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing userId' });
     }
 
-    const query = await dbPool
-      .select()
-      .from(db.questionOptions)
-      .leftJoin(db.registrations, eq(db.registrations.id, db.questionOptions.registrationId))
-      .where(eq(db.registrations.userId, userId));
+    const optionsQuery = await dbPool.query.questionOptions.findMany({
+      with: {
+        forumQuestion: true,
+      },
+      where: eq(db.questionOptions.userId, userId),
+    });
 
-    const options = query.map((q) => q.question_options);
-
-    return res.json({ data: options });
+    return res.json({ data: optionsQuery });
   };
 }
 
@@ -192,11 +191,17 @@ export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
     }
 
     try {
-      const out = await dbPool
+      const query = await dbPool
         .select()
         .from(db.registrations)
+        .leftJoin(db.events, eq(db.events.id, db.registrations.eventId))
         .where(eq(db.registrations.userId, userId));
-
+      const out = query.map((q) => {
+        return {
+          ...q.registrations,
+          event: q.events,
+        };
+      });
       return res.json({ data: out });
     } catch (e) {
       console.log('error getting user registrations ' + e);
