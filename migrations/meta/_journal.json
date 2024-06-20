@@ -176,6 +176,13 @@
       "when": 1718642230920,
       "tag": "0024_sturdy_randall_flagg",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1718889966152,
+      "tag": "0025_narrow_warhawk",
+      "breakpoints": true
     }
   ]
 }
