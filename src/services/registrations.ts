@@ -67,7 +67,15 @@ export async function saveRegistration(
   dbPool: NodePgDatabase<typeof db>,
   data: z.infer<typeof insertRegistrationSchema>,
 ) {
-  const newRegistration = await createRegistrationInDB(dbPool, data);
+  const event = await dbPool.query.events.findFirst({
+    where: eq(db.events.id, data.eventId),
+  });
+
+  const newRegistration = await createRegistrationInDB(dbPool, {
+    ...data,
+    status: event?.requireApproval ? 'DRAFT' : 'APPROVED',
+  });
+
   if (!newRegistration) {
     throw new Error('failed to save registration');
   }
@@ -144,6 +152,7 @@ async function createRegistrationInDB(
       userId: body.userId,
       groupId: body.groupId,
       eventId: body.eventId,
+      status: body.status,
     })
     .returning();
   return newRegistration[0];

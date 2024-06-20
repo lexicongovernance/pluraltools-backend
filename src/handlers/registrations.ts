@@ -8,7 +8,7 @@ import {
   validateCreateRegistrationPermissions,
   validateUpdateRegistrationPermissions,
 } from '../services/registrations';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {

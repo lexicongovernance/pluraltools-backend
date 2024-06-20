@@ -196,6 +196,7 @@ export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
         .from(db.registrations)
         .leftJoin(db.events, eq(db.events.id, db.registrations.eventId))
         .where(eq(db.registrations.userId, userId));
+
       const out = query.map((q) => {
         return {
           ...q.registrations,
