@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { forumQuestions } from './forum-questions';
+import { questions } from './questions';
 import { events } from './events';
 
 export const cycles = pgTable('cycles', {
@@ -17,7 +17,7 @@ export const cycles = pgTable('cycles', {
 });
 
 export const cyclesRelations = relations(cycles, ({ many, one }) => ({
-  forumQuestions: many(forumQuestions),
+  questions: many(questions),
   event: one(events, {
     fields: [cycles.eventId],
     references: [events.id],

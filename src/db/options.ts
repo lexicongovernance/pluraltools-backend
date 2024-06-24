@@ -1,17 +1,17 @@
 import { boolean, pgTable, timestamp, uuid, varchar, numeric } from 'drizzle-orm/pg-core';
-import { forumQuestions } from './forum-questions';
+import { questions } from './questions';
 import { relations } from 'drizzle-orm';
 import { votes } from './votes';
 import { registrations } from './registrations';
 import { comments } from './comments';
 import { users } from './users';
 
-export const questionOptions = pgTable('question_options', {
+export const options = pgTable('options', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id),
   registrationId: uuid('registration_id').references(() => registrations.id),
   questionId: uuid('question_id')
-    .references(() => forumQuestions.id)
+    .references(() => questions.id)
     .notNull(),
   optionTitle: varchar('option_title', { length: 256 }).notNull(),
   optionSubTitle: varchar('option_sub_title'),
@@ -22,21 +22,21 @@ export const questionOptions = pgTable('question_options', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export const questionOptionsRelations = relations(questionOptions, ({ one, many }) => ({
+export const questionOptionsRelations = relations(options, ({ one, many }) => ({
   user: one(users, {
-    fields: [questionOptions.userId],
+    fields: [options.userId],
     references: [users.id],
   }),
-  forumQuestion: one(forumQuestions, {
-    fields: [questionOptions.questionId],
-    references: [forumQuestions.id],
+  question: one(questions, {
+    fields: [options.questionId],
+    references: [questions.id],
   }),
   registrations: one(registrations, {
-    fields: [questionOptions.registrationId],
+    fields: [options.registrationId],
     references: [registrations.id],
   }),
   comment: many(comments),
   votes: many(votes),
 }));
 
-export type QuestionOption = typeof questionOptions.$inferSelect;
+export type Option = typeof options.$inferSelect;

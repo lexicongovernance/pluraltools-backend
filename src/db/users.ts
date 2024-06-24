@@ -3,7 +3,7 @@ import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { federatedCredentials } from './federated-credentials';
 import { comments } from './comments';
 import { likes } from './likes';
-import { questionOptions } from './question-options';
+import { options } from './options';
 import { registrations } from './registrations';
 import { userAttributes } from './user-attributes';
 import { usersToGroups } from './users-to-groups';
@@ -29,7 +29,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   federatedCredential: one(federatedCredentials),
   comments: many(comments),
   likes: many(likes),
-  questionOptions: many(questionOptions),
+  options: many(options),
   notifications: many(usersToNotifications),
 }));
 
