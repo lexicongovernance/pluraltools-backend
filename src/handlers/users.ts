@@ -164,11 +164,11 @@ export function getUserOptionsHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing userId' });
     }
 
-    const optionsQuery = await dbPool.query.questionOptions.findMany({
+    const optionsQuery = await dbPool.query.options.findMany({
       with: {
-        forumQuestion: true,
+        question: true,
       },
-      where: eq(db.questionOptions.userId, userId),
+      where: eq(db.options.userId, userId),
     });
 
     return res.json({ data: optionsQuery });

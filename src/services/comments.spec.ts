@@ -14,7 +14,7 @@ describe('service: comments', () => {
   let dbConnection: Client;
   let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
   let secretCategory: db.GroupCategory | undefined;
-  let questionOption: db.QuestionOption | undefined;
+  let questionOption: db.Option | undefined;
   let secretGroup: db.Group[];
   let cycle: db.Cycle | undefined;
   let user: db.User | undefined;
@@ -71,9 +71,9 @@ describe('service: comments', () => {
 
     // update question options
     await dbPool
-      .update(db.questionOptions)
+      .update(db.options)
       .set({ registrationId: registrationId!, userId: user?.id ?? '' })
-      .where(eq(db.questionOptions.id, questionOption!.id));
+      .where(eq(db.options.id, questionOption!.id));
 
     // update secret group
     await dbPool.update(db.groups).set({ secret: '12345' }).where(eq(db.groups.id, secretGroupId));
