@@ -55,6 +55,7 @@ async function seed(dbPool: NodePgDatabase<typeof db>) {
     { name: 'affiliation', userCanView: true, required: true },
     { name: 'public', userCanView: true, userCanCreate: false },
     { name: 'secrets', userCanCreate: true, userCanView: false },
+    { name: 'tension', userCanCreate: true, userCanView: true, require: false },
   ];
 
   const groupCategories = await createGroupCategories(
@@ -62,8 +63,13 @@ async function seed(dbPool: NodePgDatabase<typeof db>) {
     generateGroupCategoryData(events[0]!.id, groupCategoriesData),
   );
 
-  const categoryIdsData = [groupCategories[0]!.id, groupCategories[1]!.id, groupCategories[2]!.id];
-  const numOfGroupsData = [5, 4, 3];
+  const categoryIdsData = [
+    groupCategories[0]!.id,
+    groupCategories[1]!.id,
+    groupCategories[2]!.id,
+    groupCategories[3]!.id,
+  ];
+  const numOfGroupsData = [5, 4, 3, 5];
 
   const groups = await createGroups(dbPool, generateGroupData(categoryIdsData, numOfGroupsData));
 
