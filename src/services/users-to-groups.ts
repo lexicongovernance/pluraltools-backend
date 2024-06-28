@@ -72,6 +72,9 @@ export async function deleteUsersToGroups(
   usersToGroupsId: string,
 ) {
   const groupToLeave = await dbPool.query.usersToGroups.findFirst({
+    with: {
+      groupCategory: true,
+    },
     where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)),
   });
 
@@ -79,11 +82,12 @@ export async function deleteUsersToGroups(
     throw new Error('Users to Groups not found');
   }
 
-  const leavingAllowed = await dbPool.query.groupCategories.findFirst({
-    where: eq(db.groupCategories.id, groupToLeave.groupCategoryId!),
+  const userGroups = await dbPool.query.groups.findMany({
+    where: eq(db.groups.groupCategoryId, groupToLeave.groupCategoryId!),
   });
 
-  if (leavingAllowed?.required === true) {
+  // If the group is required and the user is only in one group, they cannot leave
+  if (groupToLeave.groupCategory?.required && userGroups?.length === 1) {
     throw new Error('You are not allowed to leave this group');
   }
 
