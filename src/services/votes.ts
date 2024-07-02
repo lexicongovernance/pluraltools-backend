@@ -10,33 +10,71 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Saves votes submitted by a user.
+ *
+ * This function validates and saves each vote provided in the `data` array for the specified `userId`.
+ * It then updates the vote count for each option based on the vote model associated with the question.
+ *
+ * @param dbPool - The database connection pool.
+ * @param data - An array of objects containing `optionId` and `numOfVotes` properties.
+ * @param userId - The ID of the user submitting the votes.
+ * @returns A promise that resolves to an object containing `data` (an array of saved votes) and `errors` (an array of error messages).
  */
 export async function saveVotes(
   dbPool: NodePgDatabase<typeof db>,
   data: { optionId: string; numOfVotes: number }[],
   userId: string,
 ): Promise<{ data: db.Vote[]; errors: string[] }> {
-  const out: db.Vote[] = [];
+  const voteData: db.Vote[] = [];
   const errors: string[] = [];
 
   for (const vote of data) {
     const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
     if (data) {
-      out.push(data);
+      voteData.push(data);
     }
     if (error) {
       errors.push(error);
     }
   }
 
-  const uniqueOptionIds = new Set(out.map((vote) => vote.optionId));
+  const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
+    where: eq(db.questionOptions.id, voteData[0]!.optionId),
+  });
 
-  // Update the vote count for each option
-  for (const optionId of uniqueOptionIds) {
-    await updateVoteScore(dbPool, optionId);
+  if (!queryQuestionOption) {
+    errors.push('No option found for the provided optionId');
+    return { data: voteData, errors };
   }
 
-  return { data: out, errors };
+  const queryForumQuestion = await dbPool.query.forumQuestions.findFirst({
+    where: eq(db.forumQuestions.id, queryQuestionOption!.questionId),
+  });
+
+  if (!queryForumQuestion) {
+    errors.push('No question found for the provided questionId');
+    return { data: voteData, errors };
+  }
+
+  // Define available voting models
+  const voteModelUpdateFunctions = {
+    COCM: updateVoteScorePlural,
+    QV: updateVoteScoreQuadratic,
+  };
+
+  const updateFunction =
+    voteModelUpdateFunctions[
+      queryForumQuestion?.voteModel as keyof typeof voteModelUpdateFunctions
+    ];
+
+  const uniqueOptionIds = voteData.map((vote) => vote.optionId);
+
+  if (!updateFunction) {
+    errors.push('Unsupported vote model: ' + queryForumQuestion.voteModel);
+  } else {
+    await Promise.all(uniqueOptionIds.map((optionId) => updateFunction(dbPool, optionId)));
+  }
+
+  return { data: voteData, errors };
 }
 
 /**
@@ -178,7 +216,7 @@ export async function updateVoteScoreInDatabase(
 }
 
 /**
- * Updates the vote score for a specific option in the database.
+ * Updates the vote score for a specific option in the database according to the plural voting model.
  *
  * This function queries vote and multiplier data from the database,
  * combines them, calculates the score using plural voting, updates
@@ -187,17 +225,15 @@ export async function updateVoteScoreInDatabase(
  * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} optionId - The ID of the option for which to update the vote score.
  */
-export async function updateVoteScore(
+export async function updateVoteScorePlural(
   dbPool: NodePgDatabase<typeof db>,
   optionId: string,
 ): Promise<number> {
-  // Query vote data and multiplier from the database
+  // Query and transform vote data
   const voteArray = await queryVoteData(dbPool, optionId);
-
-  // Transform data
   const votesDictionary = await numOfVotesDictionary(voteArray);
 
-  // Query question Id
+  // Query group data, grouping dimensions, and calculate the score
   const queryQuestionId = await dbPool
     .select({
       questionId: db.questionOptions.questionId,
@@ -205,19 +241,33 @@ export async function updateVoteScore(
     .from(db.questionOptions)
     .where(eq(db.questionOptions.id, optionId));
 
-  // Query group categories
   const groupCategories = await queryGroupCategories(dbPool, queryQuestionId[0]!.questionId);
-
-  // Query group data
   const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories ?? []);
-
-  // Perform plural voting calculation
   const score = await calculatePluralScore(groupArray, votesDictionary);
 
-  // Perform quadratic score calculation
-  // const score = await calculateQuadraticScore(votesDictionary);
+  await updateVoteScoreInDatabase(dbPool, optionId, score);
 
-  // Update vote score in the database
+  return score;
+}
+
+/**
+ * Updates the vote score for a specific option in the database according to the quadratic voting model.
+ *
+ * This function queries vote and multiplier data from the database,
+ * combines them, calculates the score using quadratic voting, updates
+ * the vote score in the database, and returns the calculated score.
+ *
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
+ * @param {string} optionId - The ID of the option for which to update the vote score.
+ */
+export async function updateVoteScoreQuadratic(
+  dbPool: NodePgDatabase<typeof db>,
+  optionId: string,
+): Promise<number> {
+  const voteArray = await queryVoteData(dbPool, optionId);
+  const votesDictionary = await numOfVotesDictionary(voteArray);
+  const score = await calculateQuadraticScore(votesDictionary);
+
   await updateVoteScoreInDatabase(dbPool, optionId, score);
 
   return score;
