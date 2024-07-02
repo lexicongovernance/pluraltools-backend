@@ -11,6 +11,7 @@ export const forumQuestions = pgTable('forum_questions', {
     .notNull(),
   questionTitle: varchar('question_title', { length: 256 }).notNull(),
   questionSubTitle: varchar('question_sub_title', { length: 256 }),
+  voteModel: varchar('vote_model', { length: 256 }).notNull(),
   showScore: boolean('show_score').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
