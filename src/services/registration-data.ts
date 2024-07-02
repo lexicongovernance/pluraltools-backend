@@ -1,11 +1,11 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { eq, and } from 'drizzle-orm';
 
 /**
  * Upserts the registration data for a given registrationId.
  * Updates existing records and inserts new ones if necessary.
- * @param dbPool - The database pool instance of type `PostgresJsDatabase<typeof db>`.
+ * @param dbPool - The database pool instance of type ` NodePgDatabase<typeof db>`.
  * @param registrationId - The ID of the registration to overwrite data for.
  * @param registrationData - An array of objects representing registration data.
  *   Each object should have the properties:
@@ -18,7 +18,7 @@ export async function upsertRegistrationData({
   registrationId,
   registrationData,
 }: {
-  dbPool: PostgresJsDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof db>;
   registrationId: string;
   registrationData: {
     registrationFieldId: string;

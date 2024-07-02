@@ -1,9 +1,9 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { and, eq } from 'drizzle-orm';
 
 export async function saveCommentLike(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: {
     commentId: string;
     userId: string;
@@ -38,7 +38,7 @@ export async function saveCommentLike(
 }
 
 export async function deleteCommentLike(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: {
     commentId: string;
     userId: string;
@@ -67,13 +67,13 @@ export async function deleteCommentLike(
 
 /**
  * Checks whether a user can like a comment based on their registration status.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool.
  * @param {string} userId - The ID of the user attempting to like the comment.
  * @param {string} commentId - The ID of the comment to be liked.
  * @returns {Promise<boolean>} A promise that resolves to true if the user can like the comment, false otherwise.
  */
 export async function userCanLike(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   commentId: string,
 ) {

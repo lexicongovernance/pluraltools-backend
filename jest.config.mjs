@@ -1,7 +1,15 @@
+import { loadEnvFile } from 'node:process';
+
+try {
+  loadEnvFile();
+} catch {
+  // do nothing
+}
+
 /**
  * @type {import('@jest/types').Config.InitialOptions}
  */
-module.exports = {
+export default {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: './tsconfig.json' }],
   },

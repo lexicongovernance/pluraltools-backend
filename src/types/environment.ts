@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 export const environmentVariables = z.object({
-  DB_CONNECTION_URL: z.string(),
-  PORT: z.string().optional(),
+  DATABASE_HOST: z.string(),
+  DATABASE_PORT: z.coerce.number().optional(),
+  DATABASE_NAME: z.string(),
+  DATABASE_USER: z.string(),
+  DATABASE_PASSWORD: z.string(),
+  PORT: z.coerce.number().optional(),
   COOKIE_PASSWORD: z.string(),
 });

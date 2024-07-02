@@ -1,4 +1,4 @@
-import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { cycles } from './cycles';
 import { relations } from 'drizzle-orm';
 import { questionOptions } from './question-options';
@@ -11,6 +11,7 @@ export const forumQuestions = pgTable('forum_questions', {
     .notNull(),
   questionTitle: varchar('question_title', { length: 256 }).notNull(),
   questionSubTitle: varchar('question_sub_title', { length: 256 }),
+  showScore: boolean('show_score').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

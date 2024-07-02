@@ -1,19 +1,19 @@
 import { eq, and, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { insertCommentSchema } from '../types';
 import { z } from 'zod';
 import * as db from '../db';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Inserts a new comment into the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database pool connection.
  * @param {z.infer<typeof insertCommentSchema>} data - The comment data to insert.
  * @param {string} userId - The ID of the user making the comment.
  * @returns {Promise<Comment>} - A promise that resolves with the inserted comment.
  * @throws {Error} - Throws an error if the insertion fails.
  */
 export async function saveComment(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: z.infer<typeof insertCommentSchema>,
   userId: string,
 ) {
@@ -35,12 +35,12 @@ export async function saveComment(
 
 /**
  * Deletes a comment from the database, along with associated likes if any.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database pool connection.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database pool connection.
  * @returns {Promise<void>} - A promise that resolves once the comment and associated likes are deleted.
  * @throws {Error} - Throws an error if the deletion fails.
  */
 export async function deleteComment(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: {
     commentId: string;
     userId: string;
@@ -70,7 +70,7 @@ export async function deleteComment(
 }
 
 export async function getOptionComments(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: {
     optionId: string;
   },
@@ -103,13 +103,13 @@ export async function getOptionComments(
 
 /**
  * Checks whether a user can comment based on their registration status.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool.
  * @param {string} userId - The ID of the user attempting to comment.
  * @param {string | undefined | null} optionId - The ID of the option for which the user is attempting to comment.
  * @returns {Promise<boolean>} A promise that resolves to true if the user can comment, false otherwise.
  */
 export async function userCanComment(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   optionId: string | undefined | null,
 ) {
@@ -151,12 +151,12 @@ type GetOptionUsersResponse = {
  * Executes a query to retrieve user data related to a question option from the database.
  *
  * @param {string} optionId - The ID of the question option for which author data is to be retrieved.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
+ * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
  * @returns {Promise<UserData | null>} - A promise resolving to user data related to the question question or null if no data found.
  */
 export async function getOptionUsers(
   optionId: string,
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
 ): Promise<GetOptionUsersResponse | null> {
   try {
     const queryUsers = await dbPool.execute<{
@@ -252,7 +252,7 @@ export async function getOptionUsers(
     );
 
     // Return the first row of query result or null if no data found
-    return queryUsers[0] || null;
+    return queryUsers.rows[0] || null;
   } catch (error) {
     console.error('Error in getOptionUsers:', error);
     throw new Error('Error executing database query');

@@ -1,20 +1,32 @@
-import { createDbPool } from '../../src/utils/db/create-db-pool';
+import { environmentVariables } from '../../src/types';
+import { createDbClient } from '../../src/utils/db/create-db-connection';
 import { cleanup, seed } from '../../src/utils/db/seed';
-
-const DEFAULT_DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
 
 async function main() {
   if (process.argv.includes('--cleanup')) {
-    const dbConnectionUrl = process.env.DB_CONNECTION_URL ?? DEFAULT_DB_CONNECTION_URL;
-    const { dbPool, connection } = createDbPool(dbConnectionUrl, { max: 1 });
-    await cleanup(dbPool);
-    await connection.end();
+    const envVariables = environmentVariables.parse(process.env);
+    const { client, db } = await createDbClient({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    await cleanup(db);
+    await client.end();
     console.log('Cleaned up database');
   } else {
-    const dbConnectionUrl = process.env.DB_CONNECTION_URL ?? DEFAULT_DB_CONNECTION_URL;
-    const { dbPool, connection } = createDbPool(dbConnectionUrl, { max: 1 });
-    await seed(dbPool);
-    await connection.end();
+    const envVariables = environmentVariables.parse(process.env);
+    const { client, db } = await createDbClient({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+    await seed(db);
+    await client.end();
     console.log('Seeded database');
   }
 }

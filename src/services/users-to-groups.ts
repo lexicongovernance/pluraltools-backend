@@ -1,9 +1,9 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { eq, and } from 'drizzle-orm';
 
 export async function createUsersToGroups(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   groupId: string,
 ) {
@@ -37,7 +37,7 @@ export async function updateUsersToGroups({
   userId,
   usersToGroupsId,
 }: {
-  dbPool: PostgresJsDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof db>;
   usersToGroupsId: string;
   userId: string;
   groupId: string;
@@ -67,11 +67,14 @@ export async function updateUsersToGroups({
 }
 
 export async function deleteUsersToGroups(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   usersToGroupsId: string,
 ) {
   const groupToLeave = await dbPool.query.usersToGroups.findFirst({
+    with: {
+      groupCategory: true,
+    },
     where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)),
   });
 
@@ -79,11 +82,12 @@ export async function deleteUsersToGroups(
     throw new Error('Users to Groups not found');
   }
 
-  const leavingAllowed = await dbPool.query.groupCategories.findFirst({
-    where: eq(db.groupCategories.id, groupToLeave.groupCategoryId!),
+  const userGroups = await dbPool.query.groups.findMany({
+    where: eq(db.groups.groupCategoryId, groupToLeave.groupCategoryId!),
   });
 
-  if (leavingAllowed?.userCanLeave === false) {
+  // If the group is required and the user is only in one group, they cannot leave
+  if (groupToLeave.groupCategory?.required && userGroups?.length === 1) {
     throw new Error('You are not allowed to leave this group');
   }
 

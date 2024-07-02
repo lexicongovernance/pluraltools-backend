@@ -1,0 +1,1 @@
+ALTER TABLE "groups" ALTER COLUMN "group_category_id" SET NOT NULL;

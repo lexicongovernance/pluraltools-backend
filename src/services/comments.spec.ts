@@ -1,19 +1,17 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/create-db-pool';
+import { createDbClient } from '../utils/db/create-db-connection';
 import { runMigrations } from '../utils/db/run-migrations';
-import { insertSimpleRegistrationSchema } from '../types';
+import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import { getOptionUsers } from './comments';
 import { eq } from 'drizzle-orm';
-
-const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Client } from 'pg';
 
 describe('service: comments', () => {
-  let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<NonNullable<unknown>>;
+  let dbPool: NodePgDatabase<typeof db>;
+  let dbConnection: Client;
   let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
   let secretCategory: db.GroupCategory | undefined;
   let questionOption: db.QuestionOption | undefined;
@@ -23,10 +21,25 @@ describe('service: comments', () => {
   let otherUser: db.User | undefined;
 
   beforeAll(async () => {
-    const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
-    await runMigrations(DB_CONNECTION_URL);
-    dbPool = initDb.dbPool;
-    dbConnection = initDb.connection;
+    const envVariables = environmentVariables.parse(process.env);
+    const initDb = await createDbClient({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    await runMigrations({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    dbPool = initDb.db;
+    dbConnection = initDb.client;
     // seed
     const { users, questionOptions, cycles, groups, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user

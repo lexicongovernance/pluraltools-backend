@@ -1,4 +1,4 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { sql } from 'drizzle-orm';
 
@@ -26,12 +26,12 @@ type ResultData = {
  * Executes multiple queries concurrently to retrieve statistics related to a forum question from the database.
  *
  * @param {string | undefined} forumQuestionId - The ID of the forum question for which statistics are to be retrieved.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
+ * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
  * @returns {Promise<unknown>} - A promise resolving to an object containing various statistics related to the forum question.
  */
 export async function executeResultQueries(
   forumQuestionId: string | undefined,
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
 ): Promise<ResultData> {
   try {
     // Execute all queries concurrently
@@ -214,10 +214,10 @@ export async function executeResultQueries(
       ),
     ]);
 
-    const numProposals = queryResultNumProposals[0]?.numProposals;
-    const sumNumOfHearts = queryResultAllocatedHearts[0]?.sumNumOfHearts;
-    const numOfParticipants = queryNumOfParticipants[0]?.numOfParticipants;
-    const numOfGroups = queryNumOfGroups[0]?.numOfGroups;
+    const numProposals = queryResultNumProposals.rows[0]?.numProposals;
+    const sumNumOfHearts = queryResultAllocatedHearts.rows[0]?.sumNumOfHearts;
+    const numOfParticipants = queryNumOfParticipants.rows[0]?.numOfParticipants;
+    const numOfGroups = queryNumOfGroups.rows[0]?.numOfGroups;
     const indivStats: Record<
       string,
       {
@@ -233,7 +233,7 @@ export async function executeResultQueries(
     > = {};
 
     // Loop through each row in queryIndivStatistics
-    queryIndivStatistics.forEach((row) => {
+    queryIndivStatistics.rows.forEach((row) => {
       const {
         optionId: indivOptionId,
         optionTitle: indivOptionTitle,

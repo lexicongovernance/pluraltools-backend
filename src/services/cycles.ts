@@ -1,22 +1,14 @@
 import { eq, sql } from 'drizzle-orm';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleId: string) {
+export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: string) {
   const cycle = await dbPool.query.cycles.findFirst({
     where: eq(db.cycles.id, cycleId),
     with: {
       forumQuestions: {
         with: {
-          questionsToGroupCategories: {
-            with: {
-              groupCategory: true,
-            },
-          },
           questionOptions: {
-            columns: {
-              voteScore: false,
-            },
             with: {
               user: {
                 with: {
@@ -25,6 +17,9 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
                       group: {
                         columns: {
                           secret: false,
+                        },
+                        with: {
+                          groupCategory: true,
                         },
                       },
                     },
@@ -39,13 +34,6 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
     },
   });
 
-  const relevantCategories = cycle?.forumQuestions.flatMap((question) =>
-    question.questionsToGroupCategories
-      // TODO: This is a workaround to only show affiliation
-      .filter((q) => !q.groupCategory?.userCanLeave)
-      .map((q) => q.groupCategoryId),
-  );
-
   const out = {
     ...cycle,
     forumQuestions: cycle?.forumQuestions.map((question) => {
@@ -58,16 +46,14 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
             optionTitle: option.optionTitle,
             optionSubTitle: option.optionSubTitle,
             questionId: option.questionId,
+            voteScore: question.showScore ? option.voteScore : undefined,
             registrationId: option.registrationId,
             fundingRequest: option.fundingRequest,
             user: {
               username: option.user?.username,
               firstName: option.user?.firstName,
               lastName: option.user?.lastName,
-              // return a group if the user is in a group that is relevant to the cycle
-              group: option.user?.usersToGroups.find((userToGroup) =>
-                relevantCategories?.includes(userToGroup.groupCategoryId),
-              )?.group,
+              groups: option.user?.usersToGroups.map((userToGroup) => userToGroup.group),
             },
             createdAt: option.createdAt,
             updatedAt: option.updatedAt,
@@ -82,12 +68,12 @@ export async function GetCycleById(dbPool: PostgresJsDatabase<typeof db>, cycleI
 
 /**
  * Retrieves the votes for a specific cycle and user.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @param {string} userId - The ID of the user.
  * @param {string} cycleId - The ID of the cycle.
  */
 export async function getCycleVotes(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   userId: string,
   cycleId: string,
 ) {

@@ -1,4 +1,3 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { insertRegistrationSchema } from '../types';
@@ -10,8 +9,9 @@ import {
   validateUpdateRegistrationPermissions,
 } from '../services/registrations';
 import { eq } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const registrationId = req.params.id;
     const userId = req.session.userId;
@@ -40,7 +40,7 @@ export function getRegistrationDataHandler(dbPool: PostgresJsDatabase<typeof db>
   };
 }
 
-export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     req.body.userId = userId;
@@ -81,7 +81,7 @@ export function saveRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
   };
 }
 
-export function updateRegistrationHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const registrationId = req.params.id;
 

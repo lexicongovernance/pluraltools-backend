@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import * as db from '../db';
 import { createOrSignInPCD } from '../services/auth';
 import { verifyUserSchema } from '../types';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export function destroySessionHandler() {
   return function (req: Request, res: Response) {
@@ -12,7 +12,7 @@ export function destroySessionHandler() {
   };
 }
 
-export function verifyPCDHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function verifyPCDHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const body = verifyUserSchema.safeParse(req.body);

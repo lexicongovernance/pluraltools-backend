@@ -1,9 +1,9 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { eq } from 'drizzle-orm';
 
 export async function createOrSignInPCD(
-  dbPool: PostgresJsDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof db>,
   data: { uuid: string; email: string },
 ): Promise<db.User> {
   // check if there is a federated credential with the same subject

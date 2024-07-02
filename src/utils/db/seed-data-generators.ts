@@ -28,7 +28,7 @@ export type ForumQuestionData = Pick<ForumQuestion, 'cycleId' | 'questionTitle'>
 export type QuestionOptionData = Pick<QuestionOption, 'questionId' | 'optionTitle' | 'accepted'>;
 export type GroupCategoryData = Pick<
   GroupCategory,
-  'name' | 'eventId' | 'userCanCreate' | 'userCanView' | 'userCanLeave'
+  'name' | 'eventId' | 'userCanCreate' | 'userCanView' | 'required'
 >;
 export type GroupData = Pick<Group, 'name' | 'groupCategoryId'>;
 export type UserData = Pick<User, 'username' | 'email' | 'firstName' | 'lastName'>;
@@ -128,7 +128,7 @@ export function generateGroupCategoryData(
     eventId,
     userCanView: category.userCanView !== undefined ? category.userCanView : true,
     userCanCreate: category.userCanCreate !== undefined ? category.userCanCreate : false,
-    userCanLeave: category.userCanLeave !== undefined ? category.userCanLeave : true,
+    required: category.required !== undefined ? category.required : false,
   }));
 }
 

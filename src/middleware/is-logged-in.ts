@@ -1,9 +1,9 @@
 import type { NextFunction, Response, Request } from 'express';
 import * as db from '../db';
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function isLoggedIn(dbPool: PostgresJsDatabase<typeof db>) {
+export function isLoggedIn(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response, next: NextFunction) {
     if (req.session?.userId) {
       const rows = await dbPool

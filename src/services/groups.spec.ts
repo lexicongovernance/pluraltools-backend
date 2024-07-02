@@ -1,7 +1,5 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
 import * as db from '../db';
-import { createDbPool } from '../utils/db/create-db-pool';
+import { createDbClient } from '../utils/db/create-db-connection';
 import { runMigrations } from '../utils/db/run-migrations';
 import { cleanup, seed } from '../utils/db/seed';
 import {
@@ -11,10 +9,10 @@ import {
   getGroupMembers,
   getGroupRegistrations,
 } from './groups';
-import { insertSimpleRegistrationSchema } from '../types';
+import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
 import { z } from 'zod';
-
-const DB_CONNECTION_URL = 'postgresql://postgres:secretpassword@localhost:5432';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Client } from 'pg';
 
 // Define sample wordlist to test the secret generator
 const wordlist: string[] = [
@@ -47,23 +45,41 @@ const wordlist: string[] = [
 ];
 
 describe('service: groups', () => {
-  let dbPool: PostgresJsDatabase<typeof db>;
-  let dbConnection: postgres.Sql<NonNullable<unknown>>;
+  let dbPool: NodePgDatabase<typeof db>;
+  let dbConnection: Client;
   let group: db.Group[];
   let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
   let secretGroup: db.Group[];
   let cycle: db.Cycle | undefined;
   let user: db.User | undefined;
+  let groupCategory: db.GroupCategory | undefined;
 
   beforeAll(async () => {
-    const initDb = createDbPool(DB_CONNECTION_URL, { max: 1 });
-    await runMigrations(DB_CONNECTION_URL);
-    dbPool = initDb.dbPool;
-    dbConnection = initDb.connection;
-    const { users, cycles, groups } = await seed(dbPool);
+    const envVariables = environmentVariables.parse(process.env);
+    const initDb = await createDbClient({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    await runMigrations({
+      database: envVariables.DATABASE_NAME,
+      host: envVariables.DATABASE_HOST,
+      password: envVariables.DATABASE_PASSWORD,
+      user: envVariables.DATABASE_USER,
+      port: envVariables.DATABASE_PORT,
+    });
+
+    dbPool = initDb.db;
+    dbConnection = initDb.client;
+
+    const { users, cycles, groups, groupCategories } = await seed(dbPool);
     group = groups.filter((group) => group !== undefined) as db.Group[];
     user = users[0];
     cycle = cycles[0];
+    groupCategory = groupCategories[0];
     secretGroup = groups.filter((group) => group !== undefined) as db.Group[];
     const secretGroupId = secretGroup[4]?.id ?? '';
 
@@ -97,6 +113,7 @@ describe('service: groups', () => {
     const rows = await createSecretGroup(dbPool, {
       name: 'Test Group',
       description: 'Test Description',
+      groupCategoryId: groupCategory!.id,
     });
 
     expect(rows).toHaveLength(1);
@@ -112,6 +129,7 @@ describe('service: groups', () => {
     const rows = await createSecretGroup(dbPool, {
       name: 'Test Group',
       description: 'Test Description',
+      groupCategoryId: groupCategory!.id,
     });
 
     const group = await getSecretGroup(dbPool, rows[0]?.secret ?? '');

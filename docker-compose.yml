@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: lexicon-postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - '${DATABASE_PORT}:5432'
+
+  cycle-manager:
+    platform: linux/amd64
+    image: us-east1-docker.pkg.dev/forum-lexicon-backend/lexicon/cycle-manager:latest
+    container_name: lexicon-cycle-manager
+    environment:
+      DB_CONNECTION_URL: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:${DATABASE_PORT}/${DATABASE_NAME}?sslmode=disable
+      CRON_DURATION_SECONDS: 15

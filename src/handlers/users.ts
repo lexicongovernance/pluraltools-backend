@@ -1,16 +1,16 @@
 import { eq } from 'drizzle-orm';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { updateUser } from '../services/users';
 import { insertUserSchema } from '../types';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Retrieves user data from the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Function} - Express middleware function to handle the request.
  */
-export function getUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
@@ -32,10 +32,10 @@ export function getUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
 /**
  * Updates user data in the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Function} - Express middleware function to handle the request.
  */
-export function updateUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function updateUserHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const queryUserId = req.params.userId;
     const userId = req.session.userId;
@@ -70,9 +70,9 @@ export function updateUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
         return res.status(500).json({ errors: ['Failed to update user'] });
       }
 
-      const { user, updatedUserAttributes } = updatedUser.data;
+      const user = updatedUser.data;
 
-      return res.json({ data: { user, updatedUserAttributes } });
+      return res.json({ data: user });
     } catch (e) {
       console.error(`[ERROR] ${JSON.stringify(e)}`);
       return res.sendStatus(500);
@@ -85,7 +85,7 @@ export function updateUserHandler(dbPool: PostgresJsDatabase<typeof db>) {
  * @param dbPool The database connection pool.
  * @returns An asynchronous function that handles the HTTP request and response.
  */
-export function getUsersToGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUsersToGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const paramsUserId = req.params.userId;
     const userId = req.session.userId;
@@ -114,10 +114,10 @@ export function getUsersToGroupsHandler(dbPool: PostgresJsDatabase<typeof db>) {
 
 /**
  * Retrieves user attributes from the database.
- * @param {PostgresJsDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
  * @returns {Function} - Express middleware function to handle the request.
  */
-export function getUserAttributesHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserAttributesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
@@ -145,7 +145,7 @@ export function getUserAttributesHandler(dbPool: PostgresJsDatabase<typeof db>) 
   };
 }
 
-export function getUserOptionsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserOptionsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const paramsUserId = req.params.userId;
@@ -164,19 +164,18 @@ export function getUserOptionsHandler(dbPool: PostgresJsDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing userId' });
     }
 
-    const query = await dbPool
-      .select()
-      .from(db.questionOptions)
-      .leftJoin(db.registrations, eq(db.registrations.id, db.questionOptions.registrationId))
-      .where(eq(db.registrations.userId, userId));
+    const optionsQuery = await dbPool.query.questionOptions.findMany({
+      with: {
+        forumQuestion: true,
+      },
+      where: eq(db.questionOptions.userId, userId),
+    });
 
-    const options = query.map((q) => q.question_options);
-
-    return res.json({ data: options });
+    return res.json({ data: optionsQuery });
   };
 }
 
-export function getUserRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db>) {
+export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const paramsUserId = req.params.userId;
@@ -192,11 +191,18 @@ export function getUserRegistrationsHandler(dbPool: PostgresJsDatabase<typeof db
     }
 
     try {
-      const out = await dbPool
+      const query = await dbPool
         .select()
         .from(db.registrations)
+        .leftJoin(db.events, eq(db.events.id, db.registrations.eventId))
         .where(eq(db.registrations.userId, userId));
 
+      const out = query.map((q) => {
+        return {
+          ...q.registrations,
+          event: q.events,
+        };
+      });
       return res.json({ data: out });
     } catch (e) {
       console.log('error getting user registrations ' + e);
