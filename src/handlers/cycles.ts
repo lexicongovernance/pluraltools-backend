@@ -9,13 +9,13 @@ export function getActiveCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
     const activeCycles = await dbPool.query.cycles.findMany({
       where: and(lte(db.cycles.startAt, new Date()), gte(db.cycles.endAt, new Date())),
       with: {
-        forumQuestions: {
+        questions: {
           with: {
-            questionOptions: {
+            options: {
               columns: {
                 voteScore: false,
               },
-              where: eq(db.questionOptions.accepted, true),
+              where: eq(db.options.accepted, true),
             },
           },
         },

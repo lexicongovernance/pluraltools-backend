@@ -46,7 +46,7 @@ export async function executeResultQueries(
       dbPool.execute<{ numProposals: number }>(
         sql.raw(`
           SELECT count("id")::int AS "numProposals" 
-          FROM question_options
+          FROM options
           WHERE question_id = '${forumQuestionId}'
           AND accepted = TRUE
         `),
@@ -119,7 +119,7 @@ export async function executeResultQueries(
           
           plural_score_and_title AS (
               SELECT "id" AS "optionId", "option_title" AS "optionTitle", "option_sub_title" AS "optionSubTitle", vote_score AS "pluralityScore"
-              FROM question_options
+              FROM options
               WHERE question_id = '${forumQuestionId}'
               AND accepted = TRUE -- makes sure to only expose data of accepted options
           ),

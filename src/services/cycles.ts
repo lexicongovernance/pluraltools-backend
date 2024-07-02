@@ -6,9 +6,9 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
   const cycle = await dbPool.query.cycles.findFirst({
     where: eq(db.cycles.id, cycleId),
     with: {
-      forumQuestions: {
+      questions: {
         with: {
-          questionOptions: {
+          options: {
             with: {
               user: {
                 with: {
@@ -27,7 +27,7 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
                 },
               },
             },
-            where: eq(db.questionOptions.accepted, true),
+            where: eq(db.options.accepted, true),
           },
         },
       },
@@ -36,10 +36,10 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
 
   const out = {
     ...cycle,
-    forumQuestions: cycle?.forumQuestions.map((question) => {
+    forumQuestions: cycle?.questions.map((question) => {
       return {
         ...question,
-        questionOptions: question.questionOptions.map((option) => {
+        questionOptions: question.options.map((option) => {
           return {
             id: option.id,
             accepted: option.accepted,
@@ -79,9 +79,9 @@ export async function getCycleVotes(
 ) {
   const response = await dbPool.query.cycles.findMany({
     with: {
-      forumQuestions: {
+      questions: {
         with: {
-          questionOptions: {
+          options: {
             columns: {
               voteScore: false,
             },
@@ -104,9 +104,7 @@ export async function getCycleVotes(
   });
 
   const out = response.flatMap((cycle) =>
-    cycle.forumQuestions.flatMap((question) =>
-      question.questionOptions.flatMap((option) => option.votes),
-    ),
+    cycle.questions.flatMap((question) => question.options.flatMap((option) => option.votes)),
   );
 
   return out;

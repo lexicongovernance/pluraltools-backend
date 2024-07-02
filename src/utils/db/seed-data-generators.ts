@@ -2,10 +2,10 @@ import { randCompanyName, randCountry, randUser } from '@ngneat/falso';
 import {
   Cycle,
   Event,
-  ForumQuestion,
+  Question,
   RegistrationField,
   RegistrationFieldOption,
-  QuestionOption,
+  Option,
   GroupCategory,
   Group,
   User,
@@ -24,8 +24,8 @@ export type RegistrationFieldOptionData = Pick<
   RegistrationFieldOption,
   'registrationFieldId' | 'value'
 >;
-export type ForumQuestionData = Pick<ForumQuestion, 'cycleId' | 'questionTitle'>;
-export type QuestionOptionData = Pick<QuestionOption, 'questionId' | 'optionTitle' | 'accepted'>;
+export type ForumQuestionData = Pick<Question, 'cycleId' | 'questionTitle'>;
+export type QuestionOptionData = Pick<Option, 'questionId' | 'optionTitle' | 'accepted'>;
 export type GroupCategoryData = Pick<
   GroupCategory,
   'name' | 'eventId' | 'userCanCreate' | 'userCanView' | 'required'

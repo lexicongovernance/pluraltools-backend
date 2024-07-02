@@ -11,8 +11,8 @@ describe('service: cycles', () => {
   let dbPool: NodePgDatabase<typeof db>;
   let dbConnection: Client;
   let cycle: db.Cycle | undefined;
-  let questionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
+  let questionOption: db.Option | undefined;
+  let forumQuestion: db.Question | undefined;
   let user: db.User | undefined;
   let secondUser: db.User | undefined;
 

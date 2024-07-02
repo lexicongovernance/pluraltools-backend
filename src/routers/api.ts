@@ -7,7 +7,7 @@ import cors from 'cors';
 import { usersRouter } from './users';
 import { cyclesRouter } from './cycles';
 import { eventsRouter } from './events';
-import { forumQuestionsRouter } from './forum-questions';
+import { forumQuestionsRouter } from './questions';
 import { groupsRouter } from './groups';
 import { commentsRouter } from './comments';
 import { optionsRouter } from './options';
@@ -54,7 +54,7 @@ export function apiRouter({
   router.use('/cycles', cyclesRouter({ dbPool }));
   router.use('/votes', votesRouter({ dbPool }));
   router.use('/events', eventsRouter({ dbPool }));
-  router.use('/forum-questions', forumQuestionsRouter({ dbPool }));
+  router.use('/questions', forumQuestionsRouter({ dbPool }));
   router.use('/groups', groupsRouter({ dbPool }));
   router.use('/comments', commentsRouter({ dbPool }));
   router.use('/options', optionsRouter({ dbPool }));

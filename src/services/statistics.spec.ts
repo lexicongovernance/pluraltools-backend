@@ -13,8 +13,8 @@ describe('service: statistics', () => {
   let dbConnection: Client;
   let userTestData: z.infer<typeof insertVotesSchema>;
   let otherUserTestData: z.infer<typeof insertVotesSchema>;
-  let questionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
+  let questionOption: db.Option | undefined;
+  let forumQuestion: db.Question | undefined;
   let user: db.User | undefined;
   let otherUser: db.User | undefined;
 

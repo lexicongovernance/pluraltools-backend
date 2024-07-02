@@ -17,12 +17,12 @@ export async function calculateFunding(
 ): Promise<{ allocated_funding: { [key: string]: number }; remaining_funding: number }> {
   const getOptionData = await dbPool
     .select({
-      id: db.questionOptions.id,
-      voteScore: db.questionOptions.voteScore,
-      fundingRequest: db.questionOptions.fundingRequest,
+      id: db.options.id,
+      voteScore: db.options.voteScore,
+      fundingRequest: db.options.fundingRequest,
     })
-    .from(db.questionOptions)
-    .where(eq(db.questionOptions.questionId, forumQuestionId));
+    .from(db.options)
+    .where(eq(db.options.questionId, forumQuestionId));
 
   if (!getOptionData) {
     throw new Error('Error in query getOptionData');
