@@ -24,7 +24,7 @@ export type RegistrationFieldOptionData = Pick<
   RegistrationFieldOption,
   'registrationFieldId' | 'value'
 >;
-export type ForumQuestionData = Pick<Question, 'cycleId' | 'title'>;
+export type ForumQuestionData = Pick<Question, 'cycleId' | 'title' | 'voteModel'>;
 export type QuestionOptionData = Pick<Option, 'questionId' | 'title' | 'accepted'>;
 export type GroupCategoryData = Pick<
   GroupCategory,
@@ -93,10 +93,12 @@ export function generateRegistrationFieldOptionsData(
 export function generateForumQuestionData(
   cycleId: string,
   questionTitles: string[],
+  voteModels: string[],
 ): ForumQuestionData[] {
-  return questionTitles.map((title) => ({
+  return questionTitles.map((title, index) => ({
     cycleId,
     title,
+    voteModel: voteModels[index] ?? 'COCM',
   }));
 }
 
