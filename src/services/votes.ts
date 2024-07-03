@@ -37,8 +37,8 @@ export async function saveVotes(
     }
   }
 
-  const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
-    where: eq(db.questionOptions.id, voteData[0]!.optionId),
+  const queryQuestionOption = await dbPool.query.options.findFirst({
+    where: eq(db.options.id, voteData[0]!.optionId),
   });
 
   if (!queryQuestionOption) {
@@ -46,8 +46,8 @@ export async function saveVotes(
     return { data: voteData, errors };
   }
 
-  const queryForumQuestion = await dbPool.query.forumQuestions.findFirst({
-    where: eq(db.forumQuestions.id, queryQuestionOption!.questionId),
+  const queryForumQuestion = await dbPool.query.questions.findFirst({
+    where: eq(db.questions.id, queryQuestionOption!.questionId),
   });
 
   if (!queryForumQuestion) {
