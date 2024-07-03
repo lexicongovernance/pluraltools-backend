@@ -9,8 +9,8 @@ export const questions = pgTable('questions', {
   cycleId: uuid('cycle_id')
     .references(() => cycles.id)
     .notNull(),
-  questionTitle: varchar('question_title', { length: 256 }).notNull(),
-  questionSubTitle: varchar('question_sub_title', { length: 256 }),
+  title: varchar('title', { length: 256 }).notNull(),
+  subTitle: varchar('sub_title', { length: 256 }),
   showScore: boolean('show_score').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

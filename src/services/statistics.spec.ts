@@ -83,8 +83,8 @@ describe('service: statistics', () => {
     for (const optionId in result.optionStats) {
       const optionStat = result.optionStats[optionId];
       expect(optionStat).toBeDefined();
-      expect(optionStat?.optionTitle).toBeDefined();
-      expect(optionStat?.optionSubTitle).toBeDefined();
+      expect(optionStat?.title).toBeDefined();
+      expect(optionStat?.subTitle).toBeDefined();
       expect(optionStat?.pluralityScore).toBeDefined();
       expect(optionStat?.distinctUsers).toBeDefined();
       expect(optionStat?.allocatedHearts).toBeDefined();

@@ -1,5 +1,5 @@
 {
-  "id": "2df4586b-1e88-45a5-a4c6-79462285aa28",
+  "id": "2a588eb8-0e2d-4fd9-994e-9ce11d0e3cd6",
   "prevId": "d5949f15-27cf-4e59-8b74-fc60826fef74",
   "version": "6",
   "dialect": "postgresql",
@@ -89,8 +89,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "question_option_id": {
-          "name": "question_option_id",
+        "option_id": {
+          "name": "option_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -131,12 +131,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "comments_question_option_id_options_id_fk": {
-          "name": "comments_question_option_id_options_id_fk",
+        "comments_option_id_options_id_fk": {
+          "name": "comments_option_id_options_id_fk",
           "tableFrom": "comments",
           "tableTo": "options",
           "columnsFrom": [
-            "question_option_id"
+            "option_id"
           ],
           "columnsTo": [
             "id"
@@ -715,14 +715,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "question_title": {
-          "name": "question_title",
+        "title": {
+          "name": "title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
-        "question_sub_title": {
-          "name": "question_sub_title",
+        "sub_title": {
+          "name": "sub_title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false
@@ -854,14 +854,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "option_title": {
-          "name": "option_title",
+        "title": {
+          "name": "title",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
         },
-        "option_sub_title": {
-          "name": "option_sub_title",
+        "sub_title": {
+          "name": "sub_title",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false

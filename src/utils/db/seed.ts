@@ -258,7 +258,7 @@ async function createForumQuestions(
       .insert(db.questions)
       .values({
         cycleId: questionData.cycleId,
-        questionTitle: questionData.questionTitle,
+        title: questionData.title,
       })
       .returning();
 
@@ -286,7 +286,7 @@ async function createQuestionOptions(
       .insert(db.options)
       .values({
         questionId: questionOption.questionId,
-        optionTitle: questionOption.optionTitle,
+        title: questionOption.title,
         accepted: questionOption.accepted,
       })
       .returning();

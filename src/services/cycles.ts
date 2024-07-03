@@ -43,8 +43,8 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
           return {
             id: option.id,
             accepted: option.accepted,
-            optionTitle: option.optionTitle,
-            optionSubTitle: option.optionSubTitle,
+            title: option.title,
+            subTitle: option.subTitle,
             questionId: option.questionId,
             voteScore: question.showScore ? option.voteScore : undefined,
             registrationId: option.registrationId,

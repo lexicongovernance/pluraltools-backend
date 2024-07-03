@@ -13,8 +13,8 @@ export const options = pgTable('options', {
   questionId: uuid('question_id')
     .references(() => questions.id)
     .notNull(),
-  optionTitle: varchar('option_title', { length: 256 }).notNull(),
-  optionSubTitle: varchar('option_sub_title'),
+  title: varchar('title', { length: 256 }).notNull(),
+  subTitle: varchar('sub_title'),
   accepted: boolean('accepted').default(false),
   voteScore: numeric('vote_score').notNull().default('0.0'),
   fundingRequest: numeric('funding_request').default('0.0'),

@@ -22,7 +22,7 @@ export async function saveComment(
       .insert(db.comments)
       .values({
         userId: userId,
-        questionOptionId: data.questionOptionId,
+        optionId: data.optionId,
         value: data.value,
       })
       .returning();
@@ -80,13 +80,13 @@ export async function getOptionComments(
     .select()
     .from(db.comments)
     .leftJoin(db.users, eq(db.comments.userId, db.users.id))
-    .where(eq(db.comments.questionOptionId, data.optionId));
+    .where(eq(db.comments.optionId, data.optionId));
 
   const commentsWithUserNames = rows.map((row) => {
     return {
       id: row.comments.id,
       userId: row.comments.userId,
-      questionOptionId: row.comments.questionOptionId,
+      optionId: row.comments.optionId,
       value: row.comments.value,
       createdAt: row.comments.createdAt,
       user: {

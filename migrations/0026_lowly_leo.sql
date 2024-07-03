@@ -1,5 +1,10 @@
 ALTER TABLE "forum_questions" RENAME TO "questions";--> statement-breakpoint
 ALTER TABLE "question_options" RENAME TO "options";--> statement-breakpoint
+ALTER TABLE "comments" RENAME COLUMN "question_option_id" TO "option_id";--> statement-breakpoint
+ALTER TABLE "questions" RENAME COLUMN "question_title" TO "title";--> statement-breakpoint
+ALTER TABLE "questions" RENAME COLUMN "question_sub_title" TO "sub_title";--> statement-breakpoint
+ALTER TABLE "options" RENAME COLUMN "option_title" TO "title";--> statement-breakpoint
+ALTER TABLE "options" RENAME COLUMN "option_sub_title" TO "sub_title";--> statement-breakpoint
 ALTER TABLE "comments" DROP CONSTRAINT "comments_question_option_id_question_options_id_fk";
 --> statement-breakpoint
 ALTER TABLE "questions" DROP CONSTRAINT "forum_questions_cycle_id_cycles_id_fk";
@@ -17,7 +22,7 @@ ALTER TABLE "votes" DROP CONSTRAINT "votes_question_id_forum_questions_id_fk";
 ALTER TABLE "questions_to_group_categories" DROP CONSTRAINT "questions_to_group_categories_question_id_forum_questions_id_fk";
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "comments" ADD CONSTRAINT "comments_question_option_id_options_id_fk" FOREIGN KEY ("question_option_id") REFERENCES "public"."options"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "comments" ADD CONSTRAINT "comments_option_id_options_id_fk" FOREIGN KEY ("option_id") REFERENCES "public"."options"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
