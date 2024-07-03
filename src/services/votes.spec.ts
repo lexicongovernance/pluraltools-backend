@@ -13,7 +13,7 @@ import {
   calculatePluralScore,
   calculateQuadraticScore,
   updateVoteScoreInDatabase,
-  updateVoteScore,
+  updateVoteScorePlural,
   userCanVote,
 } from './votes';
 import { eq } from 'drizzle-orm';
@@ -25,10 +25,10 @@ describe('service: votes', () => {
   let dbConnection: Client;
   let testData: z.infer<typeof insertVotesSchema>;
   let cycle: db.Cycle | undefined;
-  let questionOption: db.QuestionOption | undefined;
-  let otherQuestionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
-  let otherForumQuestion: db.ForumQuestion | undefined;
+  let questionOption: db.Option | undefined;
+  let otherQuestionOption: db.Option | undefined;
+  let forumQuestion: db.Question | undefined;
+  let otherForumQuestion: db.Question | undefined;
   let groupCategory: db.GroupCategory | undefined;
   let otherGroupCategory: db.GroupCategory | undefined;
   let unrelatedGroupCategory: db.GroupCategory | undefined;
@@ -325,8 +325,8 @@ describe('service: votes', () => {
     await updateVoteScoreInDatabase(dbPool, questionOption?.id ?? '', score);
 
     // query updated score in db
-    const updatedDbScore = await dbPool.query.questionOptions.findFirst({
-      where: eq(db.questionOptions.id, questionOption?.id ?? ''),
+    const updatedDbScore = await dbPool.query.options.findFirst({
+      where: eq(db.options.id, questionOption?.id ?? ''),
     });
 
     expect(updatedDbScore?.voteScore).toBe('100');
@@ -334,7 +334,7 @@ describe('service: votes', () => {
 
   test('full integration test of the update vote functionality', async () => {
     // Test that the plurality score is correct if both users are in the same group
-    const score = await updateVoteScore(dbPool, questionOption?.id ?? '');
+    const score = await updateVoteScorePlural(dbPool, questionOption?.id ?? '');
     // sqrt of 2 because the two users are in the same group
     // voting for the same option with 1 vote each
     expect(score).toBe(Math.sqrt(2));

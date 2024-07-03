@@ -2,10 +2,10 @@ import { randCompanyName, randCountry, randUser } from '@ngneat/falso';
 import {
   Cycle,
   Event,
-  ForumQuestion,
+  Question,
   RegistrationField,
   RegistrationFieldOption,
-  QuestionOption,
+  Option,
   GroupCategory,
   Group,
   User,
@@ -24,8 +24,8 @@ export type RegistrationFieldOptionData = Pick<
   RegistrationFieldOption,
   'registrationFieldId' | 'value'
 >;
-export type ForumQuestionData = Pick<ForumQuestion, 'cycleId' | 'questionTitle'>;
-export type QuestionOptionData = Pick<QuestionOption, 'questionId' | 'optionTitle' | 'accepted'>;
+export type ForumQuestionData = Pick<Question, 'cycleId' | 'title' | 'voteModel'>;
+export type QuestionOptionData = Pick<Option, 'questionId' | 'title' | 'accepted'>;
 export type GroupCategoryData = Pick<
   GroupCategory,
   'name' | 'eventId' | 'userCanCreate' | 'userCanView' | 'required'
@@ -93,10 +93,12 @@ export function generateRegistrationFieldOptionsData(
 export function generateForumQuestionData(
   cycleId: string,
   questionTitles: string[],
+  voteModels: string[],
 ): ForumQuestionData[] {
-  return questionTitles.map((questionTitle) => ({
+  return questionTitles.map((title, index) => ({
     cycleId,
-    questionTitle,
+    title,
+    voteModel: voteModels[index] ?? 'COCM',
   }));
 }
 
@@ -110,7 +112,7 @@ export function generateQuestionOptionsData(
   for (let i = 0; i < optionTitles.length; i++) {
     const optionData: QuestionOptionData = {
       questionId,
-      optionTitle: optionTitles[i]!,
+      title: optionTitles[i]!,
       accepted: status[i]!,
     };
     questionOptionsData.push(optionData);

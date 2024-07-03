@@ -44,7 +44,7 @@ async function seed(dbPool: NodePgDatabase<typeof db>) {
   );
   const forumQuestions = await createForumQuestions(
     dbPool,
-    generateForumQuestionData(cycles[0]!.id, ['Question One', 'Question Two']),
+    generateForumQuestionData(cycles[0]!.id, ['Question One', 'Question Two'], ['COCM', 'QV']),
   );
   const questionOptions = await createQuestionOptions(
     dbPool,
@@ -130,7 +130,7 @@ async function cleanup(dbPool: NodePgDatabase<typeof db>) {
   await dbPool.delete(db.userAttributes);
   await dbPool.delete(db.votes);
   await dbPool.delete(db.federatedCredentials);
-  await dbPool.delete(db.questionOptions);
+  await dbPool.delete(db.options);
   await dbPool.delete(db.registrationData);
   await dbPool.delete(db.registrationFieldOptions);
   await dbPool.delete(db.registrationFields);
@@ -140,7 +140,7 @@ async function cleanup(dbPool: NodePgDatabase<typeof db>) {
   await dbPool.delete(db.groups);
   await dbPool.delete(db.questionsToGroupCategories);
   await dbPool.delete(db.groupCategories);
-  await dbPool.delete(db.forumQuestions);
+  await dbPool.delete(db.questions);
   await dbPool.delete(db.cycles);
   await dbPool.delete(db.events);
 }
@@ -261,10 +261,11 @@ async function createForumQuestions(
     }
 
     const result = await dbPool
-      .insert(db.forumQuestions)
+      .insert(db.questions)
       .values({
         cycleId: questionData.cycleId,
-        questionTitle: questionData.questionTitle,
+        title: questionData.title,
+        voteModel: questionData.voteModel,
       })
       .returning();
 
@@ -289,10 +290,10 @@ async function createQuestionOptions(
     }
 
     const result = await dbPool
-      .insert(db.questionOptions)
+      .insert(db.options)
       .values({
         questionId: questionOption.questionId,
-        optionTitle: questionOption.optionTitle,
+        title: questionOption.title,
         accepted: questionOption.accepted,
       })
       .returning();
