@@ -1,5 +1,5 @@
 {
-  "id": "c1c50f84-5c9e-41d7-8878-146b3de500a0",
+  "id": "3e25dac0-f63a-429e-beec-e0b014693359",
   "prevId": "d5949f15-27cf-4e59-8b74-fc60826fef74",
   "version": "6",
   "dialect": "postgresql",
@@ -397,7 +397,8 @@
           "name": "vote_model",
           "type": "varchar(256)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'COCM'"
         },
         "show_score": {
           "name": "show_score",
