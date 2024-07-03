@@ -44,7 +44,7 @@ async function seed(dbPool: NodePgDatabase<typeof db>) {
   );
   const forumQuestions = await createForumQuestions(
     dbPool,
-    generateForumQuestionData(cycles[0]!.id, ['Question One', 'Question Two']),
+    generateForumQuestionData(cycles[0]!.id, ['Question One', 'Question Two'], ['COCM', 'QV']),
   );
   const questionOptions = await createQuestionOptions(
     dbPool,
@@ -265,6 +265,7 @@ async function createForumQuestions(
       .values({
         cycleId: questionData.cycleId,
         questionTitle: questionData.questionTitle,
+        voteModel: questionData.voteModel,
       })
       .returning();
 
