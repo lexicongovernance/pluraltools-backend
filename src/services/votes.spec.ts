@@ -13,7 +13,7 @@ import {
   calculatePluralScore,
   calculateQuadraticScore,
   updateVoteScoreInDatabase,
-  updateVoteScore,
+  updateVoteScorePlural,
   userCanVote,
 } from './votes';
 import { eq } from 'drizzle-orm';
@@ -334,7 +334,7 @@ describe('service: votes', () => {
 
   test('full integration test of the update vote functionality', async () => {
     // Test that the plurality score is correct if both users are in the same group
-    const score = await updateVoteScore(dbPool, questionOption?.id ?? '');
+    const score = await updateVoteScorePlural(dbPool, questionOption?.id ?? '');
     // sqrt of 2 because the two users are in the same group
     // voting for the same option with 1 vote each
     expect(score).toBe(Math.sqrt(2));
