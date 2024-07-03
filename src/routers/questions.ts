@@ -5,7 +5,7 @@ import {
   getCalculateFundingHandler,
   getQuestionHeartsHandler,
   getResultStatisticsHandler,
-} from '../handlers/forum-questions';
+} from '../handlers/questions';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 const router = express.Router();
 

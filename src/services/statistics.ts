@@ -10,8 +10,8 @@ type ResultData = {
   optionStats: Record<
     string,
     {
-      optionTitle: string;
-      optionSubTitle: string;
+      title: string;
+      subTitle: string;
       pluralityScore: string;
       distinctUsers: number;
       allocatedHearts: number;
@@ -46,7 +46,7 @@ export async function executeResultQueries(
       dbPool.execute<{ numProposals: number }>(
         sql.raw(`
           SELECT count("id")::int AS "numProposals" 
-          FROM question_options
+          FROM options
           WHERE question_id = '${forumQuestionId}'
           AND accepted = TRUE
         `),
@@ -100,8 +100,8 @@ export async function executeResultQueries(
       // Get individual results
       dbPool.execute<{
         optionId: string;
-        optionTitle: string;
-        optionSubTitle: string;
+        title: string;
+        subTitle: string;
         pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
@@ -118,8 +118,8 @@ export async function executeResultQueries(
           ),
           
           plural_score_and_title AS (
-              SELECT "id" AS "optionId", "option_title" AS "optionTitle", "option_sub_title" AS "optionSubTitle", vote_score AS "pluralityScore"
-              FROM question_options
+              SELECT "id" AS "optionId", "title" AS "title", "sub_title" AS "subTitle", vote_score AS "pluralityScore"
+              FROM options
               WHERE question_id = '${forumQuestionId}'
               AND accepted = TRUE -- makes sure to only expose data of accepted options
           ),
@@ -189,8 +189,8 @@ export async function executeResultQueries(
           /* Aggregated results */
           merged_result AS (
               SELECT id_title_score."optionId", 
-                    id_title_score."optionTitle",
-                    id_title_score."optionSubTitle",
+                    id_title_score."title",
+                    id_title_score."subTitle",
                     id_title_score."pluralityScore",
                     distinct_users."distinctUsers",
                     hearts."allocatedHearts",
@@ -221,8 +221,8 @@ export async function executeResultQueries(
     const indivStats: Record<
       string,
       {
-        optionTitle: string;
-        optionSubTitle: string;
+        title: string;
+        subTitle: string;
         pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
@@ -236,8 +236,8 @@ export async function executeResultQueries(
     queryIndivStatistics.rows.forEach((row) => {
       const {
         optionId: indivOptionId,
-        optionTitle: indivOptionTitle,
-        optionSubTitle: indivOptionSubTitle,
+        title: indivOptionTitle,
+        subTitle: indivOptionSubTitle,
         pluralityScore: indivPluralityScore,
         distinctUsers: indivDistinctUsers,
         allocatedHearts: indivAllocatedHearts,
@@ -247,8 +247,8 @@ export async function executeResultQueries(
       } = row;
 
       indivStats[indivOptionId] = {
-        optionTitle: indivOptionTitle || 'No Title Provided',
-        optionSubTitle: indivOptionSubTitle || '',
+        title: indivOptionTitle || 'No Title Provided',
+        subTitle: indivOptionSubTitle || '',
         pluralityScore: indivPluralityScore || '0.0',
         distinctUsers: indivDistinctUsers || 0,
         allocatedHearts: indivAllocatedHearts || 0,

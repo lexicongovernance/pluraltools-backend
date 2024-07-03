@@ -37,8 +37,8 @@ export async function saveVotes(
     }
   }
 
-  const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
-    where: eq(db.questionOptions.id, voteData[0]!.optionId),
+  const queryQuestionOption = await dbPool.query.options.findFirst({
+    where: eq(db.options.id, voteData[0]!.optionId),
   });
 
   if (!queryQuestionOption) {
@@ -46,8 +46,8 @@ export async function saveVotes(
     return { data: voteData, errors };
   }
 
-  const queryForumQuestion = await dbPool.query.forumQuestions.findFirst({
-    where: eq(db.forumQuestions.id, queryQuestionOption!.questionId),
+  const queryForumQuestion = await dbPool.query.questions.findFirst({
+    where: eq(db.questions.id, queryQuestionOption!.questionId),
   });
 
   if (!queryForumQuestion) {
@@ -207,12 +207,12 @@ export async function updateVoteScoreInDatabase(
 ) {
   // Update vote score in the database
   await dbPool
-    .update(db.questionOptions)
+    .update(db.options)
     .set({
       voteScore: score.toString(),
       updatedAt: new Date(),
     })
-    .where(eq(db.questionOptions.id, optionId));
+    .where(eq(db.options.id, optionId));
 }
 
 /**
@@ -236,10 +236,10 @@ export async function updateVoteScorePlural(
   // Query group data, grouping dimensions, and calculate the score
   const queryQuestionId = await dbPool
     .select({
-      questionId: db.questionOptions.questionId,
+      questionId: db.options.questionId,
     })
-    .from(db.questionOptions)
-    .where(eq(db.questionOptions.id, optionId));
+    .from(db.options)
+    .where(eq(db.options.id, optionId));
 
   const groupCategories = await queryGroupCategories(dbPool, queryQuestionId[0]!.questionId);
   const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories ?? []);
@@ -292,8 +292,8 @@ async function validateAndSaveVote(
     return { data: null, error: 'optionId is required' };
   }
 
-  const queryQuestionOption = await dbPool.query.questionOptions.findFirst({
-    where: eq(db.questionOptions.id, vote.optionId),
+  const queryQuestionOption = await dbPool.query.options.findFirst({
+    where: eq(db.options.id, vote.optionId),
   });
 
   if (!queryQuestionOption) {
@@ -346,8 +346,8 @@ export async function saveVote(
   vote: z.infer<typeof insertVotesSchema>,
 ) {
   // check if cycle is open
-  const queryQuestion = await dbPool.query.forumQuestions.findFirst({
-    where: eq(db.forumQuestions.id, vote?.questionId ?? ''),
+  const queryQuestion = await dbPool.query.questions.findFirst({
+    where: eq(db.questions.id, vote?.questionId ?? ''),
     with: {
       cycle: true,
     },

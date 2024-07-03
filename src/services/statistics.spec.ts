@@ -13,8 +13,8 @@ describe('service: statistics', () => {
   let dbConnection: Client;
   let userTestData: z.infer<typeof insertVotesSchema>;
   let otherUserTestData: z.infer<typeof insertVotesSchema>;
-  let questionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
+  let questionOption: db.Option | undefined;
+  let forumQuestion: db.Question | undefined;
   let user: db.User | undefined;
   let otherUser: db.User | undefined;
 
@@ -83,8 +83,8 @@ describe('service: statistics', () => {
     for (const optionId in result.optionStats) {
       const optionStat = result.optionStats[optionId];
       expect(optionStat).toBeDefined();
-      expect(optionStat?.optionTitle).toBeDefined();
-      expect(optionStat?.optionSubTitle).toBeDefined();
+      expect(optionStat?.title).toBeDefined();
+      expect(optionStat?.subTitle).toBeDefined();
       expect(optionStat?.pluralityScore).toBeDefined();
       expect(optionStat?.distinctUsers).toBeDefined();
       expect(optionStat?.allocatedHearts).toBeDefined();
