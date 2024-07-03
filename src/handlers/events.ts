@@ -14,13 +14,13 @@ export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
     const eventCycles = await dbPool.query.cycles.findMany({
       where: eq(db.cycles.eventId, eventId),
       with: {
-        forumQuestions: {
+        questions: {
           with: {
-            questionOptions: {
+            options: {
               columns: {
                 voteScore: false,
               },
-              where: eq(db.questionOptions.accepted, true),
+              where: eq(db.options.accepted, true),
             },
           },
         },

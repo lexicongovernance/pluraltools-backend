@@ -85,7 +85,7 @@ export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const canComment = await userCanComment(dbPool, userId, body.data.questionOptionId);
+    const canComment = await userCanComment(dbPool, userId, body.data.optionId);
 
     if (!canComment) {
       return res.status(403).json({ errors: [{ message: 'User cannot comment on this option' }] });

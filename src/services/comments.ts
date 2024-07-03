@@ -22,7 +22,7 @@ export async function saveComment(
       .insert(db.comments)
       .values({
         userId: userId,
-        questionOptionId: data.questionOptionId,
+        optionId: data.optionId,
         value: data.value,
       })
       .returning();
@@ -80,13 +80,13 @@ export async function getOptionComments(
     .select()
     .from(db.comments)
     .leftJoin(db.users, eq(db.comments.userId, db.users.id))
-    .where(eq(db.comments.questionOptionId, data.optionId));
+    .where(eq(db.comments.optionId, data.optionId));
 
   const commentsWithUserNames = rows.map((row) => {
     return {
       id: row.comments.id,
       userId: row.comments.userId,
-      questionOptionId: row.comments.questionOptionId,
+      optionId: row.comments.optionId,
       value: row.comments.value,
       createdAt: row.comments.createdAt,
       user: {
@@ -205,15 +205,15 @@ export async function getOptionUsers(
 
       option_owner AS (
         SELECT 
-        question_options."id", users."id" AS "user_id",
+        options."id", users."id" AS "user_id",
             json_build_object(
                 'id', users."id",
                 'username', users."username",
                 'firstName', users."first_name",
                 'lastName', users."last_name"
             ) AS option_owner
-        FROM question_options
-        LEFT JOIN users ON question_options."user_id" = users."id"
+        FROM options
+        LEFT JOIN users ON options."user_id" = users."id"
       ),
     
       registrations_secret_groups AS (
@@ -225,16 +225,16 @@ export async function getOptionUsers(
       
       result AS (
         SELECT 
-          question_options."id" AS "optionId",
-          question_options."registration_id" AS "registrationId",
-          question_options."user_id" AS "userId",
+          options."id" AS "optionId",
+          options."registration_id" AS "registrationId",
+          options."user_id" AS "userId",
           option_owner."option_owner" AS "user",
           registrations_secret_groups."group_id" AS "groupId",
           registrations_secret_groups."users_in_group" AS "usersInGroup" 
-        FROM question_options
-        LEFT JOIN registrations_secret_groups ON question_options."registration_id" = registrations_secret_groups."id"
-        LEFT JOIN option_owner ON question_options."user_id" = option_owner."user_id"
-        WHERE question_options."id" = '${optionId}'
+        FROM options
+        LEFT JOIN registrations_secret_groups ON options."registration_id" = registrations_secret_groups."id"
+        LEFT JOIN option_owner ON options."user_id" = option_owner."user_id"
+        WHERE options."id" = '${optionId}'
       ),
 
       nested_result AS (

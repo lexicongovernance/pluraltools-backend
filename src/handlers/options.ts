@@ -12,14 +12,14 @@ export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing optionId' });
     }
 
-    const { voteScore, ...rest } = getTableColumns(db.questionOptions);
+    const { voteScore, ...rest } = getTableColumns(db.options);
 
     const rows = await dbPool
       .select({
         ...rest,
       })
-      .from(db.questionOptions)
-      .where(eq(db.questionOptions.id, optionId));
+      .from(db.options)
+      .where(eq(db.options.id, optionId));
 
     if (!rows.length) {
       return res.status(404).json({ error: 'Option not found' });
