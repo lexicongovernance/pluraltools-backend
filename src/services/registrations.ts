@@ -1,11 +1,11 @@
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { insertRegistrationSchema } from '../types';
+import { insertRegistrationSchema, fieldsSchema } from '../types';
 import * as db from '../db';
-import { upsertRegistrationData } from './registration-data';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { enforceRules } from './validation';
 
-export async function validateCreateRegistrationPermissions({
+export async function validateCreateRegistrationAuthorization({
   dbPool,
   userId,
   groupId,
@@ -15,7 +15,7 @@ export async function validateCreateRegistrationPermissions({
   groupId?: string | null;
 }) {
   if (groupId) {
-    const userGroup = dbPool.query.usersToGroups.findFirst({
+    const userGroup = await dbPool.query.usersToGroups.findFirst({
       where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
     });
 
@@ -27,7 +27,7 @@ export async function validateCreateRegistrationPermissions({
   return true;
 }
 
-export async function validateUpdateRegistrationPermissions({
+export async function validateUpdateRegistrationAuthorization({
   dbPool,
   registrationId,
   userId,
@@ -51,7 +51,7 @@ export async function validateUpdateRegistrationPermissions({
   }
 
   if (groupId) {
-    const userGroup = dbPool.query.usersToGroups.findFirst({
+    const userGroup = await dbPool.query.usersToGroups.findFirst({
       where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
     });
 
@@ -61,6 +61,39 @@ export async function validateUpdateRegistrationPermissions({
   }
 
   return true;
+}
+
+export async function validateEventRegistrationFields({
+  registration,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof db>;
+  registration: z.infer<typeof insertRegistrationSchema>;
+}) {
+  // check if all required fields are filled
+  const rows = await dbPool.select().from(db.events).where(eq(db.events.id, registration.eventId));
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const event = rows[0];
+
+  if (!event) {
+    return [];
+  }
+
+  // get registration fields for the event
+  const registrationFields = fieldsSchema.safeParse(event.registrationFields);
+
+  if (!registrationFields.success) {
+    return [];
+  }
+
+  return enforceRules({
+    data: registration.data,
+    fields: registrationFields.data,
+  });
 }
 
 export async function saveRegistration(
@@ -80,19 +113,8 @@ export async function saveRegistration(
     throw new Error('failed to save registration');
   }
 
-  const updatedRegistrationData = await upsertRegistrationData({
-    dbPool,
-    registrationId: newRegistration.id,
-    registrationData: data.registrationData,
-  });
-
-  if (!updatedRegistrationData) {
-    throw new Error('Failed to upsert registration data');
-  }
-
   const out = {
     ...newRegistration,
-    registrationData: updatedRegistrationData,
   };
 
   return out;
@@ -123,19 +145,8 @@ export async function updateRegistration({
     throw new Error('failed to save registration');
   }
 
-  const updatedRegistrationData = await upsertRegistrationData({
-    dbPool,
-    registrationId: updatedRegistration.id,
-    registrationData: data.registrationData,
-  });
-
-  if (!updatedRegistrationData) {
-    throw new Error('Failed to upsert registration data');
-  }
-
   const out = {
     ...updatedRegistration,
-    registrationData: updatedRegistrationData,
   };
 
   return out;

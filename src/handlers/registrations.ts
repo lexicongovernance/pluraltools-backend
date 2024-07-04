@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { insertRegistrationSchema } from '../types';
-import { validateRequiredRegistrationFields } from '../services/registration-fields';
 import {
   saveRegistration,
   updateRegistration,
   validateCreateRegistrationPermissions,
   validateUpdateRegistrationPermissions,
+  validateEventRegistrationFields,
 } from '../services/registrations';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -50,15 +50,13 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields({
+    const brokenRules = await validateEventRegistrationFields({
       dbPool,
-      data: body.data,
-      forGroup: !!body.data.groupId,
-      forUser: !body.data.groupId,
+      registration: body.data,
     });
 
-    if (missingRequiredFields.length > 0) {
-      return res.status(400).json({ errors: missingRequiredFields });
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
     }
 
     const canRegisterGroup = await validateCreateRegistrationPermissions({
@@ -97,15 +95,13 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields({
+    const brokenRules = await validateEventRegistrationFields({
       dbPool,
-      data: body.data,
-      forGroup: !!body.data.groupId,
-      forUser: !body.data.groupId,
+      registration: body.data,
     });
 
-    if (missingRequiredFields.length > 0) {
-      return res.status(400).json({ errors: missingRequiredFields });
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
     }
 
     const canUpdateRegistration = await validateUpdateRegistrationPermissions({
