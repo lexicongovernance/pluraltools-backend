@@ -4,8 +4,8 @@ import { insertRegistrationSchema } from '../types';
 import {
   saveRegistration,
   updateRegistration,
-  validateCreateRegistrationPermissions,
-  validateUpdateRegistrationPermissions,
+  validateUpdateRegistrationAuthorization,
+  validateCreateRegistrationAuthorization,
   validateEventRegistrationFields,
 } from '../services/registrations';
 import { eq } from 'drizzle-orm';
@@ -59,7 +59,7 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: brokenRules });
     }
 
-    const canRegisterGroup = await validateCreateRegistrationPermissions({
+    const canRegisterGroup = await validateCreateRegistrationAuthorization({
       dbPool,
       userId,
       groupId: body.data.groupId,
@@ -104,7 +104,7 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: brokenRules });
     }
 
-    const canUpdateRegistration = await validateUpdateRegistrationPermissions({
+    const canUpdateRegistration = await validateUpdateRegistrationAuthorization({
       dbPool,
       registrationId,
       userId,
