@@ -46,32 +46,37 @@ export async function saveVotes(
     return { data: voteData, errors };
   }
 
-  const queryForumQuestion = await dbPool.query.questions.findFirst({
-    where: eq(db.questions.id, queryQuestionOption!.questionId),
-  });
+  // Query group data, grouping dimensions, and calculate the score
+  const queryForumQuestion = await dbPool
+    .select({
+      questionId: db.questions.id,
+      voteModel: db.questions.voteModel,
+    })
+    .from(db.questions)
+    .where(eq(db.questions.id, queryQuestionOption!.questionId));
 
   if (!queryForumQuestion) {
     errors.push('No question found for the provided questionId');
     return { data: voteData, errors };
   }
 
-  // Define available voting models
-  const voteModelUpdateFunctions = {
-    COCM: updateVoteScorePlural,
-    QV: updateVoteScoreQuadratic,
-  };
+  const voteModel = queryForumQuestion[0]?.voteModel;
 
-  const updateFunction =
-    voteModelUpdateFunctions[
-      queryForumQuestion?.voteModel as keyof typeof voteModelUpdateFunctions
-    ];
-
-  const uniqueOptionIds = voteData.map((vote) => vote.optionId);
-
-  if (!updateFunction) {
-    errors.push('Unsupported vote model: ' + queryForumQuestion.voteModel);
-  } else {
-    await Promise.all(uniqueOptionIds.map((optionId) => updateFunction(dbPool, optionId)));
+  // Call the update function based on the respective voting mechanism
+  switch (voteModel) {
+    case 'COCM':
+      await Promise.all(
+        voteData.map((vote) =>
+          updateVoteScorePlural(dbPool, vote.optionId, queryForumQuestion[0]!.questionId),
+        ),
+      );
+      break;
+    case 'QV':
+      await Promise.all(voteData.map((vote) => updateVoteScoreQuadratic(dbPool, vote.optionId)));
+      break;
+    default:
+      errors.push('Unsupported vote model: ' + voteModel);
+      break;
   }
 
   return { data: voteData, errors };
@@ -234,20 +239,12 @@ export async function updateVoteScoreInDatabase(
 export async function updateVoteScorePlural(
   dbPool: NodePgDatabase<typeof db>,
   optionId: string,
+  questionId: string,
 ): Promise<number> {
   // Query and transform vote data
   const voteArray = await queryVoteData(dbPool, optionId);
   const votesDictionary = await numOfVotesDictionary(voteArray);
-
-  // Query group data, grouping dimensions, and calculate the score
-  const queryQuestionId = await dbPool
-    .select({
-      questionId: db.options.questionId,
-    })
-    .from(db.options)
-    .where(eq(db.options.id, optionId));
-
-  const groupCategories = await queryGroupCategories(dbPool, queryQuestionId[0]!.questionId);
+  const groupCategories = await queryGroupCategories(dbPool, questionId);
   const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories.data!);
   const score = await calculatePluralScore(groupArray, votesDictionary);
 
