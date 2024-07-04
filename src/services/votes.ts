@@ -119,7 +119,7 @@ export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVot
 export async function queryGroupCategories(
   dbPool: NodePgDatabase<typeof db>,
   questionId: string,
-): Promise<string[]> {
+): Promise<{ data: string[] | null; error: string | null }> {
   const groupCategories = await dbPool
     .select({
       groupCategoryId: db.questionsToGroupCategories.groupCategoryId,
@@ -127,15 +127,13 @@ export async function queryGroupCategories(
     .from(db.questionsToGroupCategories)
     .where(eq(db.questionsToGroupCategories.questionId, questionId));
 
-  // Need to due this adjustment because currently groupCategoryId is nullable in the datatable definition.
-  const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId!);
-
-  if (groupCategoryIds.length === 0) {
-    console.error('Group Category ID is Missing');
-    return [];
+  if (groupCategories.length === 0) {
+    return { data: null, error: 'No group categories found for the given question Id' };
   }
 
-  return groupCategoryIds;
+  const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId);
+
+  return { data: groupCategoryIds, error: null };
 }
 
 /**
@@ -242,7 +240,7 @@ export async function updateVoteScorePlural(
     .where(eq(db.options.id, optionId));
 
   const groupCategories = await queryGroupCategories(dbPool, queryQuestionId[0]!.questionId);
-  const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories ?? []);
+  const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories.data!);
   const score = await calculatePluralScore(groupArray, votesDictionary);
 
   await updateVoteScoreInDatabase(dbPool, optionId, score);

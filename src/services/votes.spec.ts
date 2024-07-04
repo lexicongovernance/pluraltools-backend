@@ -208,9 +208,9 @@ describe('service: votes', () => {
     // Get vote data required for groups
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, forumQuestion!.id);
     expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(1);
-    expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
-    groupCategoriesIdArray.forEach((categoryId) => {
+    expect(groupCategoriesIdArray.data!.length).toBe(1);
+    expect(Array.isArray(groupCategoriesIdArray.data)).toBe(true);
+    groupCategoriesIdArray.data!.forEach((categoryId) => {
       expect(typeof categoryId).toBe('string');
     });
   });
@@ -218,9 +218,7 @@ describe('service: votes', () => {
   test('that query group categories returns an empty array if their are no group categories specified for a specific question', async () => {
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, otherForumQuestion!.id);
     expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(0);
-    expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
-    expect(groupCategoriesIdArray).toEqual([]);
+    expect(groupCategoriesIdArray.data!).toBe(null);
   });
 
   test('only return groups for users who voted for the option', async () => {
