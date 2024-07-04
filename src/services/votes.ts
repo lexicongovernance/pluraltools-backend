@@ -116,6 +116,15 @@ export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVot
   return numOfVotesDictionary;
 }
 
+/**
+ * Queries the group categories associated with a given question ID from the database.
+ *
+ * @param dbPool - The database pool to use for querying.
+ * @param questionId - The ID of the question to retrieve group categories for.
+ * @returns A promise that resolves to an object containing:
+ *   - `data`: An array of group category IDs if found, otherwise `null`.
+ *   - `error`: A string describing the error if no group categories are found, otherwise `null`.
+ */
 export async function queryGroupCategories(
   dbPool: NodePgDatabase<typeof db>,
   questionId: string,
@@ -203,7 +212,6 @@ export async function updateVoteScoreInDatabase(
   optionId: string,
   score: number,
 ) {
-  // Update vote score in the database
   await dbPool
     .update(db.options)
     .set({
