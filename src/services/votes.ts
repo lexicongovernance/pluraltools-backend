@@ -9,48 +9,82 @@ import { quadraticVoting } from '../modules/quadratic-voting';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
- * Saves votes submitted by a user.
+ * Validates and saves votes submitted by a user.
  *
- * This function validates and saves each vote provided in the `data` array for the specified `userId`.
- * It then updates the vote count for each option based on the vote model associated with the question.
+ * This function validates each vote provided in the `data` array for the specified `userId`.
+ * If all votes are valid, it saves each vote to the database.
  *
- * @param dbPool - The database connection pool.
- * @param data - An array of objects containing `optionId` and `numOfVotes` properties.
- * @param userId - The ID of the user submitting the votes.
- * @returns A promise that resolves to an object containing `data` (an array of saved votes) and `errors` (an array of error messages).
+ * @param {NodePgDatabase<typeof db>} dbPool
+ * @param {{ optionId: string; numOfVotes: number }[]} data
+ * @param {string} userId
+ * @returns {Promise<{ data: db.Vote[] | null; errors: string[] }>}
  */
-export async function saveVotes(
+export async function validateAndSaveVotes(
   dbPool: NodePgDatabase<typeof db>,
   data: { optionId: string; numOfVotes: number }[],
   userId: string,
-): Promise<{ data: db.Vote[] | null; errors: string[] }> {
+): Promise<{ data: db.Vote[] | null; questionIds: string[]; errors: string[] }> {
   const voteData: db.Vote[] = [];
+  const questionIds: string[] = [];
   const errors: string[] = [];
 
-  // validate the vote
   for (const vote of data) {
+    // Validate the vote
     const { isValid, error } = await validateVote(dbPool, vote, userId);
     if (!isValid && error) {
       errors.push(error);
+      continue;
+    }
+
+    // Find the question option if the vote is valid
+    const queryQuestionOption = await dbPool.query.options.findFirst({
+      where: eq(db.options.id, vote.optionId),
+    });
+
+    if (!queryQuestionOption) {
+      errors.push(`No option found for optionId: ${vote.optionId}`);
+      continue;
+    }
+
+    // Save the vote
+    const { data: savedVote, error: saveError } = await saveVote(
+      dbPool,
+      vote,
+      userId,
+      queryQuestionOption.questionId,
+    );
+    if (saveError) {
+      errors.push(saveError);
+    } else if (savedVote) {
+      voteData.push(savedVote);
+      questionIds.push(queryQuestionOption.questionId);
     }
   }
 
-  if (errors.length > 0) {
+  return { data: voteData.length > 0 ? voteData : null, questionIds, errors };
+}
+
+/**
+ * Saves votes submitted by a user and updates option scores based on the vote model.
+ *
+ * @param {NodePgDatabase<typeof db>} dbPool
+ * @param {{ optionId: string; numOfVotes: number }[]} data
+ * @param {string[]} questionIds
+ * @returns {Promise<{ data: { optionId: string; score: number }[] | null; errors: string[] }>}
+ */
+export async function updateOptionScore(
+  dbPool: NodePgDatabase<typeof db>,
+  data: { optionId: string; numOfVotes: number }[],
+  questionIds: string[],
+): Promise<{ data: { optionId: string; score: number }[] | null; errors: string[] }> {
+  const scores: { optionId: string; score: number }[] = [];
+  const errors: string[] = [];
+
+  // Check if all questionIds are the same
+  const firstQuestionId = questionIds[0];
+  if (!questionIds.every((questionId) => questionId === firstQuestionId)) {
+    errors.push('Not all questionIds are the same');
     return { data: null, errors };
-  }
-
-  const queryQuestionOption = await dbPool.query.options.findFirst({
-    where: eq(db.options.id, voteData[0]!.optionId),
-  });
-
-  if (!queryQuestionOption) {
-    errors.push('No option found for the provided optionId');
-    return { data: voteData, errors };
-  }
-
-  // save vote
-  for (const vote of data) {
-    await saveVote(dbPool, vote, userId, queryQuestionOption.questionId);
   }
 
   // Query group data, grouping dimensions, and calculate the score
@@ -60,11 +94,11 @@ export async function saveVotes(
       voteModel: db.questions.voteModel,
     })
     .from(db.questions)
-    .where(eq(db.questions.id, queryQuestionOption!.questionId));
+    .where(eq(db.questions.id, firstQuestionId!));
 
   if (!queryForumQuestion) {
     errors.push('No question found for the provided questionId');
-    return { data: voteData, errors };
+    return { data: null, errors };
   }
 
   const voteModel = queryForumQuestion[0]?.voteModel;
@@ -73,20 +107,38 @@ export async function saveVotes(
   switch (voteModel) {
     case 'COCM':
       await Promise.all(
-        voteData.map((vote) =>
-          updateVoteScorePlural(dbPool, vote.optionId, queryForumQuestion[0]!.questionId),
-        ),
+        data.map(async (vote) => {
+          try {
+            const score = await updateVoteScorePlural(
+              dbPool,
+              vote.optionId,
+              queryForumQuestion[0]!.questionId,
+            );
+            scores.push({ optionId: vote.optionId, score: score });
+          } catch (error) {
+            errors.push(`Error updating score for optionId ${vote.optionId}`);
+          }
+        }),
       );
       break;
     case 'QV':
-      await Promise.all(voteData.map((vote) => updateVoteScoreQuadratic(dbPool, vote.optionId)));
+      await Promise.all(
+        data.map(async (vote) => {
+          try {
+            const score = await updateVoteScoreQuadratic(dbPool, vote.optionId);
+            scores.push({ optionId: vote.optionId, score: score });
+          } catch (error) {
+            errors.push(`Error updating score for optionId ${vote.optionId}`);
+          }
+        }),
+      );
       break;
     default:
       errors.push('Unsupported vote model: ' + voteModel);
       break;
   }
 
-  return { data: voteData, errors };
+  return { data: scores.length > 0 ? scores : null, errors };
 }
 
 /**
