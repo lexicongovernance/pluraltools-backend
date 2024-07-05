@@ -63,7 +63,7 @@ export async function validateUpdateRegistrationAuthorization({
   return true;
 }
 
-export async function validateEventRegistrationFields({
+export async function validateEventFields({
   registration,
   dbPool,
 }: {
@@ -82,16 +82,16 @@ export async function validateEventRegistrationFields({
     return [];
   }
 
-  // get registration fields for the event
-  const registrationFields = fieldsSchema.safeParse(event.registrationFields);
+  // get fields for the event
+  const eventFields = fieldsSchema.safeParse(event.fields);
 
-  if (!registrationFields.success) {
+  if (!eventFields.success) {
     return [];
   }
 
   return enforceRules({
     data: registration.data,
-    fields: registrationFields.data,
+    fields: eventFields.data,
   });
 }
 

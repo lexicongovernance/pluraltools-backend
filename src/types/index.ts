@@ -6,3 +6,4 @@ export * from './cycles';
 export * from './auth';
 export * from './comments';
 export * from './validation';
+export * from './options';

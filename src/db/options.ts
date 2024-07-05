@@ -5,11 +5,13 @@ import { votes } from './votes';
 import { registrations } from './registrations';
 import { comments } from './comments';
 import { users } from './users';
+import { groups } from './groups';
 
 export const options = pgTable('options', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id),
   registrationId: uuid('registration_id').references(() => registrations.id),
+  groupId: uuid('group_id').references(() => groups.id),
   questionId: uuid('question_id')
     .references(() => questions.id)
     .notNull(),
@@ -35,6 +37,10 @@ export const questionOptionsRelations = relations(options, ({ one, many }) => ({
   registrations: one(registrations, {
     fields: [options.registrationId],
     references: [registrations.id],
+  }),
+  group: one(groups, {
+    fields: [options.groupId],
+    references: [groups.id],
   }),
   comment: many(comments),
   votes: many(votes),
