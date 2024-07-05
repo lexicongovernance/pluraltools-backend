@@ -25,7 +25,7 @@ export type RegistrationFieldOptionData = Pick<
   'registrationFieldId' | 'value'
 >;
 export type ForumQuestionData = Pick<Question, 'cycleId' | 'title' | 'voteModel'>;
-export type QuestionOptionData = Pick<Option, 'questionId' | 'title' | 'accepted'>;
+export type QuestionOptionData = Pick<Option, 'questionId' | 'title' | 'show'>;
 export type GroupCategoryData = Pick<
   GroupCategory,
   'name' | 'eventId' | 'userCanCreate' | 'userCanView' | 'required'
@@ -113,7 +113,7 @@ export function generateQuestionOptionsData(
     const optionData: QuestionOptionData = {
       questionId,
       title: optionTitles[i]!,
-      accepted: status[i]!,
+      show: status[i]!,
     };
     questionOptionsData.push(optionData);
   }

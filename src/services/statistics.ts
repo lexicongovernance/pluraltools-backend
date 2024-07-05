@@ -48,7 +48,7 @@ export async function executeResultQueries(
           SELECT count("id")::int AS "numProposals" 
           FROM options
           WHERE question_id = '${forumQuestionId}'
-          AND accepted = TRUE
+          AND show = TRUE
         `),
       ),
 
@@ -121,7 +121,7 @@ export async function executeResultQueries(
               SELECT "id" AS "optionId", "title" AS "title", "sub_title" AS "subTitle", vote_score AS "pluralityScore"
               FROM options
               WHERE question_id = '${forumQuestionId}'
-              AND accepted = TRUE -- makes sure to only expose data of accepted options
+              AND show = TRUE -- makes sure to only expose data of accepted options
           ),
           
           allocated_hearts AS (

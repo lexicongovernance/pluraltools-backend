@@ -294,7 +294,7 @@ async function createQuestionOptions(
       .values({
         questionId: questionOption.questionId,
         title: questionOption.title,
-        accepted: questionOption.accepted,
+        show: questionOption.show,
       })
       .returning();
 
