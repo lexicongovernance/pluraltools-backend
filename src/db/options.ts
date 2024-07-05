@@ -1,4 +1,4 @@
-import { boolean, pgTable, timestamp, uuid, varchar, numeric } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, timestamp, uuid, varchar, numeric, jsonb } from 'drizzle-orm/pg-core';
 import { questions } from './questions';
 import { relations } from 'drizzle-orm';
 import { votes } from './votes';
@@ -15,9 +15,10 @@ export const options = pgTable('options', {
     .notNull(),
   title: varchar('title', { length: 256 }).notNull(),
   subTitle: varchar('sub_title'),
-  accepted: boolean('accepted').default(false),
+  show: boolean('show').default(false),
   voteScore: numeric('vote_score').notNull().default('0.0'),
   fundingRequest: numeric('funding_request').default('0.0'),
+  data: jsonb('data'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

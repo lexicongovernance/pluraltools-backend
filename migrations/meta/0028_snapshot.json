@@ -1,5 +1,5 @@
 {
-  "id": "6f8f095f-4394-41bd-91b5-42a9903bbd6a",
+  "id": "3b3f3fe7-aab6-4ea0-88cd-e1c81a678986",
   "prevId": "201665be-855d-4af0-8e69-731c400b4907",
   "version": "6",
   "dialect": "postgresql",
@@ -260,11 +260,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "registration_fields": {
-          "name": "registration_fields",
+        "fields": {
+          "name": "fields",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "image_url": {
           "name": "image_url",
@@ -753,6 +754,13 @@
           "notNull": false,
           "default": false
         },
+        "fields": {
+          "name": "fields",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -885,8 +893,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "accepted": {
-          "name": "accepted",
+        "show": {
+          "name": "show",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
@@ -905,6 +913,12 @@
           "primaryKey": false,
           "notNull": false,
           "default": "'0.0'"
+        },
+        "data": {
+          "name": "data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

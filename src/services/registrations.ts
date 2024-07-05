@@ -70,7 +70,6 @@ export async function validateEventRegistrationFields({
   dbPool: NodePgDatabase<typeof db>;
   registration: z.infer<typeof insertRegistrationSchema>;
 }) {
-  // check if all required fields are filled
   const rows = await dbPool.select().from(db.events).where(eq(db.events.id, registration.eventId));
 
   if (!rows.length) {

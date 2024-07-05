@@ -40,6 +40,7 @@ describe('service: validation', function () {
         name: {
           value: 'John Doe',
           fieldId: 'name',
+          type: 'TEXT',
         },
       };
 
@@ -68,6 +69,7 @@ describe('service: validation', function () {
           name: {
             value: 'John',
             fieldId: 'name',
+            type: 'TEXT',
           },
         };
 
@@ -94,6 +96,7 @@ describe('service: validation', function () {
           name: {
             value: 'John Doe',
             fieldId: 'name',
+            type: 'TEXT',
           },
         };
 
@@ -120,6 +123,7 @@ describe('service: validation', function () {
           name: {
             value: 'John Doe',
             fieldId: 'name',
+            type: 'TEXT',
           },
         };
 
@@ -146,6 +150,7 @@ describe('service: validation', function () {
           name: {
             value: 'John',
             fieldId: 'name',
+            type: 'TEXT',
           },
         };
 
@@ -175,6 +180,7 @@ describe('service: validation', function () {
           age: {
             value: 17,
             fieldId: 'age',
+            type: 'NUMBER',
           },
         };
 
@@ -201,6 +207,7 @@ describe('service: validation', function () {
           age: {
             value: 18,
             fieldId: 'age',
+            type: 'NUMBER',
           },
         };
 
@@ -227,6 +234,7 @@ describe('service: validation', function () {
           age: {
             value: 19,
             fieldId: 'age',
+            type: 'NUMBER',
           },
         };
 
@@ -252,6 +260,7 @@ describe('service: validation', function () {
           age: {
             value: 18,
             fieldId: 'age',
+            type: 'NUMBER',
           },
         };
 
@@ -281,6 +290,7 @@ describe('service: validation', function () {
           colors: {
             value: ['red'],
             fieldId: 'colors',
+            type: 'MULTI_SELECT',
           },
         };
 
@@ -306,6 +316,7 @@ describe('service: validation', function () {
           colors: {
             value: ['red', 'blue'],
             fieldId: 'colors',
+            type: 'MULTI_SELECT',
           },
         };
 
@@ -332,6 +343,7 @@ describe('service: validation', function () {
           colors: {
             value: ['red', 'blue', 'green'],
             fieldId: 'colors',
+            type: 'MULTI_SELECT',
           },
         };
 
@@ -357,6 +369,7 @@ describe('service: validation', function () {
           colors: {
             value: ['red', 'blue'],
             fieldId: 'colors',
+            type: 'MULTI_SELECT',
           },
         };
 
