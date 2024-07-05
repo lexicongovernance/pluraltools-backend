@@ -23,18 +23,20 @@ export async function saveVotes(
   dbPool: NodePgDatabase<typeof db>,
   data: { optionId: string; numOfVotes: number }[],
   userId: string,
-): Promise<{ data: db.Vote[]; errors: string[] }> {
+): Promise<{ data: db.Vote[] | null; errors: string[] }> {
   const voteData: db.Vote[] = [];
   const errors: string[] = [];
 
+  // validate the vote
   for (const vote of data) {
-    const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
-    if (data) {
-      voteData.push(data);
-    }
-    if (error) {
+    const { isValid, error } = await validateVote(dbPool, vote, userId);
+    if (!isValid && error) {
       errors.push(error);
     }
+  }
+
+  if (errors.length > 0) {
+    return { data: null, errors };
   }
 
   const queryQuestionOption = await dbPool.query.options.findFirst({
@@ -44,6 +46,11 @@ export async function saveVotes(
   if (!queryQuestionOption) {
     errors.push('No option found for the provided optionId');
     return { data: voteData, errors };
+  }
+
+  // save vote
+  for (const vote of data) {
+    await saveVote(dbPool, vote, userId, queryQuestionOption.questionId);
   }
 
   // Query group data, grouping dimensions, and calculate the score
@@ -277,37 +284,77 @@ export async function updateVoteScoreQuadratic(
 }
 
 /**
- * Validates and saves a vote for a user in the database.
+ * This function performs several validation steps for the provided vote object:
+ * 1. Checks if the option ID is provided.
+ * 2. Verifies the existence of the option in the database.
+ * 3. Confirms that the associated voting cycle is open.
+ * 4. Checks if the user is eligible to vote.
  *
- * This function validates the provided vote object, checks if the option exists,
- * inserts the vote into the database, and returns the saved vote data or an error message.
+ * If all validations pass, the vote is considered valid. Otherwise, an appropriate error message is returned.
  *
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @param {{ optionId: string; numOfVotes: number }} vote - The vote object containing option ID and number of votes.
- * @param {string} userId - The ID of the user who is voting.
+ * @param {NodePgDatabase<typeof db>} dbPool
+ * @param {{ optionId: string; numOfVotes: number }} vote
+ * @param {string} userId
+ * @returns {Promise<{ isValid: boolean; error: string | null }>}
  */
-async function validateAndSaveVote(
+async function validateVote(
   dbPool: NodePgDatabase<typeof db>,
   vote: { optionId: string; numOfVotes: number },
   userId: string,
-): Promise<{ data: db.Vote | null | undefined; error: string | null | undefined }> {
+): Promise<{ isValid: boolean; error: string | null }> {
   if (!vote.optionId) {
-    return { data: null, error: 'optionId is required' };
+    return { isValid: false, error: 'Option Id is required' };
   }
 
+  // check if the option exists
   const queryQuestionOption = await dbPool.query.options.findFirst({
     where: eq(db.options.id, vote.optionId),
   });
 
   if (!queryQuestionOption) {
-    return { data: null, error: 'Option not found' };
+    return { isValid: false, error: 'Option not found' };
   }
 
+  // check cycle status
+  const queryQuestion = await dbPool.query.questions.findFirst({
+    where: eq(db.questions.id, queryQuestionOption.questionId),
+    with: {
+      cycle: true,
+    },
+  });
+
+  if ((queryQuestion?.cycle?.status as CycleStatusType) !== 'OPEN') {
+    return { isValid: false, error: 'Cycle is not open' };
+  }
+
+  // check if the user can vote
+  const canVote = await userCanVote(dbPool, userId, vote.optionId);
+  if (!canVote) {
+    return { isValid: false, error: 'User cannot vote' };
+  }
+
+  return { isValid: true, error: null };
+}
+
+/**
+ * Saves a vote in the database.
+ *
+ * @param { NodePgDatabase<typeof db>} dbPool
+ * @param {z.infer<typeof insertVotesSchema>} vote
+ * @param {string} userId
+ * @param {string} questionId
+ */
+export async function saveVote(
+  dbPool: NodePgDatabase<typeof db>,
+  vote: { optionId: string; numOfVotes: number },
+  userId: string,
+  questionId: string,
+): Promise<{ data: db.Vote | null; error: string | null | undefined }> {
   const insertVoteBody: z.infer<typeof insertVotesSchema> = {
     optionId: vote.optionId,
     numOfVotes: vote.numOfVotes,
     userId: userId,
-    questionId: queryQuestionOption.questionId,
+    questionId: questionId,
   };
 
   const body = insertVotesSchema.safeParse(insertVoteBody);
@@ -316,62 +363,22 @@ async function validateAndSaveVote(
     return { data: null, error: body.error.errors[0]?.message };
   }
 
-  // check if user can vote
-  const canVote = await userCanVote(dbPool, userId, vote.optionId);
-  if (!canVote) {
-    return { data: null, error: 'User cannot vote' };
-  }
-
-  const newVote = await saveVote(dbPool, insertVoteBody);
-
-  if (newVote.errors) {
-    return { data: null, error: newVote.errors[0]?.message };
-  }
-
-  if (!newVote.data) {
-    return { data: null, error: 'Failed to insert vote' };
-  }
-
-  return { data: newVote.data, error: null };
-}
-
-/**
- * Saves a vote in the database.
- *
- * This function checks if the cycle for the given question is open,
- * then inserts the provided vote data into the database and returns the saved vote data.
- *
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @param {z.infer<typeof insertVotesSchema>} vote - The vote data to be saved.
- */
-export async function saveVote(
-  dbPool: NodePgDatabase<typeof db>,
-  vote: z.infer<typeof insertVotesSchema>,
-) {
-  // check if cycle is open
-  const queryQuestion = await dbPool.query.questions.findFirst({
-    where: eq(db.questions.id, vote?.questionId ?? ''),
-    with: {
-      cycle: true,
-    },
-  });
-
-  if ((queryQuestion?.cycle?.status as CycleStatusType) !== 'OPEN') {
-    return { errors: [{ message: 'Cycle is not open' }] };
-  }
-
   // save the votes
   const newVote = await dbPool
     .insert(votes)
     .values({
-      userId: vote.userId,
-      numOfVotes: vote.numOfVotes,
-      optionId: vote.optionId,
-      questionId: vote.questionId,
+      userId: insertVoteBody.userId,
+      numOfVotes: insertVoteBody.numOfVotes,
+      optionId: insertVoteBody.optionId,
+      questionId: insertVoteBody.questionId,
     })
     .returning();
 
-  return { data: newVote[0] };
+  if (!newVote || newVote.length === 0 || !newVote[0]) {
+    return { data: null, error: 'Failed to insert vote in the db' };
+  }
+
+  return { data: newVote[0], error: null };
 }
 
 /**
