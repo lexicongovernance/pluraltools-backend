@@ -349,7 +349,7 @@ export async function updateVoteScoreQuadratic(
  * @param {string} userId
  * @returns {Promise<{ isValid: boolean; error: string | null }>}
  */
-async function validateVote(
+export async function validateVote(
   dbPool: NodePgDatabase<typeof db>,
   vote: { optionId: string; numOfVotes: number },
   userId: string,

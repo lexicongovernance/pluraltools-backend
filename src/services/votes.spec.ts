@@ -6,6 +6,7 @@ import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import {
   saveVote,
+  validateVote,
   queryVoteData,
   queryGroupCategories,
   numOfVotesDictionary,
@@ -14,6 +15,7 @@ import {
   calculateQuadraticScore,
   updateVoteScoreInDatabase,
   updateVoteScorePlural,
+  updateVoteScoreQuadratic,
   userCanVote,
 } from './votes';
 import { eq } from 'drizzle-orm';
@@ -75,88 +77,128 @@ describe('service: votes', () => {
     };
   });
 
+  test('validation should return false if no option id is specified', async () => {
+    const response = await validateVote(dbPool, { numOfVotes: 1, optionId: '' }, user!.id ?? '');
+    expect(response.isValid).toEqual(false);
+    expect(response.error).toEqual(expect.any(String));
+  });
+
+  test('validation should return false if a non-existing optionid is specified', async () => {
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: '00000000-0000-0000-0000-000000000000' },
+      user!.id ?? '',
+    );
+    expect(response.isValid).toEqual(false);
+    expect(response.error).toEqual(expect.any(String));
+  });
+
+  test('validation should return false if the cycle is not open', async () => {
+    await dbPool.update(db.cycles).set({ status: 'CLOSED' }).where(eq(db.cycles.id, cycle!.id));
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: questionOption?.id ?? '' },
+      user!.id ?? '',
+    );
+    expect(response.isValid).toEqual(false);
+    expect(response.error).toEqual(expect.any(String));
+  });
+
+  test('validation should return false if a user is not approved', async () => {
+    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: questionOption?.id ?? '' },
+      user!.id ?? '',
+    );
+    expect(response.isValid).toEqual(false);
+    expect(response.error).toEqual(expect.any(String));
+  });
+
+  test('validation should return true all validation checks pass', async () => {
+    await dbPool.insert(db.registrations).values({
+      status: 'APPROVED',
+      userId: user!.id ?? '',
+      eventId: cycle!.eventId ?? '',
+    });
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: questionOption?.id ?? '' },
+      user!.id ?? '',
+    );
+    expect(response.isValid).toEqual(true);
+    expect(response.error).toEqual(null);
+  });
+
+  test('userCanVote returns false if user does not have an approved registration', async () => {
+    const response = await userCanVote(dbPool, secondUser!.id ?? '', questionOption?.id ?? '');
+    expect(response).toEqual(false);
+  });
+
+  test('userCanVote returns true if user has an approved registration', async () => {
+    await dbPool.insert(db.registrations).values({
+      status: 'APPROVED',
+      userId: secondUser!.id ?? '',
+      eventId: cycle!.eventId ?? '',
+    });
+    const response = await userCanVote(dbPool, secondUser!.id ?? '', questionOption?.id ?? '');
+    expect(response).toEqual(true);
+  });
+
+  test('userCanVote returns false if no option id gets provided', async () => {
+    const response = await userCanVote(dbPool, secondUser!.id ?? '', '');
+    expect(response).toEqual(false);
+  });
+
   test('should save vote', async () => {
-    //await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-    // accept user registration
-    //await dbPool.insert(db.registrations).values({
-    //  status: 'APPROVED',
-    //  userId: user!.id ?? '',
-    //  eventId: cycle!.eventId ?? '',
-    //});
-    // Call the saveVote function
     const { data: response } = await saveVote(
       dbPool,
       testData,
       user?.id ?? '',
       forumQuestion?.id ?? '',
     );
-    // Check if response is defined
     expect(response).toBeDefined();
-    // Check property existence and types
     expect(response).toHaveProperty('id');
     expect(response?.id).toEqual(expect.any(String));
     expect(response).toHaveProperty('userId');
     expect(response?.userId).toEqual(expect.any(String));
-    // check timestamps
     expect(response?.createdAt).toEqual(expect.any(Date));
     expect(response?.updatedAt).toEqual(expect.any(Date));
   });
 
-  //test('should not save vote if cycle is closed', async () => {
-  // update cycle to closed state
-  // await dbPool.update(db.cycles).set({ status: 'CLOSED' }).where(eq(db.cycles.id, cycle!.id));
-  // Call the saveVote function
-  //  const { data: response, errors } = await saveVote(dbPool, testData);
-
-  // expect response to be undefined
-  //  expect(response).toBeUndefined();
-
-  // expect error message
-  //  expect(errors).toBeDefined();
-  //});
-
-  //test('should not allow voting on users that are not registered', async () => {
-  //  const canVote = await userCanVote(dbPool, secondUser!.id, questionOption!.id);
-  //  expect(canVote).toBe(false);
-  //});
-
-  //test('should not save vote if cycle is upcoming', async () => {
-  // update cycle to closed state
-  //  await dbPool.update(db.cycles).set({ status: 'UPCOMING' }).where(eq(db.cycles.id, cycle!.id));
-  // Call the saveVote function
-  //  const { data: response, errors } = await saveVote(dbPool, testData);
-
-  // expect response to be undefined
-  //  expect(response).toBeUndefined();
-
-  // expect error message
-  //  expect(errors).toBeDefined();
-  //});
+  test('should not save vote with invalid test data', async () => {
+    const invalidTestData = {
+      optionId: '',
+      numOfVotes: 2,
+    };
+    const response = await saveVote(
+      dbPool,
+      invalidTestData,
+      user?.id ?? '',
+      forumQuestion?.id ?? '',
+    );
+    expect(response.data).toBeNull();
+    expect(response.error).toBeDefined();
+    expect(response.error).toEqual(expect.any(String));
+  });
 
   test('should fetch vote data correctly', async () => {
-    // open cycle for voting
-    // await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-
     // register second user
-    //await dbPool.insert(db.registrations).values({
-    //  status: 'APPROVED',
-    //  userId: secondUser!.id ?? '',
-    //  eventId: cycle!.eventId ?? '',
-    //});
-    // save a second user vote
-    const res = await saveVote(dbPool, testData, secondUser!.id, forumQuestion?.id ?? '');
-    console.log(res);
+    await dbPool.insert(db.registrations).values({
+      status: 'APPROVED',
+      userId: secondUser!.id ?? '',
+      eventId: cycle!.eventId ?? '',
+    });
+    await saveVote(dbPool, testData, secondUser!.id, forumQuestion?.id ?? '');
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
 
     expect(voteArray).toBeDefined();
     expect(voteArray).toHaveLength(2);
-
     voteArray?.forEach((vote) => {
       expect(vote).toHaveProperty('userId');
       expect(vote).toHaveProperty('numOfVotes');
       expect(typeof vote.numOfVotes).toBe('number');
     });
-
     expect(voteArray[0]?.numOfVotes).toBe(1);
   });
 
@@ -333,8 +375,7 @@ describe('service: votes', () => {
     expect(updatedDbScore?.voteScore).toBe('100');
   });
 
-  test('full integration test of the update vote functionality', async () => {
-    // Test that the plurality score is correct if both users are in the same group
+  test('that the plurality score is correct if both users are in the same group', async () => {
     const score = await updateVoteScorePlural(
       dbPool,
       questionOption?.id ?? '',
@@ -343,6 +384,13 @@ describe('service: votes', () => {
     // sqrt of 2 because the two users are in the same group
     // voting for the same option with 1 vote each
     expect(score).toBe(Math.sqrt(2));
+  });
+
+  test('that the quadratic score is correctly calculated as the sum of square roots', async () => {
+    const score = await updateVoteScoreQuadratic(dbPool, questionOption?.id ?? '');
+    // two users voting for the same option with 1 vote each
+    // sqrt of 1 + sqrt of 1 = 2
+    expect(score).toBe(2);
   });
 
   afterAll(async () => {
