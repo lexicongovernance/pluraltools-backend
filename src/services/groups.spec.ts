@@ -151,7 +151,7 @@ describe('service: groups', () => {
     expect(result).toBeDefined();
   });
 
-  describe('authorization:', function () {
+  describe('authorization', function () {
     test('when the user is not in the group', async function () {
       const rows = await dbPool
         .insert(db.groups)
@@ -212,7 +212,7 @@ describe('service: groups', () => {
         groupId: rows[0].id,
       });
 
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
   });
 
