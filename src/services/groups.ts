@@ -1,9 +1,9 @@
-import * as db from '../db';
+import { and, eq } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { z } from 'zod';
+import * as db from '../db';
 import { insertGroupsSchema } from '../types/groups';
 import { wordlist } from '../utils/db/mnemonics';
-import { eq } from 'drizzle-orm';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export function createSecretGroup(
   dbPool: NodePgDatabase<typeof db>,
@@ -97,4 +97,26 @@ export async function getGroupRegistrations(dbPool: NodePgDatabase<typeof db>, g
   });
 
   return response;
+}
+
+export async function isUserIsPartOfGroup({
+  dbPool,
+  userId,
+  groupId,
+}: {
+  dbPool: NodePgDatabase<typeof db>;
+  userId: string;
+  groupId?: string | null;
+}) {
+  if (groupId) {
+    const userGroup = await dbPool.query.usersToGroups.findFirst({
+      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
+    });
+
+    if (!userGroup) {
+      return false;
+    }
+  }
+
+  return true;
 }

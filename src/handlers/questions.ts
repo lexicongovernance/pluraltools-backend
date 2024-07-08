@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import * as db from '../db';
-import { getQuestionHearts } from '../services/forum-questions';
+import { getQuestionHearts } from '../services/questions';
 import { executeResultQueries } from '../services/statistics';
 import { calculateFunding } from '../services/funding-mechanism';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';

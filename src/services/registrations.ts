@@ -1,98 +1,27 @@
 import { and, eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { insertRegistrationSchema, fieldsSchema } from '../types';
-import * as db from '../db';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { enforceRules } from './validation';
+import { z } from 'zod';
+import * as db from '../db';
+import { insertRegistrationSchema } from '../types';
 
-export async function validateCreateRegistrationAuthorization({
-  dbPool,
-  userId,
-  groupId,
-}: {
-  dbPool: NodePgDatabase<typeof db>;
-  userId: string;
-  groupId?: string | null;
-}) {
-  if (groupId) {
-    const userGroup = await dbPool.query.usersToGroups.findFirst({
-      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
-    });
-
-    if (!userGroup) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-export async function validateUpdateRegistrationAuthorization({
+export async function getUserRegistration({
   dbPool,
   registrationId,
   userId,
-  groupId,
 }: {
   dbPool: NodePgDatabase<typeof db>;
   userId: string;
   registrationId: string;
-  groupId?: string | null;
-}) {
+}): Promise<db.Registration | null> {
   const existingRegistration = await dbPool.query.registrations.findFirst({
     where: and(eq(db.registrations.userId, userId), eq(db.registrations.id, registrationId)),
   });
 
   if (!existingRegistration) {
-    return false;
+    return null;
   }
 
-  if (existingRegistration.userId !== userId) {
-    return false;
-  }
-
-  if (groupId) {
-    const userGroup = await dbPool.query.usersToGroups.findFirst({
-      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
-    });
-
-    if (!userGroup) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-export async function validateEventFields({
-  registration,
-  dbPool,
-}: {
-  dbPool: NodePgDatabase<typeof db>;
-  registration: z.infer<typeof insertRegistrationSchema>;
-}) {
-  const rows = await dbPool.select().from(db.events).where(eq(db.events.id, registration.eventId));
-
-  if (!rows.length) {
-    return [];
-  }
-
-  const event = rows[0];
-
-  if (!event) {
-    return [];
-  }
-
-  // get fields for the event
-  const eventFields = fieldsSchema.safeParse(event.fields);
-
-  if (!eventFields.success) {
-    return [];
-  }
-
-  return enforceRules({
-    data: registration.data,
-    fields: eventFields.data,
-  });
+  return existingRegistration;
 }
 
 export async function saveRegistration(
@@ -122,23 +51,13 @@ export async function saveRegistration(
 export async function updateRegistration({
   data,
   dbPool,
-  registrationId,
-  userId,
+  registration,
 }: {
   dbPool: NodePgDatabase<typeof db>;
   data: z.infer<typeof insertRegistrationSchema>;
-  registrationId: string;
-  userId: string;
+  registration: db.Registration;
 }) {
-  const existingRegistration = await dbPool.query.registrations.findFirst({
-    where: and(eq(db.registrations.userId, userId), eq(db.registrations.id, registrationId)),
-  });
-
-  if (!existingRegistration) {
-    throw new Error('registration not found');
-  }
-
-  const updatedRegistration = await updateRegistrationInDB(dbPool, existingRegistration, data);
+  const updatedRegistration = await updateRegistrationInDB(dbPool, registration, data);
 
   if (!updatedRegistration) {
     throw new Error('failed to save registration');
