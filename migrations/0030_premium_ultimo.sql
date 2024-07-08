@@ -1,0 +1,1 @@
+ALTER TABLE "questions" ADD COLUMN "user_can_create" boolean DEFAULT false;
