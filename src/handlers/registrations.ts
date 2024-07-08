@@ -5,11 +5,11 @@ import {
   saveRegistration,
   updateRegistration,
   getUserRegistration,
+  validateRegistrationData,
 } from '../services/registrations';
 import { isUserIsPartOfGroup } from '../services/groups';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { validateEventFields } from '../services/events';
 
 export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -50,7 +50,7 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const brokenRules = await validateEventFields({
+    const brokenRules = await validateRegistrationData({
       dbPool,
       registration: body.data,
     });
@@ -59,13 +59,13 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: brokenRules });
     }
 
-    const canRegisterGroup = await isUserIsPartOfGroup({
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
       dbPool,
       userId,
       groupId: body.data.groupId,
     });
 
-    if (!canRegisterGroup) {
+    if (!userIsPartOfGroup) {
       return res.status(400).json({ errors: ['Can not register for this group'] });
     }
 
@@ -95,13 +95,23 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const brokenRules = await validateEventFields({
+    const brokenRules = await validateRegistrationData({
       dbPool,
       registration: body.data,
     });
 
     if (brokenRules.length > 0) {
       return res.status(400).json({ errors: brokenRules });
+    }
+
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
+      dbPool,
+      userId,
+      groupId: body.data.groupId,
+    });
+
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
     }
 
     const existingRegistration = await getUserRegistration({

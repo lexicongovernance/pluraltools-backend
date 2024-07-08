@@ -99,3 +99,63 @@ async function updateOptionInDB(
     .returning();
   return rows[0];
 }
+
+export async function validateOptionData({
+  option,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof db>;
+  option: z.infer<typeof insertOptionsSchema>;
+}) {
+  const rows = await dbPool
+    .select()
+    .from(db.questions)
+    .where(eq(db.questions.id, option.questionId));
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const question = rows[0];
+
+  if (!question) {
+    return [];
+  }
+
+  // get registration fields for the event
+  const questionFields = fieldsSchema.safeParse(question.fields);
+
+  if (!questionFields.success) {
+    return [];
+  }
+
+  return enforceRules({
+    data: option.data,
+    fields: questionFields.data,
+  });
+}
+
+export async function canUserCreateOption({
+  option,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof db>;
+  option: z.infer<typeof insertOptionsSchema>;
+}): Promise<boolean> {
+  const rows = await dbPool
+    .select()
+    .from(db.questions)
+    .where(eq(db.questions.id, option.questionId));
+
+  if (!rows.length) {
+    return false;
+  }
+
+  const question = rows[0];
+
+  if (!question) {
+    return false;
+  }
+
+  return !!question.userCanCreate;
+}

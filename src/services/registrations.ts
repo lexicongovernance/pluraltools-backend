@@ -2,7 +2,8 @@ import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { z } from 'zod';
 import * as db from '../db';
-import { insertRegistrationSchema } from '../types';
+import { fieldsSchema, insertRegistrationSchema } from '../types';
+import { enforceRules } from './validation';
 
 export async function getUserRegistration({
   dbPool,
@@ -102,4 +103,36 @@ async function updateRegistrationInDB(
     .where(eq(db.registrations.id, registration.id))
     .returning();
   return updatedRegistration[0];
+}
+
+export async function validateRegistrationData({
+  registration,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof db>;
+  registration: z.infer<typeof insertRegistrationSchema>;
+}) {
+  const rows = await dbPool.select().from(db.events).where(eq(db.events.id, registration.eventId));
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const event = rows[0];
+
+  if (!event) {
+    return [];
+  }
+
+  // get fields for the event
+  const eventFields = fieldsSchema.safeParse(event.fields);
+
+  if (!eventFields.success) {
+    return [];
+  }
+
+  return enforceRules({
+    data: registration.data,
+    fields: eventFields.data,
+  });
 }
