@@ -97,14 +97,18 @@ export async function validateEventFields({
 
 export async function saveRegistration(
   dbPool: NodePgDatabase<typeof db>,
-  data: z.infer<typeof insertRegistrationSchema>,
+  registration: z.infer<typeof insertRegistrationSchema>,
 ) {
   const event = await dbPool.query.events.findFirst({
-    where: eq(db.events.id, data.eventId),
+    where: eq(db.events.id, registration.eventId),
   });
 
+  if (!event) {
+    throw new Error('event not found');
+  }
+
   const newRegistration = await createRegistrationInDB(dbPool, {
-    ...data,
+    ...registration,
     status: event?.requireApproval ? 'DRAFT' : 'APPROVED',
   });
 
@@ -162,6 +166,7 @@ async function createRegistrationInDB(
       userId: body.userId,
       groupId: body.groupId,
       eventId: body.eventId,
+      data: body.data,
       status: body.status,
     })
     .returning();
@@ -178,6 +183,7 @@ async function updateRegistrationInDB(
     .set({
       eventId: body.eventId,
       groupId: body.groupId,
+      data: body.data,
       updatedAt: new Date(),
     })
     .where(eq(db.registrations.id, registration.id))
