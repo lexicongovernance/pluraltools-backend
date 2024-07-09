@@ -1,9 +1,9 @@
 import { and, eq } from 'drizzle-orm';
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const { eventId } = req.params;
 
@@ -12,7 +12,7 @@ export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
     }
 
     const eventCycles = await dbPool.query.cycles.findMany({
-      where: eq(db.cycles.eventId, eventId),
+      where: eq(schema.cycles.eventId, eventId),
       with: {
         questions: {
           with: {
@@ -20,7 +20,7 @@ export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
               columns: {
                 voteScore: false,
               },
-              where: eq(db.options.show, true),
+              where: eq(schema.options.show, true),
             },
           },
         },
@@ -31,7 +31,7 @@ export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function getEventGroupCategoriesHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getEventGroupCategoriesHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const { eventId } = req.params;
 
@@ -40,21 +40,21 @@ export function getEventGroupCategoriesHandler(dbPool: NodePgDatabase<typeof db>
     }
 
     const eventGroupCategories = await dbPool.query.groupCategories.findMany({
-      where: eq(db.groupCategories.eventId, eventId),
+      where: eq(schema.groupCategories.eventId, eventId),
     });
 
     return res.json({ data: eventGroupCategories });
   };
 }
 
-export function getEventsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getEventsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const events = await dbPool.query.events.findMany();
     return res.json({ data: events });
   };
 }
 
-export function getEventHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getEventHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const { eventId } = req.params;
 
@@ -63,14 +63,14 @@ export function getEventHandler(dbPool: NodePgDatabase<typeof db>) {
     }
 
     const event = await dbPool.query.events.findFirst({
-      where: eq(db.events.id, eventId),
+      where: eq(schema.events.id, eventId),
     });
 
     return res.json({ data: event });
   };
 }
 
-export function getEventRegistrationFieldsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getEventRegistrationFieldsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const eventId = req.params.eventId;
     if (!eventId) {
@@ -85,14 +85,14 @@ export function getEventRegistrationFieldsHandler(dbPool: NodePgDatabase<typeof 
           },
         },
       },
-      where: eq(db.events.id, eventId),
+      where: eq(schema.events.id, eventId),
     });
 
     return res.json({ data: event?.registrationFields });
   };
 }
 
-export function getEventRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getEventRegistrationsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     // parse input
     const eventId = req.params.eventId ?? '';
@@ -100,7 +100,10 @@ export function getEventRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) 
 
     try {
       const out = await dbPool.query.registrations.findMany({
-        where: and(eq(db.registrations.userId, userId), eq(db.registrations.eventId, eventId)),
+        where: and(
+          eq(schema.registrations.userId, userId),
+          eq(schema.registrations.eventId, eventId),
+        ),
       });
 
       return res.json({ data: out });

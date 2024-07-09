@@ -1,7 +1,5 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { cleanup, seed } from '../utils/db/seed';
+import * as schema from '../db/schema';
+import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import {
   createSecretGroup,
   generateSecret,
@@ -45,14 +43,14 @@ const wordlist: string[] = [
 ];
 
 describe('service: groups', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
-  let group: db.Group[];
+  let group: schema.Group[];
   let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
-  let secretGroup: db.Group[];
-  let cycle: db.Cycle | undefined;
-  let user: db.User | undefined;
-  let groupCategory: db.GroupCategory | undefined;
+  let secretGroup: schema.Group[];
+  let cycle: schema.Cycle | undefined;
+  let user: schema.User | undefined;
+  let groupCategory: schema.GroupCategory | undefined;
 
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
@@ -76,11 +74,11 @@ describe('service: groups', () => {
     dbConnection = initDb.client;
 
     const { users, cycles, groups, groupCategories } = await seed(dbPool);
-    group = groups.filter((group) => group !== undefined) as db.Group[];
+    group = groups.filter((group) => group !== undefined) as schema.Group[];
     user = users[0];
     cycle = cycles[0];
     groupCategory = groupCategories[0];
-    secretGroup = groups.filter((group) => group !== undefined) as db.Group[];
+    secretGroup = groups.filter((group) => group !== undefined) as schema.Group[];
     const secretGroupId = secretGroup[4]?.id ?? '';
 
     groupRegistrationData = {
@@ -91,7 +89,7 @@ describe('service: groups', () => {
     };
 
     // Insert group registration data
-    await dbPool.insert(db.registrations).values(groupRegistrationData);
+    await dbPool.insert(schema.registrations).values(groupRegistrationData);
   });
 
   test('generate secret:', async function () {

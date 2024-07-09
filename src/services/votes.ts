@@ -1,6 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
-import * as db from '../db';
-import { votes } from '../db/votes';
+import * as schema from '../db/schema';
 import { PluralVoting } from '../modules/plural-voting';
 import { insertVotesSchema } from '../types';
 import { CycleStatusType } from '../types/cycles';
@@ -13,18 +12,13 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
  *
  * This function validates and saves each vote provided in the `data` array for the specified `userId`.
  * It then updates the vote count for each option based on the vote model associated with the question.
- *
- * @param dbPool - The database connection pool.
- * @param data - An array of objects containing `optionId` and `numOfVotes` properties.
- * @param userId - The ID of the user submitting the votes.
- * @returns A promise that resolves to an object containing `data` (an array of saved votes) and `errors` (an array of error messages).
  */
 export async function saveVotes(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   data: { optionId: string; numOfVotes: number }[],
   userId: string,
-): Promise<{ data: db.Vote[]; errors: string[] }> {
-  const voteData: db.Vote[] = [];
+): Promise<{ data: schema.Vote[]; errors: string[] }> {
+  const voteData: schema.Vote[] = [];
   const errors: string[] = [];
 
   for (const vote of data) {
@@ -38,7 +32,7 @@ export async function saveVotes(
   }
 
   const queryQuestionOption = await dbPool.query.options.findFirst({
-    where: eq(db.options.id, voteData[0]!.optionId),
+    where: eq(schema.options.id, voteData[0]!.optionId),
   });
 
   if (!queryQuestionOption) {
@@ -47,7 +41,7 @@ export async function saveVotes(
   }
 
   const queryForumQuestion = await dbPool.query.questions.findFirst({
-    where: eq(db.questions.id, queryQuestionOption!.questionId),
+    where: eq(schema.questions.id, queryQuestionOption!.questionId),
   });
 
   if (!queryForumQuestion) {
@@ -79,10 +73,10 @@ export async function saveVotes(
 
 /**
 Queries latest vote data by users for a specified option ID.
-@param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
+@param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to query vote data.
 */
-export async function queryVoteData(dbPool: NodePgDatabase<typeof db>, optionId: string) {
+export async function queryVoteData(dbPool: NodePgDatabase<typeof schema>, optionId: string) {
   const voteArray = await dbPool.execute<{ userId: string; numOfVotes: number }>(
     sql.raw(`
           SELECT user_id AS "userId", num_of_votes AS "numOfVotes" 
@@ -117,15 +111,15 @@ export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVot
 }
 
 export async function queryGroupCategories(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   questionId: string,
 ): Promise<string[]> {
   const groupCategories = await dbPool
     .select({
-      groupCategoryId: db.questionsToGroupCategories.groupCategoryId,
+      groupCategoryId: schema.questionsToGroupCategories.groupCategoryId,
     })
-    .from(db.questionsToGroupCategories)
-    .where(eq(db.questionsToGroupCategories.questionId, questionId));
+    .from(schema.questionsToGroupCategories)
+    .where(eq(schema.questionsToGroupCategories.questionId, questionId));
 
   // Need to due this adjustment because currently groupCategoryId is nullable in the datatable definition.
   const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId!);
@@ -145,7 +139,7 @@ export async function queryGroupCategories(
  * @returns {Promise<Record<string, string[]>>} - Dictionary of group IDs and their corresponding user IDs.
  */
 export async function groupsDictionary(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   numOfVotesDictionary: Record<string, number>,
   groupCategories: Array<string>,
 ) {
@@ -196,23 +190,23 @@ export function calculateQuadraticScore(numOfVotesDictionary: Record<string, num
 
 /**
 Updates the vote score for a specific option in the database.
-@param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
+@param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
 @param {string} optionId - The ID of the option for which to update the vote score.
 @param {number} score - The new vote score to be set.
 */
 export async function updateVoteScoreInDatabase(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   optionId: string,
   score: number,
 ) {
   // Update vote score in the database
   await dbPool
-    .update(db.options)
+    .update(schema.options)
     .set({
       voteScore: score.toString(),
       updatedAt: new Date(),
     })
-    .where(eq(db.options.id, optionId));
+    .where(eq(schema.options.id, optionId));
 }
 
 /**
@@ -222,11 +216,11 @@ export async function updateVoteScoreInDatabase(
  * combines them, calculates the score using plural voting, updates
  * the vote score in the database, and returns the calculated score.
  *
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
  * @param {string} optionId - The ID of the option for which to update the vote score.
  */
 export async function updateVoteScorePlural(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   optionId: string,
 ): Promise<number> {
   // Query and transform vote data
@@ -236,10 +230,10 @@ export async function updateVoteScorePlural(
   // Query group data, grouping dimensions, and calculate the score
   const queryQuestionId = await dbPool
     .select({
-      questionId: db.options.questionId,
+      questionId: schema.options.questionId,
     })
-    .from(db.options)
-    .where(eq(db.options.id, optionId));
+    .from(schema.options)
+    .where(eq(schema.options.id, optionId));
 
   const groupCategories = await queryGroupCategories(dbPool, queryQuestionId[0]!.questionId);
   const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories ?? []);
@@ -257,11 +251,11 @@ export async function updateVoteScorePlural(
  * combines them, calculates the score using quadratic voting, updates
  * the vote score in the database, and returns the calculated score.
  *
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
  * @param {string} optionId - The ID of the option for which to update the vote score.
  */
 export async function updateVoteScoreQuadratic(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   optionId: string,
 ): Promise<number> {
   const voteArray = await queryVoteData(dbPool, optionId);
@@ -279,21 +273,21 @@ export async function updateVoteScoreQuadratic(
  * This function validates the provided vote object, checks if the option exists,
  * inserts the vote into the database, and returns the saved vote data or an error message.
  *
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
  * @param {{ optionId: string; numOfVotes: number }} vote - The vote object containing option ID and number of votes.
  * @param {string} userId - The ID of the user who is voting.
  */
 async function validateAndSaveVote(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   vote: { optionId: string; numOfVotes: number },
   userId: string,
-): Promise<{ data: db.Vote | null | undefined; error: string | null | undefined }> {
+): Promise<{ data: schema.Vote | null | undefined; error: string | null | undefined }> {
   if (!vote.optionId) {
     return { data: null, error: 'optionId is required' };
   }
 
   const queryQuestionOption = await dbPool.query.options.findFirst({
-    where: eq(db.options.id, vote.optionId),
+    where: eq(schema.options.id, vote.optionId),
   });
 
   if (!queryQuestionOption) {
@@ -338,16 +332,16 @@ async function validateAndSaveVote(
  * This function checks if the cycle for the given question is open,
  * then inserts the provided vote data into the database and returns the saved vote data.
  *
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
+ * @param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
  * @param {z.infer<typeof insertVotesSchema>} vote - The vote data to be saved.
  */
 export async function saveVote(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   vote: z.infer<typeof insertVotesSchema>,
 ) {
   // check if cycle is open
   const queryQuestion = await dbPool.query.questions.findFirst({
-    where: eq(db.questions.id, vote?.questionId ?? ''),
+    where: eq(schema.questions.id, vote?.questionId ?? ''),
     with: {
       cycle: true,
     },
@@ -359,7 +353,7 @@ export async function saveVote(
 
   // save the votes
   const newVote = await dbPool
-    .insert(votes)
+    .insert(schema.votes)
     .values({
       userId: vote.userId,
       numOfVotes: vote.numOfVotes,
@@ -373,13 +367,13 @@ export async function saveVote(
 
 /**
  * Checks whether a user can vote on an option based on their registration status.
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool.
+ * @param { NodePgDatabase<typeof schema>} dbPool - The PostgreSQL database pool.
  * @param {string} userId - The ID of the user attempting to vote.
  * @param {string} optionId - The ID of the option to be voted on.
  * @returns {Promise<boolean>} A promise that resolves to true if the user can vote on the option, false otherwise.
  */
 export async function userCanVote(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   optionId: string,
 ) {
@@ -389,10 +383,12 @@ export async function userCanVote(
   // check if user has an approved registration
   const res = await dbPool
     .selectDistinct({
-      user: db.registrations.userId,
+      user: schema.registrations.userId,
     })
-    .from(db.registrations)
-    .where(and(eq(db.registrations.userId, userId), eq(db.registrations.status, 'APPROVED')));
+    .from(schema.registrations)
+    .where(
+      and(eq(schema.registrations.userId, userId), eq(schema.registrations.status, 'APPROVED')),
+    );
 
   if (!res.length) {
     return false;

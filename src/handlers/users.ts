@@ -1,21 +1,19 @@
 import { eq } from 'drizzle-orm';
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { updateUser } from '../services/users';
 import { insertUserSchema } from '../types';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
  * Retrieves user data from the database.
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @returns {Function} - Express middleware function to handle the request.
  */
-export function getUserHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getUserHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
       const user = await dbPool.query.users.findFirst({
-        where: eq(db.users.id, userId),
+        where: eq(schema.users.id, userId),
       });
 
       if (!user) {
@@ -32,10 +30,8 @@ export function getUserHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Updates user data in the database.
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @returns {Function} - Express middleware function to handle the request.
  */
-export function updateUserHandler(dbPool: NodePgDatabase<typeof db>) {
+export function updateUserHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const queryUserId = req.params.userId;
     const userId = req.session.userId;
@@ -82,10 +78,8 @@ export function updateUserHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves groups associated with a specific user.
- * @param dbPool The database connection pool.
- * @returns An asynchronous function that handles the HTTP request and response.
  */
-export function getUsersToGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getUsersToGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const paramsUserId = req.params.userId;
     const userId = req.session.userId;
@@ -101,7 +95,7 @@ export function getUsersToGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
             },
           },
         },
-        where: eq(db.usersToGroups.userId, userId),
+        where: eq(schema.usersToGroups.userId, userId),
       });
 
       return res.json({ data: query });
@@ -114,10 +108,8 @@ export function getUsersToGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves user attributes from the database.
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @returns {Function} - Express middleware function to handle the request.
  */
-export function getUserAttributesHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getUserAttributesHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const userId = req.session.userId;
@@ -134,7 +126,7 @@ export function getUserAttributesHandler(dbPool: NodePgDatabase<typeof db>) {
       }
 
       const userAttributes = await dbPool.query.userAttributes.findMany({
-        where: eq(db.userAttributes.userId, userId),
+        where: eq(schema.userAttributes.userId, userId),
       });
 
       return res.json({ data: userAttributes });
@@ -145,7 +137,7 @@ export function getUserAttributesHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function getUserOptionsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getUserOptionsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const paramsUserId = req.params.userId;
@@ -168,14 +160,14 @@ export function getUserOptionsHandler(dbPool: NodePgDatabase<typeof db>) {
       with: {
         question: true,
       },
-      where: eq(db.options.userId, userId),
+      where: eq(schema.options.userId, userId),
     });
 
     return res.json({ data: optionsQuery });
   };
 }
 
-export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const paramsUserId = req.params.userId;
@@ -193,9 +185,9 @@ export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
     try {
       const query = await dbPool
         .select()
-        .from(db.registrations)
-        .leftJoin(db.events, eq(db.events.id, db.registrations.eventId))
-        .where(eq(db.registrations.userId, userId));
+        .from(schema.registrations)
+        .leftJoin(schema.events, eq(schema.events.id, schema.registrations.eventId))
+        .where(eq(schema.registrations.userId, userId));
 
       const out = query.map((q) => {
         return {

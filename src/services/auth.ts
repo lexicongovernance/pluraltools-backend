@@ -1,22 +1,22 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function createOrSignInPCD(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   data: { uuid: string; email: string },
-): Promise<db.User> {
+): Promise<schema.User> {
   // check if there is a federated credential with the same subject
-  const federatedCredential: db.FederatedCredential[] = await dbPool
+  const federatedCredential: schema.FederatedCredential[] = await dbPool
     .select()
-    .from(db.federatedCredentials)
-    .where(eq(db.federatedCredentials.subject, data.uuid));
+    .from(schema.federatedCredentials)
+    .where(eq(schema.federatedCredentials.subject, data.uuid));
 
   if (federatedCredential.length === 0) {
     // create user
     try {
-      const user: db.User[] = await dbPool
-        .insert(db.users)
+      const user: schema.User[] = await dbPool
+        .insert(schema.users)
         .values({
           email: data.email,
         })
@@ -26,7 +26,7 @@ export async function createOrSignInPCD(
         throw new Error('Failed to create user');
       }
 
-      await dbPool.insert(db.federatedCredentials).values({
+      await dbPool.insert(schema.federatedCredentials).values({
         userId: user[0]?.id,
         provider: 'zupass',
         subject: data.uuid,
@@ -43,7 +43,7 @@ export async function createOrSignInPCD(
       throw new Error('expected federated credential to exist');
     }
     const user = await dbPool.query.users.findFirst({
-      where: eq(db.users.id, federatedCredential[0].userId),
+      where: eq(schema.users.id, federatedCredential[0].userId),
     });
 
     if (!user) {

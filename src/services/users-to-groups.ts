@@ -1,14 +1,14 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function createUsersToGroups(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   groupId: string,
 ) {
   const group = await dbPool.query.groups.findFirst({
-    where: eq(db.groups.id, groupId),
+    where: eq(schema.groups.id, groupId),
   });
 
   if (!group) {
@@ -17,7 +17,7 @@ export async function createUsersToGroups(
   }
 
   const existingUserToGroup = await dbPool.query.usersToGroups.findFirst({
-    where: and(eq(db.usersToGroups.groupId, groupId), eq(db.usersToGroups.userId, userId)),
+    where: and(eq(schema.usersToGroups.groupId, groupId), eq(schema.usersToGroups.userId, userId)),
   });
 
   if (existingUserToGroup) {
@@ -26,7 +26,7 @@ export async function createUsersToGroups(
   }
 
   return await dbPool
-    .insert(db.usersToGroups)
+    .insert(schema.usersToGroups)
     .values({ userId, groupId, groupCategoryId: group.groupCategoryId })
     .returning();
 }
@@ -37,13 +37,13 @@ export async function updateUsersToGroups({
   userId,
   usersToGroupsId,
 }: {
-  dbPool: NodePgDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof schema>;
   usersToGroupsId: string;
   userId: string;
   groupId: string;
 }) {
   const group = await dbPool.query.groups.findFirst({
-    where: eq(db.groups.id, groupId),
+    where: eq(schema.groups.id, groupId),
   });
 
   if (!group) {
@@ -52,7 +52,10 @@ export async function updateUsersToGroups({
   }
 
   const existingAssociation = await dbPool.query.usersToGroups.findFirst({
-    where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)),
+    where: and(
+      eq(schema.usersToGroups.userId, userId),
+      eq(schema.usersToGroups.id, usersToGroupsId),
+    ),
   });
 
   if (!existingAssociation) {
@@ -60,14 +63,16 @@ export async function updateUsersToGroups({
   }
 
   return await dbPool
-    .update(db.usersToGroups)
+    .update(schema.usersToGroups)
     .set({ userId, groupId, groupCategoryId: group.groupCategoryId, updatedAt: new Date() })
-    .where(and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)))
+    .where(
+      and(eq(schema.usersToGroups.userId, userId), eq(schema.usersToGroups.id, usersToGroupsId)),
+    )
     .returning();
 }
 
 export async function deleteUsersToGroups(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   usersToGroupsId: string,
 ) {
@@ -75,7 +80,10 @@ export async function deleteUsersToGroups(
     with: {
       groupCategory: true,
     },
-    where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)),
+    where: and(
+      eq(schema.usersToGroups.userId, userId),
+      eq(schema.usersToGroups.id, usersToGroupsId),
+    ),
   });
 
   if (!groupToLeave) {
@@ -83,7 +91,7 @@ export async function deleteUsersToGroups(
   }
 
   const userGroups = await dbPool.query.groups.findMany({
-    where: eq(db.groups.groupCategoryId, groupToLeave.groupCategoryId!),
+    where: eq(schema.groups.groupCategoryId, groupToLeave.groupCategoryId!),
   });
 
   // If the group is required and the user is only in one group, they cannot leave
@@ -93,8 +101,8 @@ export async function deleteUsersToGroups(
 
   const isRegistrationAttached = await dbPool.query.registrations.findFirst({
     where: and(
-      eq(db.registrations.userId, userId),
-      eq(db.registrations.groupId, groupToLeave.groupId),
+      eq(schema.registrations.userId, userId),
+      eq(schema.registrations.groupId, groupToLeave.groupId),
     ),
   });
 
@@ -103,7 +111,9 @@ export async function deleteUsersToGroups(
   }
 
   return await dbPool
-    .delete(db.usersToGroups)
-    .where(and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.id, usersToGroupsId)))
+    .delete(schema.usersToGroups)
+    .where(
+      and(eq(schema.usersToGroups.userId, userId), eq(schema.usersToGroups.id, usersToGroupsId)),
+    )
     .returning();
 }

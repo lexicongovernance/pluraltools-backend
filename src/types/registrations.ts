@@ -1,5 +1,5 @@
 import { createInsertSchema } from 'drizzle-zod';
-import { registrations } from '../db/registrations';
+import { registrations } from '../db/schema/registrations';
 import { dataSchema } from './validation';
 
 export const insertRegistrationSchema = createInsertSchema(registrations, {

@@ -1,22 +1,20 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
+import * as schema from '../db/schema';
+import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import { environmentVariables, insertVotesSchema } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import { executeResultQueries } from './statistics';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 
 describe('service: statistics', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
   let userTestData: z.infer<typeof insertVotesSchema>;
   let otherUserTestData: z.infer<typeof insertVotesSchema>;
-  let questionOption: db.Option | undefined;
-  let forumQuestion: db.Question | undefined;
-  let user: db.User | undefined;
-  let otherUser: db.User | undefined;
+  let questionOption: schema.Option | undefined;
+  let forumQuestion: schema.Question | undefined;
+  let user: schema.User | undefined;
+  let otherUser: schema.User | undefined;
 
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
@@ -59,8 +57,8 @@ describe('service: statistics', () => {
     };
 
     // Add additional data to the Db
-    await dbPool.insert(db.votes).values(userTestData);
-    await dbPool.insert(db.votes).values(otherUserTestData);
+    await dbPool.insert(schema.votes).values(userTestData);
+    await dbPool.insert(schema.votes).values(otherUserTestData);
   });
 
   test('should return aggregated statistics when all queries return valid data', async () => {

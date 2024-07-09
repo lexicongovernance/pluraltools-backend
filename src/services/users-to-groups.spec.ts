@@ -1,19 +1,17 @@
-import * as db from '../db';
+import * as schema from '../db/schema';
+import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import { createUsersToGroups, updateUsersToGroups } from './users-to-groups';
 import { eq, and } from 'drizzle-orm';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { cleanup, seed } from '../utils/db/seed';
 import { randUuid } from '@ngneat/falso';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { environmentVariables } from '../types';
 
 describe('service: usersToGroups', function () {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
-  let user: db.User | undefined;
-  let defaultGroups: db.Group[];
+  let user: schema.User | undefined;
+  let defaultGroups: schema.Group[];
   beforeAll(async function () {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
@@ -37,22 +35,22 @@ describe('service: usersToGroups', function () {
     // seed
     const { users, groups } = await seed(dbPool);
     user = users[0];
-    defaultGroups = groups.filter((group) => group !== undefined) as db.Group[];
+    defaultGroups = groups.filter((group) => group !== undefined) as schema.Group[];
     // insert users without group assignment
-    await dbPool.insert(db.users).values({ username: 'NewUser', email: 'SomeEmail' });
+    await dbPool.insert(schema.users).values({ username: 'NewUser', email: 'SomeEmail' });
   });
 
   test('can save initial groups', async function () {
     // Get the newly inserted user
     const newUser = await dbPool.query.users.findFirst({
-      where: eq(db.users.username, 'NewUser'),
+      where: eq(schema.users.username, 'NewUser'),
     });
 
     await createUsersToGroups(dbPool, newUser?.id ?? '', defaultGroups[0]?.id ?? '');
 
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
-      where: eq(db.usersToGroups.userId, newUser?.id ?? ''),
+      where: eq(schema.usersToGroups.userId, newUser?.id ?? ''),
     });
 
     expect(newUserGroup).toBeDefined();
@@ -62,7 +60,7 @@ describe('service: usersToGroups', function () {
   test('can save another group for the same user with a different category id', async function () {
     // Get the newly inserted user
     const newUser = await dbPool.query.users.findFirst({
-      where: eq(db.users.username, 'NewUser'),
+      where: eq(schema.users.username, 'NewUser'),
     });
 
     await createUsersToGroups(dbPool, newUser?.id ?? '', defaultGroups[2]?.id ?? '');
@@ -70,8 +68,8 @@ describe('service: usersToGroups', function () {
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
       where: and(
-        eq(db.usersToGroups.userId, newUser?.id ?? ''),
-        eq(db.usersToGroups.groupId, defaultGroups[2]?.id ?? ''),
+        eq(schema.usersToGroups.userId, newUser?.id ?? ''),
+        eq(schema.usersToGroups.groupId, defaultGroups[2]?.id ?? ''),
       ),
     });
 
@@ -82,11 +80,11 @@ describe('service: usersToGroups', function () {
 
   test('can update user groups', async function () {
     const newUser = await dbPool.query.users.findFirst({
-      where: eq(db.users.username, 'NewUser'),
+      where: eq(schema.users.username, 'NewUser'),
     });
 
     const userGroup = await dbPool.query.usersToGroups.findFirst({
-      where: eq(db.usersToGroups.userId, newUser?.id ?? ''),
+      where: eq(schema.usersToGroups.userId, newUser?.id ?? ''),
     });
 
     await updateUsersToGroups({
@@ -99,8 +97,8 @@ describe('service: usersToGroups', function () {
     // Find the userToGroup relationship for the newUser and the chosen group
     const newUserGroup = await dbPool.query.usersToGroups.findFirst({
       where: and(
-        eq(db.usersToGroups.userId, newUser?.id ?? ''),
-        eq(db.usersToGroups.groupId, defaultGroups[1]?.id ?? ''),
+        eq(schema.usersToGroups.userId, newUser?.id ?? ''),
+        eq(schema.usersToGroups.groupId, defaultGroups[1]?.id ?? ''),
       ),
     });
 

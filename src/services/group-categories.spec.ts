@@ -1,17 +1,15 @@
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { environmentVariables } from '../types';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { cleanup, seed } from '../utils/db/seed';
+import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import { canCreateGroupInGroupCategory, canViewGroupsInGroupCategory } from './group-categories';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 
 describe('service: groupCategories', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
-  let groupCategory: db.GroupCategory | undefined;
+  let groupCategory: schema.GroupCategory | undefined;
 
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
@@ -56,9 +54,9 @@ describe('service: groupCategories', () => {
       }
 
       await dbPool
-        .update(db.groupCategories)
+        .update(schema.groupCategories)
         .set({ userCanCreate: true })
-        .where(eq(db.groupCategories.id, groupCategory.id));
+        .where(eq(schema.groupCategories.id, groupCategory.id));
 
       const canCreate = await canCreateGroupInGroupCategory(dbPool, groupCategory.id);
 
@@ -73,9 +71,9 @@ describe('service: groupCategories', () => {
       }
 
       await dbPool
-        .update(db.groupCategories)
+        .update(schema.groupCategories)
         .set({ userCanView: false })
-        .where(eq(db.groupCategories.id, groupCategory.id));
+        .where(eq(schema.groupCategories.id, groupCategory.id));
 
       const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 
@@ -87,9 +85,9 @@ describe('service: groupCategories', () => {
       }
 
       await dbPool
-        .update(db.groupCategories)
+        .update(schema.groupCategories)
         .set({ userCanView: true })
-        .where(eq(db.groupCategories.id, groupCategory.id));
+        .where(eq(schema.groupCategories.id, groupCategory.id));
 
       const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 

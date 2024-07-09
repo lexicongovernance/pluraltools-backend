@@ -1,8 +1,6 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
+import * as schema from '../db/schema';
+import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import { environmentVariables, insertVotesSchema } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
 import { z } from 'zod';
 import {
   saveVote,
@@ -21,20 +19,20 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 
 describe('service: votes', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
   let testData: z.infer<typeof insertVotesSchema>;
-  let cycle: db.Cycle | undefined;
-  let questionOption: db.Option | undefined;
-  let otherQuestionOption: db.Option | undefined;
-  let forumQuestion: db.Question | undefined;
-  let otherForumQuestion: db.Question | undefined;
-  let groupCategory: db.GroupCategory | undefined;
-  let otherGroupCategory: db.GroupCategory | undefined;
-  let unrelatedGroupCategory: db.GroupCategory | undefined;
-  let user: db.User | undefined;
-  let secondUser: db.User | undefined;
-  let thirdUser: db.User | undefined;
+  let cycle: schema.Cycle | undefined;
+  let questionOption: schema.Option | undefined;
+  let otherQuestionOption: schema.Option | undefined;
+  let forumQuestion: schema.Question | undefined;
+  let otherForumQuestion: schema.Question | undefined;
+  let groupCategory: schema.GroupCategory | undefined;
+  let otherGroupCategory: schema.GroupCategory | undefined;
+  let unrelatedGroupCategory: schema.GroupCategory | undefined;
+  let user: schema.User | undefined;
+  let secondUser: schema.User | undefined;
+  let thirdUser: schema.User | undefined;
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
@@ -78,9 +76,12 @@ describe('service: votes', () => {
   });
 
   test('should save vote', async () => {
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    await dbPool
+      .update(schema.cycles)
+      .set({ status: 'OPEN' })
+      .where(eq(schema.cycles.id, cycle!.id));
     // accept user registration
-    await dbPool.insert(db.registrations).values({
+    await dbPool.insert(schema.registrations).values({
       status: 'APPROVED',
       userId: user!.id ?? '',
       eventId: cycle!.eventId ?? '',
@@ -101,7 +102,10 @@ describe('service: votes', () => {
 
   test('should not save vote if cycle is closed', async () => {
     // update cycle to closed state
-    await dbPool.update(db.cycles).set({ status: 'CLOSED' }).where(eq(db.cycles.id, cycle!.id));
+    await dbPool
+      .update(schema.cycles)
+      .set({ status: 'CLOSED' })
+      .where(eq(schema.cycles.id, cycle!.id));
     // Call the saveVote function
     const { data: response, errors } = await saveVote(dbPool, testData);
 
@@ -119,7 +123,10 @@ describe('service: votes', () => {
 
   test('should not save vote if cycle is upcoming', async () => {
     // update cycle to closed state
-    await dbPool.update(db.cycles).set({ status: 'UPCOMING' }).where(eq(db.cycles.id, cycle!.id));
+    await dbPool
+      .update(schema.cycles)
+      .set({ status: 'UPCOMING' })
+      .where(eq(schema.cycles.id, cycle!.id));
     // Call the saveVote function
     const { data: response, errors } = await saveVote(dbPool, testData);
 
@@ -132,10 +139,13 @@ describe('service: votes', () => {
 
   test('should fetch vote data correctly', async () => {
     // open cycle for voting
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
+    await dbPool
+      .update(schema.cycles)
+      .set({ status: 'OPEN' })
+      .where(eq(schema.cycles.id, cycle!.id));
 
     // register second user
-    await dbPool.insert(db.registrations).values({
+    await dbPool.insert(schema.registrations).values({
       status: 'APPROVED',
       userId: secondUser!.id ?? '',
       eventId: cycle!.eventId ?? '',
@@ -189,7 +199,7 @@ describe('service: votes', () => {
 
   test('vote dictionary should not contain users voting for another option', async () => {
     // create vote for another question option
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 5,
       optionId: otherQuestionOption!.id,
       questionId: forumQuestion!.id,
@@ -324,9 +334,9 @@ describe('service: votes', () => {
     const score = 100;
     await updateVoteScoreInDatabase(dbPool, questionOption?.id ?? '', score);
 
-    // query updated score in db
+    // query updated db in schema
     const updatedDbScore = await dbPool.query.options.findFirst({
-      where: eq(db.options.id, questionOption?.id ?? ''),
+      where: eq(schema.options.id, questionOption?.id ?? ''),
     });
 
     expect(updatedDbScore?.voteScore).toBe('100');

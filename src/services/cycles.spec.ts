@@ -1,20 +1,18 @@
 import { Client } from 'pg';
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { cleanup, seed } from '../utils/db/seed';
+import * as schema from '../db/schema';
+import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import { GetCycleById, getCycleVotes } from './cycles';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { environmentVariables } from '../types';
 
 describe('service: cycles', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
-  let cycle: db.Cycle | undefined;
-  let questionOption: db.Option | undefined;
-  let forumQuestion: db.Question | undefined;
-  let user: db.User | undefined;
-  let secondUser: db.User | undefined;
+  let cycle: schema.Cycle | undefined;
+  let questionOption: schema.Option | undefined;
+  let forumQuestion: schema.Question | undefined;
+  let user: schema.User | undefined;
+  let secondUser: schema.User | undefined;
 
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
@@ -63,14 +61,14 @@ describe('service: cycles', () => {
 
   test('should get latest votes related to user', async function () {
     // create vote in db
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 2,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
       userId: user!.id,
     });
     // create second interaction with option
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 10,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
@@ -83,15 +81,15 @@ describe('service: cycles', () => {
   });
 
   test('should not get votes for other user', async function () {
-    // create vote in db
-    await dbPool.insert(db.votes).values({
+    // create vote in schema
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 2,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
       userId: secondUser!.id,
     });
     // create second interaction with option
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 10,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,

@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { getQuestionHearts } from '../services/forum-questions';
 import { executeResultQueries } from '../services/statistics';
 import { calculateFunding } from '../services/funding-mechanism';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getQuestionHeartsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getQuestionHeartsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const forumQuestionId = req.params.forumQuestionId;
 
@@ -21,14 +21,8 @@ export function getQuestionHeartsHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves result statistics for a specific forum question from the database.
- *
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @returns {Promise<Response>} - A promise that resolves with the Express response containing the result statistics data.
  */
-export function getResultStatisticsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getResultStatisticsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const forumQuestionId = req.params.forumQuestionId;
@@ -52,14 +46,8 @@ export function getResultStatisticsHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves result statistics for a specific forum question from the database.
- *
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @returns {Promise<Response>} - A promise that resolves with the Express response containing the result statistics data.
  */
-export function getCalculateFundingHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getCalculateFundingHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const forumQuestionId = req.params.forumQuestionId;

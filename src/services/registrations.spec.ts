@@ -1,18 +1,16 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
+import * as schema from '../db/schema';
+import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import {
   validateCreateRegistrationAuthorization,
   validateUpdateRegistrationAuthorization,
 } from './registrations';
 import { environmentVariables } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { eq } from 'drizzle-orm';
 
 describe('service: registrations', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
   let userId: string;
   let eventId: string;
@@ -56,7 +54,7 @@ describe('service: registrations', () => {
     });
     test('when the user is in the group', async function () {
       const group = await dbPool.query.usersToGroups.findFirst({
-        where: eq(db.usersToGroups.userId, userId),
+        where: eq(schema.usersToGroups.userId, userId),
       });
 
       if (!group) {
@@ -76,7 +74,7 @@ describe('service: registrations', () => {
   describe('validate: update registration authorization', function () {
     test('when the user is not in the group', async function () {
       const rows = await dbPool
-        .insert(db.registrations)
+        .insert(schema.registrations)
         .values({
           eventId: eventId,
           userId: userId,
@@ -103,7 +101,7 @@ describe('service: registrations', () => {
     });
     test('when the user is in the group', async function () {
       const rows = await dbPool
-        .insert(db.registrations)
+        .insert(schema.registrations)
         .values({
           eventId: eventId,
           userId: userId,
@@ -119,7 +117,7 @@ describe('service: registrations', () => {
       }
 
       const userGroup = await dbPool.query.usersToGroups.findFirst({
-        where: eq(db.usersToGroups.userId, userId),
+        where: eq(schema.usersToGroups.userId, userId),
       });
 
       if (!userGroup) {
