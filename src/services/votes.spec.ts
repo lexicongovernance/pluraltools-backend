@@ -1,9 +1,8 @@
 import * as db from '../db';
 import { createDbClient } from '../utils/db/create-db-connection';
 import { runMigrations } from '../utils/db/run-migrations';
-import { environmentVariables, insertVotesSchema } from '../types';
+import { environmentVariables } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
-import { z } from 'zod';
 import {
   saveVote,
   validateVote,
@@ -17,6 +16,7 @@ import {
   updateVoteScorePlural,
   updateVoteScoreQuadratic,
   userCanVote,
+  updateOptionScore,
 } from './votes';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -180,6 +180,51 @@ describe('service: votes', () => {
     expect(response.data).toBeNull();
     expect(response.error).toBeDefined();
     expect(response.error).toEqual(expect.any(String));
+  });
+
+  test('UpdateOptionScore returns an error if not all question ids are the same', async () => {
+    const mockData = [
+      { optionId: 'option1', numOfVotes: 10 },
+      { optionId: 'option2', numOfVotes: 5 },
+      { optionId: 'option3', numOfVotes: 2 },
+    ];
+    const questionIds = [forumQuestion?.id ?? '', otherForumQuestion?.id ?? ''];
+
+    const response = await updateOptionScore(dbPool, mockData, questionIds);
+    expect(response.data).toBeNull();
+    expect(response.errors).toBeDefined();
+    expect(response.errors[0]).toEqual(expect.any(String));
+  });
+
+  test('UpdateOptionScore returns an error if no question id is found', async () => {
+    const mockData = [
+      { optionId: 'option1', numOfVotes: 10 },
+      { optionId: 'option2', numOfVotes: 5 },
+      { optionId: 'option3', numOfVotes: 2 },
+    ];
+    const questionIds = [
+      '00000000-0000-0000-0000-000000000000',
+      '00000000-0000-0000-0000-000000000000',
+    ];
+
+    const response = await updateOptionScore(dbPool, mockData, questionIds);
+    expect(response.data).toBeNull();
+    expect(response.errors).toBeDefined();
+    expect(response.errors[0]).toEqual(expect.any(String));
+  });
+
+  test('UpdateOptionScore returns an error if a valid but non existing uuid gets provided', async () => {
+    const mockData = [
+      { optionId: 'option1', numOfVotes: 10 },
+      { optionId: 'option2', numOfVotes: 5 },
+      { optionId: 'option3', numOfVotes: 2 },
+    ];
+    const questionIds = ['', ''];
+
+    const response = await updateOptionScore(dbPool, mockData, questionIds);
+    expect(response.data).toBeNull();
+    expect(response.errors).toBeDefined();
+    expect(response.errors[0]).toEqual(expect.any(String));
   });
 
   test('should fetch vote data correctly', async () => {
