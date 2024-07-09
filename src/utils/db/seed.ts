@@ -147,11 +147,12 @@ async function cleanup(dbPool: NodePgDatabase<typeof db>) {
 
 async function createEvent(dbPool: NodePgDatabase<typeof db>, eventData: EventData[]) {
   const events = [];
-  for (const eventName of eventData) {
+  for (const event of eventData) {
     const result = await dbPool
       .insert(db.events)
       .values({
-        name: eventName.name,
+        name: event.name,
+        fields: event.fields,
       })
       .returning();
     events.push(result[0]);
@@ -294,7 +295,7 @@ async function createQuestionOptions(
       .values({
         questionId: questionOption.questionId,
         title: questionOption.title,
-        accepted: questionOption.accepted,
+        show: questionOption.show,
       })
       .returning();
 
