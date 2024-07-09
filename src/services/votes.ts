@@ -65,7 +65,7 @@ export async function validateAndSaveVotes(
 }
 
 /**
- * Saves votes submitted by a user and updates option scores based on the vote model.
+ * Updates option scores based on the vote model.
  *
  * @param {NodePgDatabase<typeof db>} dbPool
  * @param {{ optionId: string; numOfVotes: number }[]} data
@@ -101,47 +101,48 @@ export async function updateOptionScore(
     .from(db.questions)
     .where(eq(db.questions.id, firstQuestionId));
 
-  if (!queryQuestion) {
+  if (queryQuestion.length === 0) {
     errors.push('No question found for the provided questionId');
     return { data: null, errors };
   }
 
   const voteModel = queryQuestion[0]?.voteModel;
 
-  // Call the update function based on the respective voting mechanism
-  switch (voteModel) {
-    case 'COCM':
-      await Promise.all(
-        data.map(async (vote) => {
-          try {
-            const score = await updateVoteScorePlural(
-              dbPool,
-              vote.optionId,
-              queryQuestion[0]!.questionId,
-            );
-            scores.push({ optionId: vote.optionId, score: score });
-          } catch (error) {
-            errors.push(`Error updating score for optionId ${vote.optionId}`);
-          }
-        }),
-      );
-      break;
-    case 'QV':
-      await Promise.all(
-        data.map(async (vote) => {
-          try {
-            const score = await updateVoteScoreQuadratic(dbPool, vote.optionId);
-            scores.push({ optionId: vote.optionId, score: score });
-          } catch (error) {
-            errors.push(`Error updating score for optionId ${vote.optionId}`);
-          }
-        }),
-      );
-      break;
-    default:
-      errors.push('Unsupported vote model: ' + voteModel);
-      break;
+  interface VoteModelUpdateFunction {
+    ({
+      dbPool,
+      optionId,
+      questionId,
+    }: {
+      dbPool: NodePgDatabase<typeof db>;
+      optionId: string;
+      questionId: string;
+    }): Promise<number>;
   }
+
+  const voteModelUpdateFunctions: Record<string, VoteModelUpdateFunction> = {
+    COCM: ({ dbPool, optionId, questionId }) => updateVoteScorePlural(dbPool, optionId, questionId),
+    QV: ({ dbPool, optionId }) => updateVoteScoreQuadratic(dbPool, optionId),
+  };
+
+  const updateFunction =
+    voteModelUpdateFunctions[voteModel as keyof typeof voteModelUpdateFunctions];
+
+  if (!updateFunction) {
+    errors.push('Unsupported vote model: ' + voteModel);
+    return { data: null, errors };
+  }
+
+  await Promise.all(
+    data.map(async ({ optionId }) => {
+      try {
+        const score = await updateFunction({ dbPool, optionId, questionId: firstQuestionId });
+        scores.push({ optionId: optionId, score: score });
+      } catch (error) {
+        errors.push(`Failed to update score for optionId: ${optionId}`);
+      }
+    }),
+  );
 
   return { data: scores.length > 0 ? scores : null, errors };
 }
