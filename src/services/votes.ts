@@ -87,21 +87,26 @@ export async function updateOptionScore(
     return { data: null, errors };
   }
 
+  if (!firstQuestionId) {
+    errors.push('No question Id found');
+    return { data: null, errors };
+  }
+
   // Query group data, grouping dimensions, and calculate the score
-  const queryForumQuestion = await dbPool
+  const queryQuestion = await dbPool
     .select({
       questionId: db.questions.id,
       voteModel: db.questions.voteModel,
     })
     .from(db.questions)
-    .where(eq(db.questions.id, firstQuestionId!));
+    .where(eq(db.questions.id, firstQuestionId));
 
-  if (!queryForumQuestion) {
+  if (!queryQuestion) {
     errors.push('No question found for the provided questionId');
     return { data: null, errors };
   }
 
-  const voteModel = queryForumQuestion[0]?.voteModel;
+  const voteModel = queryQuestion[0]?.voteModel;
 
   // Call the update function based on the respective voting mechanism
   switch (voteModel) {
@@ -112,7 +117,7 @@ export async function updateOptionScore(
             const score = await updateVoteScorePlural(
               dbPool,
               vote.optionId,
-              queryForumQuestion[0]!.questionId,
+              queryQuestion[0]!.questionId,
             );
             scores.push({ optionId: vote.optionId, score: score });
           } catch (error) {
