@@ -25,16 +25,52 @@ export async function getUserRegistration({
   return existingRegistration;
 }
 
+export async function validateEventFields({
+  registration,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof db>;
+  registration: z.infer<typeof insertRegistrationSchema>;
+}) {
+  const rows = await dbPool.select().from(db.events).where(eq(db.events.id, registration.eventId));
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const event = rows[0];
+
+  if (!event) {
+    return [];
+  }
+
+  // get fields for the event
+  const eventFields = fieldsSchema.safeParse(event.fields);
+
+  if (!eventFields.success) {
+    return [];
+  }
+
+  return enforceRules({
+    data: registration.data,
+    fields: eventFields.data,
+  });
+}
+
 export async function saveRegistration(
   dbPool: NodePgDatabase<typeof db>,
-  data: z.infer<typeof insertRegistrationSchema>,
+  registration: z.infer<typeof insertRegistrationSchema>,
 ) {
   const event = await dbPool.query.events.findFirst({
-    where: eq(db.events.id, data.eventId),
+    where: eq(db.events.id, registration.eventId),
   });
 
+  if (!event) {
+    throw new Error('event not found');
+  }
+
   const newRegistration = await createRegistrationInDB(dbPool, {
-    ...data,
+    ...registration,
     status: event?.requireApproval ? 'DRAFT' : 'APPROVED',
   });
 
@@ -82,6 +118,7 @@ async function createRegistrationInDB(
       userId: body.userId,
       groupId: body.groupId,
       eventId: body.eventId,
+      data: body.data,
       status: body.status,
     })
     .returning();
@@ -98,6 +135,7 @@ async function updateRegistrationInDB(
     .set({
       eventId: body.eventId,
       groupId: body.groupId,
+      data: body.data,
       updatedAt: new Date(),
     })
     .where(eq(db.registrations.id, registration.id))

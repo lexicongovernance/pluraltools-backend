@@ -1,6 +1,10 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
+import { z } from 'zod';
+import { insertOptionsSchema } from '../types/options';
+import { fieldsSchema } from '../types';
+import { enforceRules } from './validation';
 
 export function availableHearts(
   numProposals: number,
@@ -70,4 +74,39 @@ export async function getQuestionHearts(
     // Return 0 in case there are no options available yet.
     return 0;
   }
+}
+
+export async function validateQuestionFields({
+  option,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof db>;
+  option: z.infer<typeof insertOptionsSchema>;
+}) {
+  const rows = await dbPool
+    .select()
+    .from(db.questions)
+    .where(eq(db.questions.id, option.questionId));
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const question = rows[0];
+
+  if (!question) {
+    return [];
+  }
+
+  // get registration fields for the event
+  const questionFields = fieldsSchema.safeParse(question.fields);
+
+  if (!questionFields.success) {
+    return [];
+  }
+
+  return enforceRules({
+    data: option.data,
+    fields: questionFields.data,
+  });
 }

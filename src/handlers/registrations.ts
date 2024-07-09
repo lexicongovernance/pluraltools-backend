@@ -6,6 +6,7 @@ import {
   updateRegistration,
   getUserRegistration,
   validateRegistrationData,
+  validateEventFields,
 } from '../services/registrations';
 import { isUserIsPartOfGroup } from '../services/groups';
 import { eq } from 'drizzle-orm';
@@ -50,7 +51,7 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const brokenRules = await validateRegistrationData({
+    const brokenRules = await validateEventFields({
       dbPool,
       registration: body.data,
     });
@@ -95,7 +96,7 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const brokenRules = await validateRegistrationData({
+    const brokenRules = await validateEventFields({
       dbPool,
       registration: body.data,
     });
