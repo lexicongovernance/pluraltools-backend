@@ -1,4 +1,4 @@
-import { randCompanyName, randCountry, randUser } from '@ngneat/falso';
+import { randCompanyName, randCountry, randUser, randUuid } from '@ngneat/falso';
 import {
   Cycle,
   Event,
@@ -44,9 +44,8 @@ export function generateEventData(numEvents: number): EventData[] {
   const events: EventData[] = [];
   const fields: z.infer<typeof fieldsSchema> = [
     {
-      id: '1',
-      name: 'First Name',
-      description: 'Your first name',
+      id: randUuid(),
+      name: 'What do you think about this event?',
       position: 0,
       type: 'TEXT',
       validation: {
@@ -54,9 +53,9 @@ export function generateEventData(numEvents: number): EventData[] {
       },
     },
     {
-      id: '2',
-      name: 'Last Name',
-      description: 'Your last name',
+      id: randUuid(),
+      name: 'Opinion',
+      description: 'Optional opinion',
       position: 1,
       type: 'TEXT',
       validation: {

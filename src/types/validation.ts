@@ -8,7 +8,7 @@ const fieldType = z.enum(['TEXT', 'TEXTAREA', 'SELECT', 'CHECKBOX', 'MULTI_SELEC
 
 export const fieldsSchema = z.array(
   z.object({
-    id: z.string(),
+    id: z.string().uuid(),
     name: z.string(),
     description: z.string().optional(),
     type: fieldType,
