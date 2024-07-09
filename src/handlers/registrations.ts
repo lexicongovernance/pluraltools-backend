@@ -5,7 +5,6 @@ import {
   saveRegistration,
   updateRegistration,
   getUserRegistration,
-  validateRegistrationData,
   validateEventFields,
 } from '../services/registrations';
 import { isUserIsPartOfGroup } from '../services/groups';
