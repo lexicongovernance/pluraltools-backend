@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { events } from './events';
 import { registrationData } from './registration-data';
 import { users } from './users';
@@ -16,6 +16,7 @@ export const registrations = pgTable('registrations', {
   groupId: uuid('group_id').references(() => groups.id),
   // CAN BE: DRAFT, APPROVED, REJECTED AND MORE
   status: varchar('status').default('DRAFT'),
+  data: jsonb('data'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

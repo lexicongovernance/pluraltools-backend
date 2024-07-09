@@ -1,4 +1,4 @@
-import { randCompanyName, randCountry, randUser } from '@ngneat/falso';
+import { randCompanyName, randCountry, randUser, randUuid } from '@ngneat/falso';
 import {
   Cycle,
   Event,
@@ -12,10 +12,12 @@ import {
   UsersToGroups,
   QuestionsToGroupCategories,
 } from '../../db';
+import { z } from 'zod';
+import { fieldsSchema } from '../../types';
 
 // Define types
 export type CycleData = Pick<Cycle, 'eventId' | 'startAt' | 'endAt' | 'status'>;
-export type EventData = Pick<Event, 'name'>;
+export type EventData = Pick<Event, 'name' | 'fields'>;
 export type RegistrationFieldData = Pick<
   RegistrationField,
   'name' | 'eventId' | 'type' | 'required' | 'forUser' | 'forGroup'
@@ -25,7 +27,7 @@ export type RegistrationFieldOptionData = Pick<
   'registrationFieldId' | 'value'
 >;
 export type ForumQuestionData = Pick<Question, 'cycleId' | 'title' | 'voteModel'>;
-export type QuestionOptionData = Pick<Option, 'questionId' | 'title' | 'accepted'>;
+export type QuestionOptionData = Pick<Option, 'questionId' | 'title' | 'show'>;
 export type GroupCategoryData = Pick<
   GroupCategory,
   'name' | 'eventId' | 'userCanCreate' | 'userCanView' | 'required'
@@ -40,8 +42,30 @@ export type QuestionsToGroupCategoriesData = Pick<
 
 export function generateEventData(numEvents: number): EventData[] {
   const events: EventData[] = [];
+  const fields: z.infer<typeof fieldsSchema> = [
+    {
+      id: randUuid(),
+      name: 'What do you think about this event?',
+      position: 0,
+      type: 'TEXT',
+      validation: {
+        required: true,
+      },
+    },
+    {
+      id: randUuid(),
+      name: 'Opinion',
+      description: 'Optional opinion',
+      position: 1,
+      type: 'TEXT',
+      validation: {
+        required: false,
+      },
+    },
+  ];
+
   for (let i = 0; i < numEvents; i++) {
-    events.push({ name: randCountry() });
+    events.push({ name: randCountry(), fields });
   }
   return events;
 }
@@ -113,7 +137,7 @@ export function generateQuestionOptionsData(
     const optionData: QuestionOptionData = {
       questionId,
       title: optionTitles[i]!,
-      accepted: status[i]!,
+      show: status[i]!,
     };
     questionOptionsData.push(optionData);
   }

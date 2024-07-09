@@ -15,7 +15,7 @@ export function getActiveCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
               columns: {
                 voteScore: false,
               },
-              where: eq(db.options.accepted, true),
+              where: eq(db.options.show, true),
             },
           },
         },

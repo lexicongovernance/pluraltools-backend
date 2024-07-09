@@ -3,6 +3,7 @@ import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { usersToGroups } from './users-to-groups';
 import { groupCategories } from './group-categories';
 import { registrations } from './registrations';
+import { options } from './options';
 
 export const groups = pgTable('groups', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -22,6 +23,7 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
     references: [groupCategories.id],
   }),
   registrations: many(registrations),
+  options: many(options),
   usersToGroups: many(usersToGroups),
 }));
 
