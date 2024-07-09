@@ -63,7 +63,7 @@ export async function validateUpdateRegistrationAuthorization({
   return true;
 }
 
-export async function validateEventRegistrationFields({
+export async function validateEventFields({
   registration,
   dbPool,
 }: {

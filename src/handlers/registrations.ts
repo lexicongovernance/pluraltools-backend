@@ -6,7 +6,7 @@ import {
   updateRegistration,
   validateUpdateRegistrationAuthorization,
   validateCreateRegistrationAuthorization,
-  validateEventRegistrationFields,
+  validateEventFields,
 } from '../services/registrations';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -50,7 +50,7 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const brokenRules = await validateEventRegistrationFields({
+    const brokenRules = await validateEventFields({
       dbPool,
       registration: body.data,
     });
@@ -95,7 +95,7 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const brokenRules = await validateEventRegistrationFields({
+    const brokenRules = await validateEventFields({
       dbPool,
       registration: body.data,
     });
