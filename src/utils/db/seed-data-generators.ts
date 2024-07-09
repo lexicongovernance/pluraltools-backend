@@ -12,10 +12,12 @@ import {
   UsersToGroups,
   QuestionsToGroupCategories,
 } from '../../db';
+import { z } from 'zod';
+import { fieldsSchema } from '../../types';
 
 // Define types
 export type CycleData = Pick<Cycle, 'eventId' | 'startAt' | 'endAt' | 'status'>;
-export type EventData = Pick<Event, 'name'>;
+export type EventData = Pick<Event, 'name' | 'fields'>;
 export type RegistrationFieldData = Pick<
   RegistrationField,
   'name' | 'eventId' | 'type' | 'required' | 'forUser' | 'forGroup'
@@ -40,8 +42,31 @@ export type QuestionsToGroupCategoriesData = Pick<
 
 export function generateEventData(numEvents: number): EventData[] {
   const events: EventData[] = [];
+  const fields: z.infer<typeof fieldsSchema> = [
+    {
+      id: '1',
+      name: 'First Name',
+      description: 'Your first name',
+      position: 0,
+      type: 'TEXT',
+      validation: {
+        required: true,
+      },
+    },
+    {
+      id: '2',
+      name: 'Last Name',
+      description: 'Your last name',
+      position: 1,
+      type: 'TEXT',
+      validation: {
+        required: false,
+      },
+    },
+  ];
+
   for (let i = 0; i < numEvents; i++) {
-    events.push({ name: randCountry() });
+    events.push({ name: randCountry(), fields });
   }
   return events;
 }

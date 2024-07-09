@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+/**
+ * Fields schema
+ */
+
 const fieldType = z.enum(['TEXT', 'TEXTAREA', 'SELECT', 'CHECKBOX', 'MULTI_SELECT', 'NUMBER']);
 
 export const fieldsSchema = z.array(
@@ -18,7 +22,11 @@ export const fieldsSchema = z.array(
   }),
 );
 
-const fieldValueSchema = z.union([
+/**
+ * Data Schema
+ */
+
+const dataValueSchema = z.union([
   z.string(),
   z.number(),
   z.boolean(),
@@ -27,11 +35,11 @@ const fieldValueSchema = z.union([
 ]);
 
 // Define a schema for a single field
-const fieldDataSchema = z.object({
-  value: fieldValueSchema,
+const dataForOneFieldSchema = z.object({
+  value: dataValueSchema,
   fieldId: z.string().uuid(),
   type: fieldType,
 });
 
 // [fieldId] => { value: [value], fieldId: [fieldId] }
-export const dataSchema = z.record(z.string(), fieldDataSchema);
+export const dataSchema = z.record(z.string(), dataForOneFieldSchema);
