@@ -1,121 +1,248 @@
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as db from '../../db';
 import {
-  EventData,
-  CycleData,
-  RegistrationFieldData,
-  RegistrationFieldOptionData,
-  ForumQuestionData,
-  QuestionOptionData,
-  GroupCategoryData,
-  GroupData,
-  UserData,
-  UsersToGroupsData,
-  QuestionsToGroupCategoriesData,
-  generateEventData,
-  generateCycleData,
-  generateRegistrationFieldData,
-  generateRegistrationFieldOptionsData,
-  generateForumQuestionData,
-  generateQuestionOptionsData,
-  generateGroupCategoryData,
-  generateGroupData,
-  generateUserData,
-  generateUsersToGroupsData,
-  generateQuestionsToGroupCategoriesData,
-} from './seed-data-generators';
+  randBasketballTeam,
+  randBook,
+  randCity,
+  randDog,
+  randEmail,
+  randFirstName,
+  randJobTitle,
+  randLastName,
+  randUserName,
+  randUuid,
+} from '@ngneat/falso';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
+import { fieldsSchema, insertOptionsSchema } from '../types';
+import * as schema from './schema';
 
-async function seed(dbPool: NodePgDatabase<typeof db>) {
-  const events = await createEvent(dbPool, generateEventData(1));
-  const cycles = await createCycle(dbPool, generateCycleData(1, events[0]!.id));
-  const registrationFieldsData = [
-    { name: 'proposal title', type: 'TEXT', required: true, forGroup: true },
-    { name: 'proposal description', type: 'TEXT', required: true, forUser: true },
-    { name: 'other field', type: 'TEXT', required: false },
-    { name: 'select field', type: 'SELECT', required: false, forUser: true },
-  ];
-  const registrationFields = await createRegistrationFields(
-    dbPool,
-    generateRegistrationFieldData(events[0]!.id, registrationFieldsData),
-  );
-  const registrationFieldOptions = await createRegistrationFieldOptions(
-    dbPool,
-    generateRegistrationFieldOptionsData(registrationFields[3]!.id, ['Option A', 'Option B']),
-  );
-  const forumQuestions = await createForumQuestions(
-    dbPool,
-    generateForumQuestionData(cycles[0]!.id, ['Question One', 'Question Two'], ['COCM', 'QV']),
-  );
-  const questionOptions = await createQuestionOptions(
-    dbPool,
-    generateQuestionOptionsData(forumQuestions[0]!.id, ['Option A', 'Option B'], [true, true]),
-  );
+// Define the data types for the seed function
+const insertCycleSchema = createInsertSchema(schema.cycles);
+const insertEventSchema = createInsertSchema(schema.events, {
+  fields: fieldsSchema,
+});
+const insertGroupCategoriesSchema = createInsertSchema(schema.groupCategories);
+const insertGroupsSchema = createInsertSchema(schema.groups);
+const insertQuestionsSchema = createInsertSchema(schema.questions, {
+  fields: fieldsSchema,
+});
+const insertQuestionsToGroupCategoriesSchema = createInsertSchema(
+  schema.questionsToGroupCategories,
+);
+const insertUsersSchema = createInsertSchema(schema.users);
+const insertUsersToGroupsSchema = createInsertSchema(schema.usersToGroups);
 
-  const groupCategoriesData = [
-    { name: 'affiliation', userCanView: true, required: true },
-    { name: 'public', userCanView: true, userCanCreate: false },
-    { name: 'secrets', userCanCreate: true, userCanView: false },
-    { name: 'tension', userCanCreate: true, userCanView: true, require: false },
-  ];
+async function seed(dbPool: NodePgDatabase<typeof schema>) {
+  const events = await createEvent(dbPool, [
+    {
+      name: randCity(),
+      fields: [
+        {
+          id: randUuid(),
+          name: 'submit project',
+          type: 'TEXT',
+          position: 0,
+          validation: {
+            required: true,
+          },
+        },
+      ],
+    },
+  ]);
+  const cycles = await createCycle(dbPool, [
+    {
+      startAt: new Date(),
+      // end in 5 mins
+      endAt: new Date(Date.now() + 300000),
+      status: 'OPEN',
+      eventId: events[0]!.id,
+    },
+  ]);
 
-  const groupCategories = await createGroupCategories(
-    dbPool,
-    generateGroupCategoryData(events[0]!.id, groupCategoriesData),
-  );
+  const forumQuestions = await createQuestions(dbPool, [
+    {
+      cycleId: cycles[0]!.id,
+      title: 'What do you think about this event?',
+      voteModel: 'COCM',
+    },
+    {
+      cycleId: cycles[0]!.id,
+      title: 'How do you feel about this event?',
+      voteModel: 'QV',
+    },
+  ]);
+  const questionOptions = await createQuestionOptions(dbPool, [
+    {
+      questionId: forumQuestions[0]!.id,
+      title: 'Great',
+      show: true,
+    },
+    {
+      questionId: forumQuestions[0]!.id,
+      title: 'Good',
+      show: true,
+    },
+    {
+      questionId: forumQuestions[0]!.id,
+      title: 'Bad',
+      show: true,
+    },
+  ]);
 
-  const categoryIdsData = [
-    groupCategories[0]!.id,
-    groupCategories[1]!.id,
-    groupCategories[2]!.id,
-    groupCategories[3]!.id,
-  ];
-  const numOfGroupsData = [5, 4, 3, 5];
+  const groupCategories = await createGroupCategories(dbPool, [
+    { eventId: events[0]!.id, name: 'affiliation', userCanView: true, required: true },
+    { eventId: events[0]!.id, name: 'public', userCanView: true, userCanCreate: false },
+    { eventId: events[0]!.id, name: 'secrets', userCanCreate: true, userCanView: false },
+    {
+      eventId: events[0]!.id,
+      name: 'tension',
+      userCanCreate: true,
+      userCanView: true,
+      required: false,
+    },
+  ]);
 
-  const groups = await createGroups(dbPool, generateGroupData(categoryIdsData, numOfGroupsData));
+  const groups = await createGroups(dbPool, [
+    // 5 groups in first category
+    {
+      name: randBasketballTeam(),
+      groupCategoryId: groupCategories[0]!.id,
+    },
+    {
+      name: randBasketballTeam(),
+      groupCategoryId: groupCategories[0]!.id,
+    },
+    {
+      name: randBasketballTeam(),
+      groupCategoryId: groupCategories[0]!.id,
+    },
+    {
+      name: randBasketballTeam(),
+      groupCategoryId: groupCategories[0]!.id,
+    },
+    {
+      name: randBasketballTeam(),
+      groupCategoryId: groupCategories[0]!.id,
+    },
+    // 4 groups in second category
+    {
+      name: randBook().title,
+      groupCategoryId: groupCategories[1]!.id,
+    },
+    {
+      name: randBook().title,
+      groupCategoryId: groupCategories[1]!.id,
+    },
+    {
+      name: randBook().title,
+      groupCategoryId: groupCategories[1]!.id,
+    },
+    {
+      name: randBook().title,
+      groupCategoryId: groupCategories[1]!.id,
+    },
+    // 3 groups in third category
+    {
+      name: randJobTitle(),
+      groupCategoryId: groupCategories[2]!.id,
+    },
+    {
+      name: randJobTitle(),
+      groupCategoryId: groupCategories[2]!.id,
+    },
+    {
+      name: randJobTitle(),
+      groupCategoryId: groupCategories[2]!.id,
+    },
+    // 3 groups in fourth category
+    {
+      name: randDog(),
+      groupCategoryId: groupCategories[3]!.id,
+    },
+    {
+      name: randDog(),
+      groupCategoryId: groupCategories[3]!.id,
+    },
+    {
+      name: randDog(),
+      groupCategoryId: groupCategories[3]!.id,
+    },
+  ]);
 
-  const users = await createUsers(dbPool, generateUserData(3));
-
-  // Specify users to groups relationships
-  const userData = [
-    users[0]!.id,
-    users[1]!.id,
-    users[2]!.id,
-    users[0]!.id,
-    users[1]!.id,
-    users[2]!.id,
-  ];
-  const groupData = [
-    groups[0]!.id,
-    groups[0]!.id,
-    groups[0]!.id,
-    groups[1]!.id,
-    groups[1]!.id,
-    groups[2]!.id,
-  ];
-  const categoryData = [
-    groupCategories[0]!.id,
-    groupCategories[0]!.id,
-    groupCategories[0]!.id,
-    groupCategories[1]!.id,
-    groupCategories[1]!.id,
-    groupCategories[1]!.id,
-  ];
+  const users = await createUsers(dbPool, [
+    // 3 random users
+    {
+      email: randEmail(),
+      username: randUserName(),
+      firstName: randFirstName(),
+      lastName: randLastName(),
+    },
+    {
+      email: randEmail(),
+      username: randUserName(),
+      firstName: randFirstName(),
+      lastName: randLastName(),
+    },
+    {
+      email: randEmail(),
+      username: randUserName(),
+      firstName: randFirstName(),
+      lastName: randLastName(),
+    },
+  ]);
 
   const usersToGroups = await createUsersToGroups(
     dbPool,
-    generateUsersToGroupsData(userData, groupData, categoryData),
+    // user1 => [group1, group2]
+    // user2 => [group1, group2]
+    // user3 => [group1, group3]
+    [
+      // user1
+      {
+        userId: users[0]!.id,
+        groupId: groups[0]!.id,
+        groupCategoryId: groups[0]!.groupCategoryId,
+      },
+      {
+        userId: users[0]!.id,
+        groupId: groups[1]!.id,
+        groupCategoryId: groups[1]!.groupCategoryId,
+      },
+      // user2
+      {
+        userId: users[1]!.id,
+        groupId: groups[0]!.id,
+        groupCategoryId: groups[0]!.groupCategoryId,
+      },
+      {
+        userId: users[1]!.id,
+        groupId: groups[1]!.id,
+        groupCategoryId: groups[1]!.groupCategoryId,
+      },
+      // user3
+      {
+        userId: users[2]!.id,
+        groupId: groups[0]!.id,
+        groupCategoryId: groups[0]!.groupCategoryId,
+      },
+      {
+        userId: users[2]!.id,
+        groupId: groups[2]!.id,
+        groupCategoryId: groups[2]!.groupCategoryId,
+      },
+    ],
   );
 
-  const questionsToGroupCategories = await createQuestionsToGroupCategories(
-    dbPool,
-    generateQuestionsToGroupCategoriesData([forumQuestions[0]!.id], [groupCategories[0]!.id]),
-  );
+  const questionsToGroupCategories = await createQuestionsToGroupCategories(dbPool, [
+    {
+      questionId: forumQuestions[0]!.id,
+      groupCategoryId: groupCategories[0]!.id,
+    },
+  ]);
 
   return {
     events,
     cycles,
-    registrationFields,
-    registrationFieldOptions,
     forumQuestions,
     questionOptions,
     groupCategories,
@@ -126,30 +253,33 @@ async function seed(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-async function cleanup(dbPool: NodePgDatabase<typeof db>) {
-  await dbPool.delete(db.userAttributes);
-  await dbPool.delete(db.votes);
-  await dbPool.delete(db.federatedCredentials);
-  await dbPool.delete(db.options);
-  await dbPool.delete(db.registrationData);
-  await dbPool.delete(db.registrationFieldOptions);
-  await dbPool.delete(db.registrationFields);
-  await dbPool.delete(db.registrations);
-  await dbPool.delete(db.usersToGroups);
-  await dbPool.delete(db.users);
-  await dbPool.delete(db.groups);
-  await dbPool.delete(db.questionsToGroupCategories);
-  await dbPool.delete(db.groupCategories);
-  await dbPool.delete(db.questions);
-  await dbPool.delete(db.cycles);
-  await dbPool.delete(db.events);
+async function cleanup(dbPool: NodePgDatabase<typeof schema>) {
+  await dbPool.delete(schema.userAttributes);
+  await dbPool.delete(schema.votes);
+  await dbPool.delete(schema.federatedCredentials);
+  await dbPool.delete(schema.options);
+  await dbPool.delete(schema.registrationData);
+  await dbPool.delete(schema.registrationFieldOptions);
+  await dbPool.delete(schema.registrationFields);
+  await dbPool.delete(schema.registrations);
+  await dbPool.delete(schema.usersToGroups);
+  await dbPool.delete(schema.users);
+  await dbPool.delete(schema.groups);
+  await dbPool.delete(schema.questionsToGroupCategories);
+  await dbPool.delete(schema.groupCategories);
+  await dbPool.delete(schema.questions);
+  await dbPool.delete(schema.cycles);
+  await dbPool.delete(schema.events);
 }
 
-async function createEvent(dbPool: NodePgDatabase<typeof db>, eventData: EventData[]) {
+async function createEvent(
+  dbPool: NodePgDatabase<typeof schema>,
+  eventData: z.infer<typeof insertEventSchema>[],
+) {
   const events = [];
   for (const event of eventData) {
     const result = await dbPool
-      .insert(db.events)
+      .insert(schema.events)
       .values({
         name: event.name,
         fields: event.fields,
@@ -160,7 +290,10 @@ async function createEvent(dbPool: NodePgDatabase<typeof db>, eventData: EventDa
   return events;
 }
 
-async function createCycle(dbPool: NodePgDatabase<typeof db>, cycleData: CycleData[]) {
+async function createCycle(
+  dbPool: NodePgDatabase<typeof schema>,
+  cycleData: z.infer<typeof insertCycleSchema>[],
+) {
   if (cycleData.length === 0) {
     throw new Error('Cycle data is empty.');
   }
@@ -172,7 +305,7 @@ async function createCycle(dbPool: NodePgDatabase<typeof db>, cycleData: CycleDa
     }
 
     const result = await dbPool
-      .insert(db.cycles)
+      .insert(schema.cycles)
       .values({
         startAt: cycle.startAt,
         endAt: cycle.endAt,
@@ -187,127 +320,63 @@ async function createCycle(dbPool: NodePgDatabase<typeof db>, cycleData: CycleDa
   return cycles;
 }
 
-async function createRegistrationFields(
-  dbPool: NodePgDatabase<typeof db>,
-  registrationFieldData: RegistrationFieldData[],
+async function createQuestions(
+  dbPool: NodePgDatabase<typeof schema>,
+  questionData: z.infer<typeof insertQuestionsSchema>[],
 ) {
-  if (registrationFieldData.length === 0) {
-    throw new Error('Registration field data is empty.');
-  }
-
-  const registrationFields = [];
-  for (const field of registrationFieldData) {
-    if (!field.eventId) {
-      throw new Error('Event ID is not defined for a registration field.');
-    }
-
-    const result = await dbPool
-      .insert(db.registrationFields)
-      .values({
-        name: field.name,
-        type: field.type,
-        required: field.required,
-        forUser: field.forUser,
-        forGroup: field.forGroup,
-        eventId: field.eventId,
-      })
-      .returning();
-
-    registrationFields.push(result[0]);
-  }
-
-  return registrationFields;
-}
-
-async function createRegistrationFieldOptions(
-  dbPool: NodePgDatabase<typeof db>,
-  registrationFieldOptionsData: RegistrationFieldOptionData[],
-) {
-  if (registrationFieldOptionsData.length === 0) {
-    throw new Error('Registration Field Options data is empty.');
-  }
-
-  const registrationFieldOptions = [];
-  for (const optionData of registrationFieldOptionsData) {
-    if (!optionData.registrationFieldId) {
-      throw new Error('Registration Field id is not defined for a registration option.');
-    }
-
-    const result = await dbPool
-      .insert(db.registrationFieldOptions)
-      .values({
-        registrationFieldId: optionData.registrationFieldId,
-        value: optionData.value,
-      })
-      .returning();
-
-    registrationFieldOptions.push(result[0]);
-  }
-
-  return registrationFieldOptions;
-}
-
-async function createForumQuestions(
-  dbPool: NodePgDatabase<typeof db>,
-  forumQuestionData: ForumQuestionData[],
-) {
-  if (forumQuestionData.length === 0) {
+  if (questionData.length === 0) {
     throw new Error('Forum Question data is empty.');
   }
 
-  const forumQuestions = [];
-  for (const questionData of forumQuestionData) {
-    if (!questionData.cycleId) {
-      throw new Error('Cycle ID is not defined for the forum question.');
-    }
-
+  const questions = [];
+  for (const question of questionData) {
     const result = await dbPool
-      .insert(db.questions)
+      .insert(schema.questions)
       .values({
-        cycleId: questionData.cycleId,
-        title: questionData.title,
-        voteModel: questionData.voteModel,
+        cycleId: question.cycleId,
+        title: question.title,
+        voteModel: question.voteModel,
       })
       .returning();
 
-    forumQuestions.push(result[0]);
+    questions.push(result[0]);
   }
 
-  return forumQuestions;
+  return questions;
 }
 
 async function createQuestionOptions(
-  dbPool: NodePgDatabase<typeof db>,
-  questionOptionData: QuestionOptionData[],
+  dbPool: NodePgDatabase<typeof schema>,
+  optionData: z.infer<typeof insertOptionsSchema>[],
 ) {
-  if (questionOptionData.length === 0) {
+  if (optionData.length === 0) {
     throw new Error('Question Option data is empty.');
   }
 
-  const questionOptions = [];
-  for (const questionOption of questionOptionData) {
-    if (!questionOption.questionId) {
+  const options = [];
+  for (const option of optionData) {
+    if (!option.questionId) {
       throw new Error('Question ID is not defined for the question option.');
     }
 
     const result = await dbPool
-      .insert(db.options)
+      .insert(schema.options)
       .values({
-        questionId: questionOption.questionId,
-        title: questionOption.title,
-        show: questionOption.show,
+        questionId: option.questionId,
+        title: option.title,
+        show: option.show,
       })
       .returning();
 
-    questionOptions.push(result[0]);
+    options.push(result[0]);
   }
 
-  return questionOptions;
+  return options;
 }
 
 async function createGroupCategories(
-  dbPool: NodePgDatabase<typeof db>,
-  groupCategoriesData: GroupCategoryData[],
+  dbPool: NodePgDatabase<typeof schema>,
+  groupCategoriesData: z.infer<typeof insertGroupCategoriesSchema>[],
 ) {
   if (groupCategoriesData.length === 0) {
     throw new Error('Group Categories data is empty.');
@@ -320,7 +389,7 @@ async function createGroupCategories(
     }
 
     const result = await dbPool
-      .insert(db.groupCategories)
+      .insert(schema.groupCategories)
       .values({
         name: data.name,
         eventId: data.eventId,
@@ -336,7 +405,10 @@ async function createGroupCategories(
   return groupCategories;
 }
 
-async function createGroups(dbPool: NodePgDatabase<typeof db>, groupData: GroupData[]) {
+async function createGroups(
+  dbPool: NodePgDatabase<typeof schema>,
+  groupData: z.infer<typeof insertGroupsSchema>[],
+) {
   if (groupData.length === 0) {
     throw new Error('Group Data is empty.');
   }
@@ -348,7 +420,7 @@ async function createGroups(dbPool: NodePgDatabase<typeof db>, groupData: GroupD
     }
 
     const result = await dbPool
-      .insert(db.groups)
+      .insert(schema.groups)
       .values({
         name: group.name,
         groupCategoryId: group.groupCategoryId,
@@ -361,11 +433,14 @@ async function createGroups(dbPool: NodePgDatabase<typeof db>, groupData: GroupD
   return groups;
 }
 
-async function createUsers(dbPool: NodePgDatabase<typeof db>, userData: UserData[]) {
+async function createUsers(
+  dbPool: NodePgDatabase<typeof schema>,
+  userData: z.infer<typeof insertUsersSchema>[],
+) {
   const users = [];
   for (const user of userData) {
     const result = await dbPool
-      .insert(db.users)
+      .insert(schema.users)
       .values({
         username: user.username,
         email: user.email,
@@ -381,8 +456,8 @@ async function createUsers(dbPool: NodePgDatabase<typeof db>, userData: UserData
 }
 
 async function createUsersToGroups(
-  dbPool: NodePgDatabase<typeof db>,
-  usersToGroupsData: UsersToGroupsData[],
+  dbPool: NodePgDatabase<typeof schema>,
+  usersToGroupsData: z.infer<typeof insertUsersToGroupsSchema>[],
 ) {
   if (usersToGroupsData.length === 0) {
     throw new Error('Users to Groups Data is empty.');
@@ -395,7 +470,7 @@ async function createUsersToGroups(
     }
 
     const result = await dbPool
-      .insert(db.usersToGroups)
+      .insert(schema.usersToGroups)
       .values({
         userId: group.userId,
         groupId: group.groupId,
@@ -410,8 +485,8 @@ async function createUsersToGroups(
 }
 
 async function createQuestionsToGroupCategories(
-  dbPool: NodePgDatabase<typeof db>,
-  questionsToGroupCategoriesData: QuestionsToGroupCategoriesData[],
+  dbPool: NodePgDatabase<typeof schema>,
+  questionsToGroupCategoriesData: z.infer<typeof insertQuestionsToGroupCategoriesSchema>[],
 ) {
   if (questionsToGroupCategoriesData.length === 0) {
     throw new Error('Questions to Group Categories Data is empty.');
@@ -424,7 +499,7 @@ async function createQuestionsToGroupCategories(
     }
 
     const result = await dbPool
-      .insert(db.questionsToGroupCategories)
+      .insert(schema.questionsToGroupCategories)
       .values({
         questionId: groupCategories.questionId,
         groupCategoryId: groupCategories.groupCategoryId,
@@ -437,4 +512,4 @@ async function createQuestionsToGroupCategories(
   return questionsToGroupCategories;
 }
 
-export { seed, cleanup };
+export { cleanup, seed };

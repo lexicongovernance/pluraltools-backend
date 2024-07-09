@@ -237,7 +237,7 @@ describe('service: votes', () => {
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
     const votesDictionary = await numOfVotesDictionary(voteArray);
     const groups = await groupsDictionary(dbPool, votesDictionary, [groupCategory!.id]);
-
+    console.log(groups);
     expect(groups).toBeDefined();
     expect(groups['unexpectedKey']).toBeUndefined();
     expect(typeof groups).toBe('object');
