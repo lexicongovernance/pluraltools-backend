@@ -1,1 +1,0 @@
-ALTER TABLE "questions_to_group_categories" ALTER COLUMN "group_category_id" SET NOT NULL;
