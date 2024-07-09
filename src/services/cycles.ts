@@ -27,7 +27,7 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
                 },
               },
             },
-            where: eq(db.options.accepted, true),
+            where: eq(db.options.show, true),
           },
         },
       },
@@ -42,7 +42,7 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
         questionOptions: question.options.map((option) => {
           return {
             id: option.id,
-            accepted: option.accepted,
+            show: option.show,
             title: option.title,
             subTitle: option.subTitle,
             questionId: option.questionId,

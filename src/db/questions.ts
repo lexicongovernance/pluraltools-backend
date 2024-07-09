@@ -1,4 +1,4 @@
-import { boolean, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, jsonb, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { cycles } from './cycles';
 import { relations } from 'drizzle-orm';
 import { options } from './options';
@@ -13,6 +13,7 @@ export const questions = pgTable('questions', {
   subTitle: varchar('sub_title', { length: 256 }),
   voteModel: varchar('vote_model', { length: 256 }).notNull().default('COCM'),
   showScore: boolean('show_score').default(false),
+  fields: jsonb('fields').notNull().default([]),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
