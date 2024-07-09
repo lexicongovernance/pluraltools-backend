@@ -8,7 +8,9 @@ export const questionsToGroupCategories = pgTable('questions_to_group_categories
   questionId: uuid('question_id')
     .notNull()
     .references(() => questions.id),
-  groupCategoryId: uuid('group_category_id').references(() => groupCategories.id), // Must be nullable (for now) because affiliation does not have a group category id.
+  groupCategoryId: uuid('group_category_id')
+    .notNull()
+    .references(() => groupCategories.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
