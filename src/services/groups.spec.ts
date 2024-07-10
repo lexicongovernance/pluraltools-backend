@@ -8,6 +8,7 @@ import {
   getSecretGroup,
   getGroupMembers,
   getGroupRegistrations,
+  isUserIsPartOfGroup,
 } from './groups';
 import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
 import { z } from 'zod';
@@ -148,6 +149,71 @@ describe('service: groups', () => {
     const groupId = group[4]?.id ?? '';
     const result = await getGroupRegistrations(dbPool, groupId);
     expect(result).toBeDefined();
+  });
+
+  describe('authorization', function () {
+    test('when the user is not in the group', async function () {
+      const rows = await dbPool
+        .insert(db.groups)
+        .values({
+          groupCategoryId: groupCategory!.id,
+          name: 'Test Group',
+        })
+        .returning();
+
+      if (!rows) {
+        throw new Error('No group found');
+      }
+
+      if (!rows[0]) {
+        throw new Error('No group found');
+      }
+
+      const result = await isUserIsPartOfGroup({
+        dbPool,
+        userId: user!.id,
+        groupId: rows[0].id,
+      });
+
+      expect(result).toBe(false);
+    });
+    test('when the user is in the group', async function () {
+      const rows = await dbPool
+        .insert(db.groups)
+        .values({
+          groupCategoryId: groupCategory!.id,
+          name: 'Test Group',
+        })
+        .returning();
+
+      if (!rows) {
+        throw new Error('No group found');
+      }
+
+      if (!rows[0]) {
+        throw new Error('No group found');
+      }
+
+      const userGroup = await dbPool
+        .insert(db.usersToGroups)
+        .values({
+          userId: user!.id,
+          groupId: rows[0].id,
+        })
+        .returning();
+
+      if (!userGroup) {
+        throw new Error('No user group found');
+      }
+
+      const result = await isUserIsPartOfGroup({
+        dbPool,
+        userId: user!.id,
+        groupId: rows[0].id,
+      });
+
+      expect(result).toBe(true);
+    });
   });
 
   afterAll(async () => {

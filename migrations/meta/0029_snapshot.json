@@ -1,5 +1,5 @@
 {
-  "id": "ce83aad2-50c3-4f21-9fd5-0d684d95e87c",
+  "id": "f83795a1-f552-488f-b670-bd7c417424b8",
   "prevId": "3b3f3fe7-aab6-4ea0-88cd-e1c81a678986",
   "version": "6",
   "dialect": "postgresql",
@@ -760,6 +760,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'[]'::jsonb"
+        },
+        "user_can_create": {
+          "name": "user_can_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
