@@ -130,7 +130,7 @@ export function saveOptionHandler(dbPool: NodePgDatabase<typeof db>) {
       const out = await saveOption(dbPool, body.data);
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving registration ' + e);
+      console.log('error saving option ' + e);
       return res.sendStatus(500);
     }
   };
@@ -141,7 +141,7 @@ export function updateOptionHandler(dbPool: NodePgDatabase<typeof db>) {
     const optionId = req.params.optionId;
 
     if (!optionId) {
-      return res.status(400).json({ errors: ['registrationId is required'] });
+      return res.status(400).json({ errors: ['optionId is required'] });
     }
 
     const userId = req.session.userId;
@@ -177,7 +177,7 @@ export function updateOptionHandler(dbPool: NodePgDatabase<typeof db>) {
     });
 
     if (!existingOption) {
-      return res.status(400).json({ errors: ['Cannot update this registration'] });
+      return res.status(400).json({ errors: ['Cannot update this option'] });
     }
 
     try {
@@ -188,7 +188,7 @@ export function updateOptionHandler(dbPool: NodePgDatabase<typeof db>) {
       });
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving registration ' + e);
+      console.log('error saving option ' + e);
       return res.sendStatus(500);
     }
   };

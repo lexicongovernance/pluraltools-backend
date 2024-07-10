@@ -34,7 +34,7 @@ export async function saveOption(
   });
 
   if (!newOption) {
-    throw new Error('failed to save registration');
+    throw new Error('failed to save option');
   }
 
   return newOption;
@@ -52,7 +52,7 @@ export async function updateOption({
   const updatedRegistration = await updateOptionInDB(dbPool, option, data);
 
   if (!updatedRegistration) {
-    throw new Error('failed to save registration');
+    throw new Error('failed to save option');
   }
 
   const out = {
