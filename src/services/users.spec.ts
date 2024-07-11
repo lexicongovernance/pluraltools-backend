@@ -4,7 +4,6 @@ import { runMigrations } from '../utils/db/run-migrations';
 import { environmentVariables, insertUserSchema } from '../types';
 import { cleanup, seed } from '../utils/db/seed';
 import { updateUser, upsertUserData, validateUserData } from './users';
-import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { z } from 'zod';
@@ -19,9 +18,8 @@ describe('service: users', () => {
     lastName: string | null;
     telegram: string | null;
   };
-  let user: db.User | undefined;
-  let secondUser: db.User | undefined;
-  let thirdUser: db.User | undefined;
+  let user: db.User;
+  let secondUser: db.User;
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
@@ -44,9 +42,8 @@ describe('service: users', () => {
     dbConnection = initDb.client;
     // seed
     const { users } = await seed(dbPool);
-    user = users[0];
-    secondUser = users[1];
-    thirdUser = users[2];
+    user = users[0]!;
+    secondUser = users[1]!;
   });
 
   test('should remove empty strings from user data', function () {
@@ -76,9 +73,9 @@ describe('service: users', () => {
       telegram: user?.telegram ?? null,
     };
 
-    const response = await validateUserData(dbPool, user?.id!, userData);
+    const response = await validateUserData(dbPool, user?.id, userData);
     expect(response).toBeDefined();
-    expect(response![0]).toEqual(expect.any(String));
+    expect(response).toEqual(expect.arrayContaining([expect.any(String)]));
   });
 
   test('validateUserData returns an error if username already exists', async () => {
@@ -90,9 +87,9 @@ describe('service: users', () => {
       telegram: user?.telegram ?? null,
     };
 
-    const response = await validateUserData(dbPool, user?.id!, userData);
+    const response = await validateUserData(dbPool, user?.id, userData);
     expect(response).toBeDefined();
-    expect(response![0]).toEqual(expect.any(String));
+    expect(response).toEqual(expect.arrayContaining([expect.any(String)]));
   });
 
   test('validateUserData returns null if validation is successful', async () => {
@@ -104,7 +101,7 @@ describe('service: users', () => {
       telegram: user?.telegram ?? null,
     };
 
-    const response = await validateUserData(dbPool, user?.id!, userData);
+    const response = await validateUserData(dbPool, user?.id, userData);
     expect(response).toBeNull();
   });
 
@@ -117,7 +114,7 @@ describe('service: users', () => {
       telegram: user?.telegram ?? null,
     };
 
-    const response = await upsertUserData(dbPool, user?.id!, userData);
+    const response = await upsertUserData(dbPool, user?.id, userData);
     expect(response).toBeDefined();
     expect(Array.isArray(response)).toBe(true);
     const updatedUser = response![0];
@@ -134,7 +131,7 @@ describe('service: users', () => {
       telegram: user?.telegram ?? null,
     };
     const mockData = {
-      userId: user?.id!,
+      userId: user?.id,
       userData: userData,
     };
 
@@ -152,7 +149,7 @@ describe('service: users', () => {
       telegram: user?.telegram ?? null,
     };
     const mockData = {
-      userId: user?.id!,
+      userId: user?.id,
       userData: userData,
     };
 
