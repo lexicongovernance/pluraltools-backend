@@ -14,7 +14,11 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 export async function calculateFunding(
   dbPool: NodePgDatabase<typeof db>,
   forumQuestionId: string,
-): Promise<{ allocated_funding: { [key: string]: number }; remaining_funding: number }> {
+): Promise<{
+  allocatedFunding: { [key: string]: number } | null;
+  remainingFunding: number | null;
+  error: string | null;
+}> {
   const getOptionData = await dbPool
     .select({
       id: db.options.id,
@@ -24,15 +28,23 @@ export async function calculateFunding(
     .from(db.options)
     .where(eq(db.options.questionId, forumQuestionId));
 
-  if (!getOptionData) {
-    throw new Error('Error in query getOptionData');
+  if (getOptionData.length === 0) {
+    return {
+      allocatedFunding: null,
+      remainingFunding: null,
+      error: 'Error in query getOptionData',
+    };
   }
 
   const funding = allocateFunding(100000, 10000, getOptionData);
 
   if (!funding) {
-    throw new Error('Error in allocating funding');
+    return { allocatedFunding: null, remainingFunding: null, error: 'Error in allocating funding' };
   }
 
-  return funding;
+  return {
+    allocatedFunding: funding.allocated_funding,
+    remainingFunding: funding.remaining_funding,
+    error: null,
+  };
 }
