@@ -16,8 +16,9 @@ import { registrationsRouter } from './registrations';
 import { usersToGroupsRouter } from './users-to-groups';
 import { groupCategoriesRouter } from './group-categories';
 import { alertsRouter } from './alerts';
-
-const router = express.Router();
+import { pinoHttp } from 'pino-http';
+import { logger } from '../utils/logger';
+import type { Request } from 'express';
 
 declare module 'iron-session' {
   interface IronSessionData {
@@ -33,6 +34,7 @@ export function apiRouter({
   dbPool: NodePgDatabase<typeof db>;
   cookiePassword: string;
 }) {
+  const router = express.Router();
   // setup
   router.use(express.json());
   router.use(express.urlencoded({ extended: true }));
@@ -48,6 +50,12 @@ export function apiRouter({
       },
     }),
   );
+  const middlewareLogger = pinoHttp({
+    logger: logger,
+    genReqId: (req: Request) => req.session.userId,
+    level: process.env.LOG_LEVEL || 'info',
+  });
+  router.use(middlewareLogger);
   // routes
   router.use('/auth', authRouter({ dbPool }));
   router.use('/users', usersRouter({ dbPool }));
