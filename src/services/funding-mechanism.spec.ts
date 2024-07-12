@@ -10,8 +10,6 @@ import { Client } from 'pg';
 describe('service: funding-mechanism', () => {
   let dbPool: NodePgDatabase<typeof db>;
   let dbConnection: Client;
-  let cycle: db.Cycle | undefined;
-  let option: db.Option;
   let question: db.Question;
 
   beforeAll(async () => {
@@ -34,9 +32,7 @@ describe('service: funding-mechanism', () => {
 
     dbPool = initDb.db;
     dbConnection = initDb.client;
-    const { cycles, questionOptions, forumQuestions } = await seed(dbPool);
-    cycle = cycles[0];
-    option = questionOptions[0]!;
+    const { forumQuestions } = await seed(dbPool);
     question = forumQuestions[0]!;
   });
 
