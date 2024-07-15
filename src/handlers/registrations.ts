@@ -4,10 +4,10 @@ import { insertRegistrationSchema } from '../types';
 import {
   saveRegistration,
   updateRegistration,
-  validateUpdateRegistrationAuthorization,
-  validateCreateRegistrationAuthorization,
+  getUserRegistration,
   validateEventFields,
 } from '../services/registrations';
+import { isUserIsPartOfGroup } from '../services/groups';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
@@ -60,14 +60,14 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: brokenRules });
     }
 
-    const canRegisterGroup = await validateCreateRegistrationAuthorization({
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
       dbPool,
       userId,
       groupId: body.data.groupId,
     });
 
-    if (!canRegisterGroup) {
-      return res.status(400).json({ errors: ['Cannot register for this group'] });
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
     }
 
     try {
@@ -105,23 +105,31 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: brokenRules });
     }
 
-    const canUpdateRegistration = await validateUpdateRegistrationAuthorization({
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
       dbPool,
-      registrationId,
       userId,
       groupId: body.data.groupId,
     });
 
-    if (!canUpdateRegistration) {
-      return res.status(400).json({ errors: ['Cannot update this registration'] });
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
+    }
+
+    const existingRegistration = await getUserRegistration({
+      dbPool,
+      registrationId,
+      userId,
+    });
+
+    if (!existingRegistration) {
+      return res.status(400).json({ errors: ['Can not update this registration'] });
     }
 
     try {
       const out = await updateRegistration({
         data: body.data,
+        registration: existingRegistration,
         dbPool,
-        registrationId,
-        userId,
       });
       return res.json({ data: out });
     } catch (e) {

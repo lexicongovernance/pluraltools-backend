@@ -12,7 +12,7 @@ import { logger } from '../utils/logger';
  * @param {UserData} userData - The user data to check.
  * @returns {Promise<Array<string> | null>} - An array of errors if user data conflicts, otherwise null.
  */
-async function validateUserData(
+export async function validateUserData(
   dbPool: NodePgDatabase<typeof db>,
   userId: string,
   userData: UserData,
@@ -52,7 +52,7 @@ async function validateUserData(
  * @param {string} userId - The ID of the user to update.
  * @param {UserData} userData - The updated user data.
  */
-async function upsertUserData(
+export async function upsertUserData(
   dbPool: NodePgDatabase<typeof db>,
   userId: string,
   userData: UserData,

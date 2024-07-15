@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import * as db from '../db';
-import { saveVotes } from '../services/votes';
+import { validateAndSaveVotes, updateOptionScore } from '../services/votes';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
@@ -30,13 +30,19 @@ export function saveVotesHandler(dbPool: NodePgDatabase<typeof db>) {
 
     // Insert votes
     try {
-      const votes = await saveVotes(dbPool, reqBody.data, userId);
+      const voteResults = await validateAndSaveVotes(dbPool, reqBody.data, userId);
 
-      if (votes.errors && votes.errors.length > 0) {
-        return res.status(400).json({ errors: votes.errors });
+      if (voteResults.errors && voteResults.errors.length > 0) {
+        return res.status(400).json({ errors: voteResults.errors });
       }
 
-      return res.json({ data: votes.data });
+      const optionScores = await updateOptionScore(dbPool, reqBody.data, voteResults.questionIds);
+
+      if (optionScores.errors && optionScores.errors.length > 0) {
+        return res.status(400).json({ errors: optionScores.errors });
+      }
+
+      return res.json({ data: optionScores.data });
     } catch (e) {
       logger.error(`error saving votes: ${e}`);
       return res.status(500).json({ errors: e });
