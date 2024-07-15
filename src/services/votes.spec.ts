@@ -19,6 +19,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import { logger } from '../utils/logger';
 
 describe('service: votes', () => {
   let dbPool: NodePgDatabase<typeof db>;
@@ -142,7 +143,7 @@ describe('service: votes', () => {
     });
     // save a second user vote
     const res = await saveVote(dbPool, { ...testData, userId: secondUser!.id });
-    console.log(res);
+    logger.debug(res);
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
 
     expect(voteArray).toBeDefined();

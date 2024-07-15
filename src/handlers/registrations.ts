@@ -10,6 +10,7 @@ import {
 } from '../services/registrations';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -73,7 +74,7 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       const out = await saveRegistration(dbPool, body.data);
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving registration ' + e);
+      logger.error('error saving registration ' + e);
       return res.sendStatus(500);
     }
   };
@@ -124,7 +125,7 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       });
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving registration ' + e);
+      logger.error('error saving registration ' + e);
       return res.sendStatus(500);
     }
   };

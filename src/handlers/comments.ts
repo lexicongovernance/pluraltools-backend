@@ -5,6 +5,7 @@ import { deleteCommentLike, saveCommentLike, userCanLike } from '../services/lik
 import { insertCommentSchema } from '../types';
 import { deleteComment, saveComment, userCanComment } from '../services/comments';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function getCommentLikesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -65,7 +66,7 @@ export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: deletedLike.data });
     } catch (e) {
-      console.error(`[ERROR] ${e}`);
+      logger.error(`[ERROR] ${e}`);
       return res.status(500).json({ errors: ['Failed to delete like'] });
     }
   };
@@ -95,7 +96,7 @@ export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
       const out = await saveComment(dbPool, body.data, userId);
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving comment ' + e);
+      logger.error('error saving comment ' + e);
       return res.sendStatus(500);
     }
   };
@@ -125,7 +126,7 @@ export function deleteCommentHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: deletedComment.data });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return res.status(500).json({ errors: ['Failed to delete comment'] });
     }
   };

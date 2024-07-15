@@ -1,6 +1,7 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { sql } from 'drizzle-orm';
+import { logger } from '../utils/logger';
 
 type ResultData = {
   numProposals: number;
@@ -268,7 +269,7 @@ export async function executeResultQueries(
 
     return responseData;
   } catch (error) {
-    console.error('Error in executeQueries:', error);
+    logger.error('Error in executeQueries:', error);
     throw new Error('Error executing database queries');
   }
 }

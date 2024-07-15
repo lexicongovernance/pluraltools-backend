@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { insertUserSchema } from '../types/users';
+import { logger } from '../utils/logger';
 
 describe('service: users', function () {
   describe('schema: insertUserSchema', function () {
@@ -18,7 +19,7 @@ describe('service: users', function () {
       // loop through all keys and check if they are not empty strings
 
       for (const key of Object.keys(transformedUser)) {
-        console.log(key);
+        logger.debug(key);
         expect(transformedUser[key]).not.toBe('');
       }
     });

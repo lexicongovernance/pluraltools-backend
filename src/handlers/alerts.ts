@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import * as db from '../db';
 import { and, eq, gte, lte, or } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function getActiveAlerts(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -15,7 +16,7 @@ export function getActiveAlerts(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: alerts });
     } catch (e) {
-      console.error(`[ERROR] ${JSON.stringify(e)}`);
+      logger.error(`[ERROR] ${JSON.stringify(e)}`);
       return res.sendStatus(500);
     }
   };

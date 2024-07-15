@@ -27,17 +27,3 @@ export function quadraticVoting(votes: Record<string, number>): [Record<string, 
 
   return [quadraticVotesDict, sumQuadraticVotes];
 }
-
-/*
-// Example usage:
-const votes: Record<string, number> = {
-  "user1": 4,
-  "user2": 9,
-  "user3": 16,
-};
-
-const [result, sum] = quadraticVoting(votes);
-
-console.log('Quadratic Votes:', result);
-console.log('Sum of Quadratic Votes:', sum);
-*/

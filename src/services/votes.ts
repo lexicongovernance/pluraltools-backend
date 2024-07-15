@@ -7,6 +7,7 @@ import { CycleStatusType } from '../types/cycles';
 import { z } from 'zod';
 import { quadraticVoting } from '../modules/quadratic-voting';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 /**
  * Saves votes submitted by a user.
@@ -131,7 +132,7 @@ export async function queryGroupCategories(
   const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId!);
 
   if (groupCategoryIds.length === 0) {
-    console.error('Group Category ID is Missing');
+    logger.error('Group Category ID is Missing');
     return [];
   }
 

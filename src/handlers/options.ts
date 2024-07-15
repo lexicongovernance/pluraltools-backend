@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import * as db from '../db';
 import { getOptionUsers, getOptionComments } from '../services/comments';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -43,7 +44,7 @@ export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: commentsWithUserNames });
     } catch (error) {
-      console.error('Error getting comments: ', error);
+      logger.error('Error getting comments: ', error);
       return res.sendStatus(500);
     }
   };
@@ -74,7 +75,7 @@ export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof db>) {
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getOptionUsers:', error);
+      logger.error('Error in getOptionUsers:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   };

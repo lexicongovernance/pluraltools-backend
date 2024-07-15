@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { insertOptionsSchema } from '../types/options';
 import { fieldsSchema } from '../types';
 import { enforceRules } from './validation';
+import { logger } from '../utils/logger';
 
 export function availableHearts(
   numProposals: number,
@@ -27,7 +28,7 @@ export function availableHearts(
   }
 
   if (numProposals < 2) {
-    console.error('Number of proposals must be at least 2');
+    logger.error('Number of proposals must be at least 2');
     return 0;
   }
 
@@ -35,7 +36,7 @@ export function availableHearts(
   const minHearts = baseDenominator + (numProposals - 2) * baseDenominator;
 
   if (maxVotes / minHearts !== maxRatio) {
-    console.error('baseNumerator/baseDenominator does not equal the specified max ratio');
+    logger.error('baseNumerator/baseDenominator does not equal the specified max ratio');
     return 0;
   }
 

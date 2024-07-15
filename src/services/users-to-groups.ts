@@ -1,6 +1,7 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as db from '../db';
 import { eq, and } from 'drizzle-orm';
+import { logger } from '../utils/logger';
 
 export async function createUsersToGroups(
   dbPool: NodePgDatabase<typeof db>,
@@ -12,7 +13,7 @@ export async function createUsersToGroups(
   });
 
   if (!group) {
-    console.error('Group not found with ID:', groupId);
+    logger.error('Group not found with ID:', groupId);
     throw new Error('Group not found');
   }
 
@@ -21,7 +22,7 @@ export async function createUsersToGroups(
   });
 
   if (existingUserToGroup) {
-    console.error(userId, 'is already part of group:', groupId);
+    logger.error(userId, 'is already part of group:', groupId);
     throw new Error('User is already part of the group');
   }
 
@@ -47,7 +48,7 @@ export async function updateUsersToGroups({
   });
 
   if (!group) {
-    console.error('Group not found with ID:', groupId);
+    logger.error('Group not found with ID:', groupId);
     throw new Error('Group not found');
   }
 

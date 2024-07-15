@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { quadraticVoting } from './quadratic-voting';
 
 describe('quadraticVoting', () => {
@@ -33,8 +34,8 @@ describe('quadraticVoting', () => {
     };
     const [result, sum] = quadraticVoting(votes);
 
-    console.log('Quadratic Votes:', result);
-    console.log('Sum of Quadratic Votes:', sum);
+    logger.debug('Quadratic Votes:', result);
+    logger.debug('Sum of Quadratic Votes:', sum);
     expect(true).toBe(true);
   });
 });
