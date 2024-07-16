@@ -28,7 +28,7 @@ export function availableHearts(
   }
 
   if (numProposals < 2) {
-    logger.error('Number of proposals must be at least 2');
+    logger.debug('Number of proposals must be at least 2');
     return 0;
   }
 
@@ -36,7 +36,7 @@ export function availableHearts(
   const minHearts = baseDenominator + (numProposals - 2) * baseDenominator;
 
   if (maxVotes / minHearts !== maxRatio) {
-    logger.error('baseNumerator/baseDenominator does not equal the specified max ratio');
+    logger.debug('baseNumerator/baseDenominator does not equal the specified max ratio');
     return 0;
   }
 
@@ -55,7 +55,7 @@ export async function getQuestionHearts(
   const numOptions = await dbPool.execute<{ countOptions: number }>(
     sql.raw(`
             SELECT count("id") AS "countOptions"   
-            FROM question_options
+            FROM options
             WHERE question_id = '${forumQuestionId}'
           `),
   );
