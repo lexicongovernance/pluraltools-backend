@@ -10,16 +10,14 @@ on:
 
 jobs:
   testing:
-    # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
 
-    # Service containers to run with `runner-job`
     services:
-      # Label used to access the service container
       postgres:
-        # Docker Hub image
         image: postgres
-        # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: secretpassword
           POSTGRES_USER: postgres
@@ -40,11 +38,11 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+          version: 9
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
       - name: Install dependencies
