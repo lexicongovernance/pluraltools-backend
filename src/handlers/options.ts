@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import * as db from '../db';
 import { getOptionUsers, getOptionComments } from '../services/comments';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 import { insertOptionsSchema } from '../types';
 import { isUserIsPartOfGroup } from '../services/groups';
 import {
@@ -52,7 +53,7 @@ export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: commentsWithUserNames });
     } catch (error) {
-      console.error('Error getting comments: ', error);
+      logger.error('Error getting comments: ', error);
       return res.sendStatus(500);
     }
   };
@@ -83,7 +84,7 @@ export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof db>) {
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getOptionUsers:', error);
+      logger.error('Error in getOptionUsers:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
@@ -130,7 +131,7 @@ export function saveOptionHandler(dbPool: NodePgDatabase<typeof db>) {
       const out = await saveOption(dbPool, body.data);
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving option ' + e);
+      logger.error('error saving option ' + e);
       return res.sendStatus(500);
     }
   };
@@ -188,7 +189,7 @@ export function updateOptionHandler(dbPool: NodePgDatabase<typeof db>) {
       });
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving option ' + e);
+      logger.error('error saving option ' + e);
       return res.sendStatus(500);
     }
   };

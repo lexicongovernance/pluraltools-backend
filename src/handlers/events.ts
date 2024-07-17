@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 import * as db from '../db';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
   return async function (req: Request, res: Response) {
@@ -105,7 +106,7 @@ export function getEventRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) 
 
       return res.json({ data: out });
     } catch (e) {
-      console.log('error getting registration ' + e);
+      logger.error('error getting registration ' + e);
       return res.sendStatus(500);
     }
   };

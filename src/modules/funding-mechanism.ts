@@ -66,31 +66,3 @@ export function allocateFunding(
     remaining_funding: funding,
   };
 }
-
-// Example usage:
-/*
-const funding = 15000;
-const maxFunding = 10000;
-
-const getOptionData = [
-  {
-    id: "ID1",
-    voteScore: "5.5",
-    fundingRequest: "10000",
-  },
-  {
-    id: "ID2",
-    voteScore: "6",
-    fundingRequest: "8500",
-  },
-  {
-    id: "ID3",
-    voteScore: "8",
-    fundingRequest: "2500",
-  },
-];
-
-const result = allocateFunding(funding, maxFunding, getOptionData);
-
-console.log(result);
-*/

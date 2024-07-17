@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client, Pool } from 'pg';
 import * as db from '../../db';
+import { logger } from '../logger';
 
 /**
  * creates a postgres database pool connection
@@ -30,7 +31,7 @@ export function createDbPool({
   // the pool will emit an error on behalf of any idle clients
   // it contains if a backend error or network partition happens
   pool.on('error', (err) => {
-    console.error('Unexpected error on idle client', err);
+    logger.error('Unexpected error on idle client', err);
     process.exit(-1);
   });
 
