@@ -3,6 +3,7 @@ import { z } from 'zod';
 import * as db from '../db';
 import { validateAndSaveVotes, updateOptionScore } from '../services/votes';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 /**
  * Handler function that saves votes submitted by a user.
@@ -43,7 +44,7 @@ export function saveVotesHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: optionScores.data });
     } catch (e) {
-      console.error(`[ERROR] ${e}`);
+      logger.error(`error saving votes: ${e}`);
       return res.status(500).json({ errors: e });
     }
   };
