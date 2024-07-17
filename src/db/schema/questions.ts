@@ -14,6 +14,7 @@ export const questions = pgTable('questions', {
   voteModel: varchar('vote_model', { length: 256 }).notNull().default('COCM'),
   showScore: boolean('show_score').default(false),
   fields: jsonb('fields').notNull().default([]),
+  userCanCreate: boolean('user_can_create').default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

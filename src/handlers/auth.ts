@@ -4,6 +4,7 @@ import * as schema from '../db/schema';
 import { createOrSignInPCD } from '../services/auth';
 import { verifyUserSchema } from '../types';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function destroySessionHandler() {
   return function (req: Request, res: Response) {
@@ -18,7 +19,7 @@ export function verifyPCDHandler(dbPool: NodePgDatabase<typeof schema>) {
       const body = verifyUserSchema.safeParse(req.body);
 
       if (!body.success) {
-        console.error(`[ERROR] ${body.error.errors}`);
+        logger.error(`[ERROR] ${body.error.errors}`);
         res.status(400).send({
           errors: body.error.errors,
         });
@@ -30,7 +31,7 @@ export function verifyPCDHandler(dbPool: NodePgDatabase<typeof schema>) {
       const isVerified = await SemaphoreSignaturePCDPackage.verify(pcd);
 
       if (!isVerified) {
-        console.error(`[ERROR] ZK ticket PCD is not valid`);
+        logger.error(`[ERROR] ZK ticket PCD is not valid`);
         res.status(401).send();
         return;
       }
@@ -41,7 +42,7 @@ export function verifyPCDHandler(dbPool: NodePgDatabase<typeof schema>) {
       };
 
       if (pcdUUID.uuid !== body.data.uuid) {
-        console.error(`[ERROR] UUID does not match`);
+        logger.error(`[ERROR] UUID does not match`);
         res.status(401).send();
         return;
       }
@@ -56,12 +57,12 @@ export function verifyPCDHandler(dbPool: NodePgDatabase<typeof schema>) {
         await req.session.save();
         return res.status(200).send({ data: user });
       } catch (e) {
-        console.error(`[ERROR] ${e}`);
+        logger.error(`[ERROR] ${e}`);
         res.status(401).send();
         return;
       }
     } catch (error: unknown) {
-      console.error(`[ERROR] unknown error ${error}`);
+      logger.error(`[ERROR] unknown error ${error}`);
       return res.sendStatus(500).send();
     }
   };

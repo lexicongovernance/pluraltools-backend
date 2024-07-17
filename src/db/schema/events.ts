@@ -3,6 +3,7 @@ import { pgTable, timestamp, uuid, varchar, integer, boolean, jsonb } from 'driz
 import { registrations } from './registrations';
 import { cycles } from './cycles';
 import { registrationFields } from './registration-fields';
+import { groupCategories } from './group-categories';
 
 export const events = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -22,6 +23,7 @@ export const eventsRelations = relations(events, ({ many }) => ({
   registrations: many(registrations),
   registrationFields: many(registrationFields),
   cycles: many(cycles),
+  groupCategories: many(groupCategories),
 }));
 
 export type Event = typeof events.$inferSelect;

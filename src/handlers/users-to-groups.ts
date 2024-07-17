@@ -13,6 +13,7 @@ import {
 } from '../services/users-to-groups';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function joinGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async (req: Request, res: Response) => {
@@ -69,7 +70,7 @@ export function joinGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
         return res.status(500).json({ errors: ['An error occurred while joining the group'] });
       }
     } catch (e) {
-      console.error(e);
+      logger.error('error joining group ' + e);
       return res.status(500).json({ errors: ['An error occurred while joining the group'] });
     }
   };
@@ -98,7 +99,7 @@ export function updateGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
 
       return res.json({ data: userToGroup });
     } catch (e) {
-      console.error(e);
+      logger.error('error updating group membership ' + e);
       return res
         .status(500)
         .json({ errors: ['An error occurred while updating group membership'] });
@@ -130,7 +131,7 @@ export function leaveGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
       if (e instanceof Error) {
         return res.status(400).json({ errors: [e.message] });
       }
-      console.error(e);
+      logger.error('error leaving group ' + e);
       return res.status(500).json({ errors: ['An error occurred while leaving the group'] });
     }
   };

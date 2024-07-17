@@ -5,6 +5,7 @@ import { canCreateGroupInGroupCategory } from '../services/group-categories';
 import { createUsersToGroups } from '../services/users-to-groups';
 import { createSecretGroup, getGroupMembers, getGroupRegistrations } from '../services/groups';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function createGroupHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
@@ -62,7 +63,7 @@ export function getGroupMembersHandler(dbPool: NodePgDatabase<typeof schema>) {
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getGroupMembers:', error);
+      logger.error('Error in getGroupMembers:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
@@ -87,7 +88,7 @@ export function getGroupRegistrationsHandler(dbPool: NodePgDatabase<typeof schem
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getGroupRegistrationsHandler:', error);
+      logger.error('Error in getGroupRegistrationsHandler:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   };

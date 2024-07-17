@@ -1,6 +1,7 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '../utils/logger';
 
 export async function createOrSignInPCD(
   dbPool: NodePgDatabase<typeof schema>,
@@ -35,7 +36,7 @@ export async function createOrSignInPCD(
       return user[0];
     } catch (error: unknown) {
       // repeated subject_provider unique key
-      console.error(`[ERROR] ${error}`);
+      logger.error(`error creating user: ${error}`);
       throw new Error('User already exists');
     }
   } else {

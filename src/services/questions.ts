@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { insertOptionsSchema } from '../types/options';
 import { fieldsSchema } from '../types';
 import { enforceRules } from './validation';
+import { logger } from '../utils/logger';
 
 /**
  * Calculates number of hearts that a participant has available. The underlying assumption of the calculation is
@@ -22,7 +23,7 @@ export function availableHearts(
   }
 
   if (numProposals < 2) {
-    console.error('Number of proposals must be at least 2');
+    logger.debug('Number of proposals must be at least 2');
     return 0;
   }
 
@@ -30,7 +31,7 @@ export function availableHearts(
   const minHearts = baseDenominator + (numProposals - 2) * baseDenominator;
 
   if (maxVotes / minHearts !== maxRatio) {
-    console.error('baseNumerator/baseDenominator does not equal the specified max ratio');
+    logger.debug('baseNumerator/baseDenominator does not equal the specified max ratio');
     return 0;
   }
 
@@ -49,7 +50,7 @@ export async function getQuestionHearts(
   const numOptions = await dbPool.execute<{ countOptions: number }>(
     sql.raw(`
             SELECT count("id") AS "countOptions"   
-            FROM question_options
+            FROM options
             WHERE question_id = '${forumQuestionId}'
           `),
   );

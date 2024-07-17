@@ -3,6 +3,7 @@ import { insertCommentSchema } from '../types';
 import { z } from 'zod';
 import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 /**
  * Inserts a new comment into the database.
@@ -24,7 +25,7 @@ export async function saveComment(
       .returning();
     return newComment[0];
   } catch (error) {
-    console.error('Error in insertComment: ', error);
+    logger.error('Error in insertComment: ', error);
     throw new Error('Failed to insert comment');
   }
 }
@@ -243,7 +244,7 @@ export async function getOptionUsers(
     // Return the first row of query result or null if no data found
     return queryUsers.rows[0] || null;
   } catch (error) {
-    console.error('Error in getOptionUsers:', error);
+    logger.error('Error in getOptionUsers:', error);
     throw new Error('Error executing database query');
   }
 }

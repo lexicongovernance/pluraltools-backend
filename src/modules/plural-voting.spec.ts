@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger';
 import { PluralVoting } from './plural-voting';
 
 // Define instance outside the tests
@@ -247,7 +248,7 @@ describe('clusterMatch', () => {
 
   test('calculates plurality score according to connection oriented cluster match', () => {
     const score = pluralVoting.pluralScoreCalculation();
-    console.log('Plurality Score:', score);
+    logger.debug('Plurality Score:', score);
     expect(true).toBe(true);
   });
 });

@@ -3,11 +3,12 @@ import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
 import { z } from 'zod';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 /**
  * Checks user data for existing entries in the database.
  */
-async function validateUserData(
+export async function validateUserData(
   dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   userData: UserData,
@@ -44,7 +45,7 @@ async function validateUserData(
 /**
  * Upserts user data in the database.
  */
-async function upsertUserData(
+export async function upsertUserData(
   dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   userData: UserData,
@@ -65,7 +66,7 @@ async function upsertUserData(
 
     return user;
   } catch (error) {
-    console.error('Failed to update user data:', error);
+    logger.error('Failed to update user data:', error);
   }
 }
 

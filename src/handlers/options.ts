@@ -3,6 +3,16 @@ import type { Request, Response } from 'express';
 import * as schema from '../db/schema';
 import { getOptionUsers, getOptionComments } from '../services/comments';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
+import { insertOptionsSchema } from '../types';
+import { isUserIsPartOfGroup } from '../services/groups';
+import {
+  getUserOption,
+  saveOption,
+  updateOption,
+  canUserCreateOption,
+  validateOptionData,
+} from '../services/options';
 
 export function getOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
@@ -41,7 +51,7 @@ export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof schema>) 
 
       return res.json({ data: commentsWithUserNames });
     } catch (error) {
-      console.error('Error getting comments: ', error);
+      logger.error('Error getting comments: ', error);
       return res.sendStatus(500);
     }
   };
@@ -66,8 +76,113 @@ export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof schema>) {
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getOptionUsers:', error);
+      logger.error('Error in getOptionUsers:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+}
+
+export function saveOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const userId = req.session.userId;
+    const body = insertOptionsSchema.safeParse(req.body);
+
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.issues });
+    }
+
+    const brokenRules = await validateOptionData({
+      dbPool,
+      option: body.data,
+    });
+
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
+    }
+
+    const userCanCreate = await canUserCreateOption({
+      dbPool,
+      option: body.data,
+    });
+
+    if (!userCanCreate) {
+      return res.status(401).json({ errors: ['User can not create this option'] });
+    }
+
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
+      dbPool,
+      userId,
+      groupId: body.data.groupId,
+    });
+
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
+    }
+
+    try {
+      const out = await saveOption(dbPool, body.data);
+      return res.json({ data: out });
+    } catch (e) {
+      logger.error('error saving option ' + e);
+      return res.sendStatus(500);
+    }
+  };
+}
+
+export function updateOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+  return async function (req: Request, res: Response) {
+    const optionId = req.params.optionId;
+
+    if (!optionId) {
+      return res.status(400).json({ errors: ['optionId is required'] });
+    }
+
+    const userId = req.session.userId;
+    const body = insertOptionsSchema.safeParse(req.body);
+
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.issues });
+    }
+
+    const brokenRules = await validateOptionData({
+      dbPool,
+      option: body.data,
+    });
+
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
+    }
+
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
+      dbPool,
+      userId,
+      groupId: body.data.groupId,
+    });
+
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
+    }
+
+    const existingOption = await getUserOption({
+      dbPool,
+      optionId,
+      userId,
+    });
+
+    if (!existingOption) {
+      return res.status(400).json({ errors: ['Cannot update this option'] });
+    }
+
+    try {
+      const out = await updateOption({
+        data: body.data,
+        option: existingOption,
+        dbPool,
+      });
+      return res.json({ data: out });
+    } catch (e) {
+      logger.error('error saving option ' + e);
+      return res.sendStatus(500);
     }
   };
 }

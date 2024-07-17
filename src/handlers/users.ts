@@ -4,6 +4,7 @@ import * as schema from '../db/schema';
 import { updateUser } from '../services/users';
 import { insertUserSchema } from '../types';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 /**
  * Retrieves user data from the database.
@@ -22,7 +23,7 @@ export function getUserHandler(dbPool: NodePgDatabase<typeof schema>) {
 
       return res.json({ data: user });
     } catch (error: unknown) {
-      console.error(`[ERROR] ${JSON.stringify(error)}`);
+      logger.error(`[ERROR] ${JSON.stringify(error)}`);
       return res.sendStatus(500);
     }
   };
@@ -70,7 +71,7 @@ export function updateUserHandler(dbPool: NodePgDatabase<typeof schema>) {
 
       return res.json({ data: user });
     } catch (e) {
-      console.error(`[ERROR] ${JSON.stringify(e)}`);
+      logger.error(`error updating user ${e}`);
       return res.sendStatus(500);
     }
   };
@@ -100,7 +101,7 @@ export function getUsersToGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
 
       return res.json({ data: query });
     } catch (e) {
-      console.log('error getting groups per user ' + JSON.stringify(e));
+      logger.error('error getting groups per user ' + JSON.stringify(e));
       return res.status(500).json({ error: 'internal server error' });
     }
   };
@@ -131,7 +132,7 @@ export function getUserAttributesHandler(dbPool: NodePgDatabase<typeof schema>) 
 
       return res.json({ data: userAttributes });
     } catch (error: unknown) {
-      console.error(`[ERROR] ${JSON.stringify(error)}`);
+      logger.error(`error getting user attributes ${JSON.stringify(error)}`);
       return res.sendStatus(500);
     }
   };
@@ -197,7 +198,7 @@ export function getUserRegistrationsHandler(dbPool: NodePgDatabase<typeof schema
       });
       return res.json({ data: out });
     } catch (e) {
-      console.log('error getting user registrations ' + e);
+      logger.error('error getting user registrations ' + e);
       return res.sendStatus(500);
     }
   };

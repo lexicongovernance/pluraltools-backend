@@ -1,9 +1,10 @@
 import type { Request, Response } from 'express';
 import * as schema from '../db/schema';
-import { getQuestionHearts } from '../services/forum-questions';
+import { getQuestionHearts } from '../services/questions';
 import { executeResultQueries } from '../services/statistics';
 import { calculateFunding } from '../services/funding-mechanism';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
 export function getQuestionHeartsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
@@ -38,7 +39,7 @@ export function getResultStatisticsHandler(dbPool: NodePgDatabase<typeof schema>
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getResultStatistics:', error);
+      logger.error('Error in getResultStatistics:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
@@ -65,7 +66,7 @@ export function getCalculateFundingHandler(dbPool: NodePgDatabase<typeof schema>
       if (e instanceof Error) {
         return res.status(400).json({ errors: [e.message] });
       }
-      console.error(e);
+      logger.error('Error in getCalculateFunding:', e);
       return res.status(500).json({ errors: ['An error occurred while calculating funding'] });
     }
   };

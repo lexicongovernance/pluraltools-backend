@@ -8,67 +8,132 @@ import { quadraticVoting } from '../modules/quadratic-voting';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /**
- * Saves votes submitted by a user.
+ * Validates and saves votes submitted by a user.
  *
- * This function validates and saves each vote provided in the `data` array for the specified `userId`.
- * It then updates the vote count for each option based on the vote model associated with the question.
+ * This function validates each vote provided in the `data` array for the specified `userId`.
+ * If all votes are valid, it saves each vote to the database.
  */
-export async function saveVotes(
+export async function validateAndSaveVotes(
   dbPool: NodePgDatabase<typeof schema>,
   data: { optionId: string; numOfVotes: number }[],
   userId: string,
-): Promise<{ data: schema.Vote[]; errors: string[] }> {
+): Promise<{ data: schema.Vote[] | null; questionIds: string[]; errors: string[] }> {
   const voteData: schema.Vote[] = [];
+  const questionIds: string[] = [];
   const errors: string[] = [];
 
   for (const vote of data) {
-    const { data, error } = await validateAndSaveVote(dbPool, vote, userId);
-    if (data) {
-      voteData.push(data);
-    }
-    if (error) {
+    // Validate the vote
+    const { isValid, error } = await validateVote(dbPool, vote, userId);
+    if (!isValid && error) {
       errors.push(error);
+      continue;
+    }
+
+    // Find the question option if the vote is valid
+    const queryQuestionOption = await dbPool.query.options.findFirst({
+      where: eq(schema.options.id, vote.optionId),
+    });
+
+    if (!queryQuestionOption) {
+      errors.push(`No option found for optionId: ${vote.optionId}`);
+      continue;
+    }
+
+    // Save the vote
+    const { data: savedVote, error: saveError } = await saveVote(
+      dbPool,
+      vote,
+      userId,
+      queryQuestionOption.questionId,
+    );
+    if (saveError) {
+      errors.push(saveError);
+    } else if (savedVote) {
+      voteData.push(savedVote);
+      questionIds.push(queryQuestionOption.questionId);
     }
   }
 
-  const queryQuestionOption = await dbPool.query.options.findFirst({
-    where: eq(schema.options.id, voteData[0]!.optionId),
-  });
+  return { data: voteData.length > 0 ? voteData : null, questionIds, errors };
+}
 
-  if (!queryQuestionOption) {
-    errors.push('No option found for the provided optionId');
-    return { data: voteData, errors };
+/**
+ * Updates option scores based on the vote model.
+ */
+export async function updateOptionScore(
+  dbPool: NodePgDatabase<typeof schema>,
+  data: { optionId: string; numOfVotes: number }[],
+  questionIds: string[],
+): Promise<{ data: { optionId: string; score: number }[] | null; errors: string[] }> {
+  const scores: { optionId: string; score: number }[] = [];
+  const errors: string[] = [];
+
+  // Check if all questionIds are the same
+  const firstQuestionId = questionIds[0];
+  if (!questionIds.every((questionId) => questionId === firstQuestionId)) {
+    errors.push('Not all questionIds are the same');
+    return { data: null, errors };
   }
 
-  const queryForumQuestion = await dbPool.query.questions.findFirst({
-    where: eq(schema.questions.id, queryQuestionOption!.questionId),
-  });
+  if (!firstQuestionId) {
+    errors.push('No question Id found');
+    return { data: null, errors };
+  }
 
-  if (!queryForumQuestion) {
+  // Query group data, grouping dimensions, and calculate the score
+  const queryQuestion = await dbPool
+    .select({
+      questionId: schema.questions.id,
+      voteModel: schema.questions.voteModel,
+    })
+    .from(schema.questions)
+    .where(eq(schema.questions.id, firstQuestionId));
+
+  if (queryQuestion.length === 0) {
     errors.push('No question found for the provided questionId');
-    return { data: voteData, errors };
+    return { data: null, errors };
   }
 
-  // Define available voting models
-  const voteModelUpdateFunctions = {
-    COCM: updateVoteScorePlural,
-    QV: updateVoteScoreQuadratic,
+  const voteModel = queryQuestion[0]?.voteModel;
+
+  interface VoteModelUpdateFunction {
+    ({
+      dbPool,
+      optionId,
+      questionId,
+    }: {
+      dbPool: NodePgDatabase<typeof schema>;
+      optionId: string;
+      questionId: string;
+    }): Promise<number>;
+  }
+
+  const voteModelUpdateFunctions: Record<string, VoteModelUpdateFunction> = {
+    COCM: ({ dbPool, optionId, questionId }) => updateVoteScorePlural(dbPool, optionId, questionId),
+    QV: ({ dbPool, optionId }) => updateVoteScoreQuadratic(dbPool, optionId),
   };
 
   const updateFunction =
-    voteModelUpdateFunctions[
-      queryForumQuestion?.voteModel as keyof typeof voteModelUpdateFunctions
-    ];
-
-  const uniqueOptionIds = voteData.map((vote) => vote.optionId);
+    voteModelUpdateFunctions[voteModel as keyof typeof voteModelUpdateFunctions];
 
   if (!updateFunction) {
-    errors.push('Unsupported vote model: ' + queryForumQuestion.voteModel);
-  } else {
-    await Promise.all(uniqueOptionIds.map((optionId) => updateFunction(dbPool, optionId)));
+    errors.push('Unsupported vote model: ' + voteModel);
+    return { data: null, errors };
   }
 
-  return { data: voteData, errors };
+  await Promise.all(
+    data.map(async ({ optionId }) => {
+      try {
+        const score = await updateFunction({ dbPool, optionId, questionId: firstQuestionId });
+        scores.push({ optionId: optionId, score: score });
+      } catch (error) {
+        errors.push(`Failed to update score for optionId: ${optionId}`);
+      }
+    }),
+  );
+
+  return { data: scores.length > 0 ? scores : null, errors };
 }
 
 /**
@@ -110,10 +175,19 @@ export function numOfVotesDictionary(voteArray: Array<{ userId: string; numOfVot
   return numOfVotesDictionary;
 }
 
+/**
+ * Queries the group categories associated with a given question ID from the database.
+ *
+ * @param dbPool - The database pool to use for querying.
+ * @param questionId - The ID of the question to retrieve group categories for.
+ * @returns A promise that resolves to an object containing:
+ *   - `data`: An array of group category IDs if found, otherwise `null`.
+ *   - `error`: A string describing the error if no group categories are found, otherwise `null`.
+ */
 export async function queryGroupCategories(
   dbPool: NodePgDatabase<typeof schema>,
   questionId: string,
-): Promise<string[]> {
+): Promise<{ data: string[] | null; error: string | null }> {
   const groupCategories = await dbPool
     .select({
       groupCategoryId: schema.questionsToGroupCategories.groupCategoryId,
@@ -121,15 +195,13 @@ export async function queryGroupCategories(
     .from(schema.questionsToGroupCategories)
     .where(eq(schema.questionsToGroupCategories.questionId, questionId));
 
-  // Need to due this adjustment because currently groupCategoryId is nullable in the datatable definition.
-  const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId!);
-
-  if (groupCategoryIds.length === 0) {
-    console.error('Group Category ID is Missing');
-    return [];
+  if (groupCategories.length === 0) {
+    return { data: null, error: 'No group categories found for the given question Id' };
   }
 
-  return groupCategoryIds;
+  const groupCategoryIds: string[] = groupCategories.map((category) => category.groupCategoryId);
+
+  return { data: groupCategoryIds, error: null };
 }
 
 /**
@@ -199,7 +271,6 @@ export async function updateVoteScoreInDatabase(
   optionId: string,
   score: number,
 ) {
-  // Update vote score in the database
   await dbPool
     .update(schema.options)
     .set({
@@ -222,21 +293,13 @@ export async function updateVoteScoreInDatabase(
 export async function updateVoteScorePlural(
   dbPool: NodePgDatabase<typeof schema>,
   optionId: string,
+  questionId: string,
 ): Promise<number> {
   // Query and transform vote data
   const voteArray = await queryVoteData(dbPool, optionId);
   const votesDictionary = await numOfVotesDictionary(voteArray);
-
-  // Query group data, grouping dimensions, and calculate the score
-  const queryQuestionId = await dbPool
-    .select({
-      questionId: schema.options.questionId,
-    })
-    .from(schema.options)
-    .where(eq(schema.options.id, optionId));
-
-  const groupCategories = await queryGroupCategories(dbPool, queryQuestionId[0]!.questionId);
-  const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories ?? []);
+  const groupCategories = await queryGroupCategories(dbPool, questionId);
+  const groupArray = await groupsDictionary(dbPool, votesDictionary, groupCategories.data!);
   const score = await calculatePluralScore(groupArray, votesDictionary);
 
   await updateVoteScoreInDatabase(dbPool, optionId, score);
@@ -268,37 +331,68 @@ export async function updateVoteScoreQuadratic(
 }
 
 /**
- * Validates and saves a vote for a user in the database.
+ * This function performs several validation steps for the provided vote object:
+ * 1. Checks if the option ID is provided.
+ * 2. Verifies the existence of the option in the database.
+ * 3. Confirms that the associated voting cycle is open.
+ * 4. Checks if the user is eligible to vote.
  *
- * This function validates the provided vote object, checks if the option exists,
- * inserts the vote into the database, and returns the saved vote data or an error message.
- *
- * @param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
- * @param {{ optionId: string; numOfVotes: number }} vote - The vote object containing option ID and number of votes.
- * @param {string} userId - The ID of the user who is voting.
+ * If all validations pass, the vote is considered valid. Otherwise, an appropriate error message is returned.
  */
-async function validateAndSaveVote(
+export async function validateVote(
   dbPool: NodePgDatabase<typeof schema>,
   vote: { optionId: string; numOfVotes: number },
   userId: string,
-): Promise<{ data: schema.Vote | null | undefined; error: string | null | undefined }> {
+): Promise<{ isValid: boolean; error: string | null }> {
   if (!vote.optionId) {
-    return { data: null, error: 'optionId is required' };
+    return { isValid: false, error: 'Option Id is required' };
   }
 
+  // check if the option exists
   const queryQuestionOption = await dbPool.query.options.findFirst({
     where: eq(schema.options.id, vote.optionId),
   });
 
   if (!queryQuestionOption) {
-    return { data: null, error: 'Option not found' };
+    return { isValid: false, error: 'Option not found' };
   }
 
+  // check cycle status
+  const queryQuestion = await dbPool.query.questions.findFirst({
+    where: eq(schema.questions.id, queryQuestionOption.questionId),
+    with: {
+      cycle: true,
+    },
+  });
+
+  if ((queryQuestion?.cycle?.status as CycleStatusType) !== 'OPEN') {
+    return { isValid: false, error: 'Cycle is not open' };
+  }
+
+  // check if the user can vote
+  const canVote = await userCanVote(dbPool, userId, vote.optionId);
+  if (!canVote) {
+    return { isValid: false, error: 'User cannot vote' };
+  }
+
+  return { isValid: true, error: null };
+}
+
+/**
+ * Saves a vote in the database.
+ *
+ */
+export async function saveVote(
+  dbPool: NodePgDatabase<typeof schema>,
+  vote: { optionId: string; numOfVotes: number },
+  userId: string,
+  questionId: string,
+): Promise<{ data: schema.Vote | null; error: string | null | undefined }> {
   const insertVoteBody: z.infer<typeof insertVotesSchema> = {
     optionId: vote.optionId,
     numOfVotes: vote.numOfVotes,
     userId: userId,
-    questionId: queryQuestionOption.questionId,
+    questionId: questionId,
   };
 
   const body = insertVotesSchema.safeParse(insertVoteBody);
@@ -307,62 +401,22 @@ async function validateAndSaveVote(
     return { data: null, error: body.error.errors[0]?.message };
   }
 
-  // check if user can vote
-  const canVote = await userCanVote(dbPool, userId, vote.optionId);
-  if (!canVote) {
-    return { data: null, error: 'User cannot vote' };
-  }
-
-  const newVote = await saveVote(dbPool, insertVoteBody);
-
-  if (newVote.errors) {
-    return { data: null, error: newVote.errors[0]?.message };
-  }
-
-  if (!newVote.data) {
-    return { data: null, error: 'Failed to insert vote' };
-  }
-
-  return { data: newVote.data, error: null };
-}
-
-/**
- * Saves a vote in the database.
- *
- * This function checks if the cycle for the given question is open,
- * then inserts the provided vote data into the database and returns the saved vote data.
- *
- * @param { NodePgDatabase<typeof schema>} dbPool - The database connection pool.
- * @param {z.infer<typeof insertVotesSchema>} vote - The vote data to be saved.
- */
-export async function saveVote(
-  dbPool: NodePgDatabase<typeof schema>,
-  vote: z.infer<typeof insertVotesSchema>,
-) {
-  // check if cycle is open
-  const queryQuestion = await dbPool.query.questions.findFirst({
-    where: eq(schema.questions.id, vote?.questionId ?? ''),
-    with: {
-      cycle: true,
-    },
-  });
-
-  if ((queryQuestion?.cycle?.status as CycleStatusType) !== 'OPEN') {
-    return { errors: [{ message: 'Cycle is not open' }] };
-  }
-
   // save the votes
   const newVote = await dbPool
     .insert(schema.votes)
     .values({
-      userId: vote.userId,
-      numOfVotes: vote.numOfVotes,
-      optionId: vote.optionId,
-      questionId: vote.questionId,
+      userId: insertVoteBody.userId,
+      numOfVotes: insertVoteBody.numOfVotes,
+      optionId: insertVoteBody.optionId,
+      questionId: insertVoteBody.questionId,
     })
     .returning();
 
-  return { data: newVote[0] };
+  if (!newVote || newVote.length === 0 || !newVote[0]) {
+    return { data: null, error: 'Failed to insert vote in the db' };
+  }
+
+  return { data: newVote[0], error: null };
 }
 
 /**
