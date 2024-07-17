@@ -7,7 +7,6 @@ import { CycleStatusType } from '../types/cycles';
 import { z } from 'zod';
 import { quadraticVoting } from '../modules/quadratic-voting';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { logger } from '../utils/logger';
 
 /**
  * Validates and saves votes submitted by a user.
