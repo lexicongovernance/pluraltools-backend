@@ -6,6 +6,8 @@ import { getOptionUsers } from './comments';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import { describe, before, test, after } from 'node:test';
+import { assert } from 'node:console';
 
 describe('service: comments', () => {
   let dbPool: NodePgDatabase<typeof schema>;
@@ -18,7 +20,7 @@ describe('service: comments', () => {
   let user: schema.User | undefined;
   let otherUser: schema.User | undefined;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
       database: envVariables.DATABASE_NAME,
@@ -97,16 +99,16 @@ describe('service: comments', () => {
 
     // Call getOptionAuthors with the required parameters
     const result = await getOptionUsers(optionId, dbPool);
-    expect(result).toBeDefined();
+    assert(result !== null);
   });
 
   test('should return null if optionId does not exist', async () => {
     const nonExistentOptionId = '00000000-0000-0000-0000-000000000000';
     const result = await getOptionUsers(nonExistentOptionId, dbPool);
-    expect(result).toBeNull();
+    assert(result === null);
   });
 
-  afterAll(async () => {
+  after(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
   });

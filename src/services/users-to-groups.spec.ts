@@ -6,13 +6,16 @@ import { randUuid } from '@ngneat/falso';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { environmentVariables } from '../types';
+import { describe, before, test, after } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('service: usersToGroups', function () {
   let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
   let user: schema.User | undefined;
   let defaultGroups: schema.Group[];
-  beforeAll(async function () {
+
+  before(async function () {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
       database: envVariables.DATABASE_NAME,
@@ -53,8 +56,8 @@ describe('service: usersToGroups', function () {
       where: eq(schema.usersToGroups.userId, newUser?.id ?? ''),
     });
 
-    expect(newUserGroup).toBeDefined();
-    expect(newUserGroup?.userId).toBe(newUser?.id);
+    assert(newUserGroup);
+    assert.equal(newUserGroup.userId, newUser?.id);
   });
 
   test('can save another group for the same user with a different category id', async function () {
@@ -73,9 +76,9 @@ describe('service: usersToGroups', function () {
       ),
     });
 
-    expect(newUserGroup).toBeDefined();
-    expect(newUserGroup?.userId).toBe(newUser?.id);
-    expect(newUserGroup?.groupId).toBe(defaultGroups[2]?.id);
+    assert(newUserGroup);
+    assert.equal(newUserGroup.userId, newUser?.id);
+    assert.equal(newUserGroup.groupId, defaultGroups[2]?.id);
   });
 
   test('can update user groups', async function () {
@@ -102,26 +105,27 @@ describe('service: usersToGroups', function () {
       ),
     });
 
-    expect(newUserGroup).toBeDefined();
-    expect(newUserGroup?.userId).toBe(newUser?.id);
-    expect(newUserGroup?.groupId).toBe(defaultGroups[1]?.id);
-    expect(newUserGroup?.groupId).not.toBe(defaultGroups[2]?.id);
+    assert(newUserGroup);
+    assert(newUserGroup?.userId);
+    assert.equal(newUserGroup?.userId, newUser?.id);
+    assert.equal(newUserGroup?.groupId, defaultGroups[1]?.id);
+    assert.notEqual(newUserGroup?.groupId, defaultGroups[2]?.id);
   });
 
   test('handles non-existent group IDs', async function () {
     const nonExistentGroupId = randUuid();
 
-    await expect(
+    await assert.rejects(
       updateUsersToGroups({
         dbPool,
         userId: user?.id ?? '',
         groupId: nonExistentGroupId,
         usersToGroupsId: '',
       }),
-    ).rejects.toThrow();
+    );
   });
 
-  afterAll(async () => {
+  after(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
   });

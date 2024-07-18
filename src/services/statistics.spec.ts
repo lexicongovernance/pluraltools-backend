@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { executeResultQueries } from './statistics';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import { describe, before, test, after } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('service: statistics', () => {
   let dbPool: NodePgDatabase<typeof schema>;
@@ -16,7 +18,7 @@ describe('service: statistics', () => {
   let user: schema.User | undefined;
   let otherUser: schema.User | undefined;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
       database: envVariables.DATABASE_NAME,
@@ -68,44 +70,45 @@ describe('service: statistics', () => {
     const result = await executeResultQueries(questionId, dbPool);
 
     // Test aggregate result statistics
-    expect(result).toBeDefined();
-    expect(result.numProposals).toEqual(2);
-    expect(result.sumNumOfHearts).toEqual(8);
-    expect(result.numOfParticipants).toEqual(2);
-    expect(result.numOfGroups).toEqual(1);
+    assert(result);
+    assert.equal(result.numProposals, 2, 'Number of proposals should be 2');
+    assert.equal(result.sumNumOfHearts, 8);
+    assert.equal(result.numOfParticipants, 2, 'Number of participants should be 2');
+    assert.equal(result.numOfGroups, 1, 'Number of groups should be 1');
 
     // Test option stats
-    expect(result.optionStats).toBeDefined();
-    expect(Object.keys(result.optionStats)).toHaveLength(2);
+    assert(result.optionStats);
+    assert.equal(Object.keys(result.optionStats).length, 2, 'Number of options should be 2');
 
     for (const optionId in result.optionStats) {
       const optionStat = result.optionStats[optionId];
-      expect(optionStat).toBeDefined();
-      expect(optionStat?.title).toBeDefined();
-      expect(optionStat?.subTitle).toBeDefined();
-      expect(optionStat?.pluralityScore).toBeDefined();
-      expect(optionStat?.distinctUsers).toBeDefined();
-      expect(optionStat?.allocatedHearts).toBeDefined();
-      expect(optionStat?.quadraticScore).toBeDefined();
-      expect(optionStat?.distinctGroups).toBeDefined();
-      expect(optionStat?.listOfGroupNames).toBeDefined();
+      assert(optionStat);
+      assert(optionStat.title);
+      assert(optionStat.subTitle);
+      assert(optionStat.pluralityScore);
+      assert(optionStat.distinctUsers);
+      assert(optionStat.allocatedHearts);
+      assert(optionStat.quadraticScore);
+      assert(optionStat.distinctGroups);
+      assert(optionStat?.listOfGroupNames);
 
       // Add assertions for distinct users and allocated hearts
       if (optionId === questionOption?.id) {
         // Assuming this option belongs to the user
-        expect(optionStat?.distinctUsers).toEqual(2);
-        expect(optionStat?.allocatedHearts).toEqual(8);
-        expect(optionStat?.quadraticScore).toEqual('4');
-        expect(optionStat?.distinctGroups).toEqual(1);
+        assert.equal(optionStat?.distinctUsers, 2);
+        assert.equal(optionStat?.allocatedHearts, 8);
+        assert.equal(optionStat?.pluralityScore, '4');
+        assert.equal(optionStat?.quadraticScore, 16);
+        assert.equal(optionStat?.distinctGroups, 1);
         const listOfGroupNames = optionStat?.listOfGroupNames;
         // Check if the array is not empty
-        expect(listOfGroupNames).toBeDefined();
-        expect(listOfGroupNames?.length).toBeGreaterThan(0);
+        assert(listOfGroupNames);
+        assert(listOfGroupNames?.length > 0);
       }
     }
   });
 
-  afterAll(async () => {
+  after(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
   });

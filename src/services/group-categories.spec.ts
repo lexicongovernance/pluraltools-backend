@@ -5,13 +5,15 @@ import { canCreateGroupInGroupCategory, canViewGroupsInGroupCategory } from './g
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import { describe, before, test, after } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('service: groupCategories', () => {
   let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
   let groupCategory: schema.GroupCategory | undefined;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
       database: envVariables.DATABASE_NAME,
@@ -45,7 +47,7 @@ describe('service: groupCategories', () => {
 
       const canCreate = await canCreateGroupInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canCreate).toBe(false);
+      assert.equal(canCreate, false);
     });
 
     test('userCanCreate: true', async function () {
@@ -60,7 +62,7 @@ describe('service: groupCategories', () => {
 
       const canCreate = await canCreateGroupInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canCreate).toBe(true);
+      assert.equal(canCreate, true);
     });
   });
 
@@ -77,7 +79,7 @@ describe('service: groupCategories', () => {
 
       const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canView).toBe(false);
+      assert.equal(canView, false);
     });
     test('userCanView: true', async function () {
       if (!groupCategory) {
@@ -91,11 +93,11 @@ describe('service: groupCategories', () => {
 
       const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canView).toBe(true);
+      assert.equal(canView, true);
     });
   });
 
-  afterAll(async () => {
+  after(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
   });

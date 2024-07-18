@@ -4,13 +4,15 @@ import { environmentVariables } from '../types';
 import { calculateFunding } from './funding-mechanism';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import { describe, before, test, after } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('service: funding-mechanism', () => {
   let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
   let question: schema.Question;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
       database: envVariables.DATABASE_NAME,
@@ -36,19 +38,19 @@ describe('service: funding-mechanism', () => {
 
   test('calculateFunding returns and error if the query returns no optionData', async () => {
     const response = await calculateFunding(dbPool, '00000000-0000-0000-0000-000000000000');
-    expect(response.allocatedFunding).toBeNull();
-    expect(response.remainingFunding).toBeNull();
-    expect(response.error).toEqual(expect.any(String));
+    assert.equal(response.allocatedFunding, null);
+    assert.equal(response.remainingFunding, null);
+    assert(response.error);
   });
 
   test('calculateFunding returns the correct funding amount', async () => {
     const response = await calculateFunding(dbPool, question?.id);
-    expect(response.allocatedFunding).toBeDefined();
-    expect(response.remainingFunding).toEqual(100000);
-    expect(response.error).toBeNull();
+    assert(response.allocatedFunding);
+    assert.equal(response.remainingFunding, 100000);
+    assert.equal(response.error, null);
   });
 
-  afterAll(async () => {
+  after(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
   });

@@ -1,4 +1,6 @@
 import { availableHearts } from './questions';
+import { describe, test } from 'node:test';
+import assert from 'node:assert/strict';
 
 // Test availableHearts function
 describe('service: forumQuestions', () => {
@@ -9,7 +11,7 @@ describe('service: forumQuestions', () => {
     const maxRatio = 0.8;
 
     const result = availableHearts(numProposals, baseNumerator, baseDenominator, maxRatio);
-    expect(result).toEqual(5);
+    assert.equal(result, 5);
   });
 
   test('error if max ratio was not calculated correctly', () => {
@@ -19,7 +21,7 @@ describe('service: forumQuestions', () => {
     const maxRatio = 0.9;
 
     const result = availableHearts(numProposals, baseNumerator, baseDenominator, maxRatio);
-    expect(result).toEqual(0);
+    assert.equal(result, 0);
   });
 
   test('returns custom hearts if customHearts is set', () => {
@@ -36,7 +38,7 @@ describe('service: forumQuestions', () => {
       maxRatio,
       customHearts,
     );
-    expect(result).toEqual(customHearts);
+    assert.equal(result, customHearts);
   });
 
   test('executes the function if customHearts is not set', () => {
@@ -46,7 +48,7 @@ describe('service: forumQuestions', () => {
     const maxRatio = 0.8;
 
     const result = availableHearts(numProposals, baseNumerator, baseDenominator, maxRatio);
-    expect(result).toEqual(5);
+    assert.equal(result, 5);
   });
 
   test('executes the function if customHearts is set to less than 2', () => {
@@ -63,7 +65,7 @@ describe('service: forumQuestions', () => {
       maxRatio,
       customHearts,
     );
-    expect(result).toEqual(5);
+    assert.equal(result, 5);
   });
 
   test('that function returns 0 in case the number of proposals are less than 2', () => {
@@ -73,6 +75,6 @@ describe('service: forumQuestions', () => {
     const maxRatio = 0.8;
 
     const result = availableHearts(numProposals, baseNumerator, baseDenominator, maxRatio);
-    expect(result).toEqual(0);
+    assert.equal(result, 0);
   });
 });

@@ -4,6 +4,8 @@ import { createDbClient, cleanup, runMigrations, seed } from '../db';
 import { GetCycleById, getCycleVotes } from './cycles';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { environmentVariables } from '../types';
+import { describe, before, test, after } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('service: cycles', () => {
   let dbPool: NodePgDatabase<typeof schema>;
@@ -14,7 +16,7 @@ describe('service: cycles', () => {
   let user: schema.User | undefined;
   let secondUser: schema.User | undefined;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
       database: envVariables.DATABASE_NAME,
@@ -45,18 +47,13 @@ describe('service: cycles', () => {
 
   test('should get cycle by id', async () => {
     const response = await GetCycleById(dbPool, cycle?.id ?? '');
-    expect(response).toBeDefined();
-    expect(response).toHaveProperty('id');
-    expect(response.id).toEqual(cycle?.id);
-    expect(response).toHaveProperty('status');
-    expect(response.status).toEqual(cycle?.status);
-    expect(response).toHaveProperty('forumQuestions');
-    expect(response.forumQuestions).toEqual(expect.any(Array));
-    expect(response.forumQuestions?.[0]?.questionOptions).toEqual(expect.any(Array));
-    expect(response).toHaveProperty('createdAt');
-    expect(response.createdAt).toEqual(cycle?.createdAt);
-    expect(response).toHaveProperty('updatedAt');
-    expect(response.updatedAt).toEqual(cycle?.updatedAt);
+    assert.equal(response.id, cycle?.id);
+    assert.equal(response.status, cycle?.status);
+    assert(Array.isArray(response.forumQuestions));
+    assert(response.forumQuestions[0]);
+    assert(Array.isArray(response.forumQuestions[0].questionOptions));
+    assert.deepEqual(response.createdAt, cycle?.createdAt);
+    assert.deepEqual(response.updatedAt, cycle?.updatedAt);
   });
 
   test('should get latest votes related to user', async function () {
@@ -77,7 +74,7 @@ describe('service: cycles', () => {
 
     const votes = await getCycleVotes(dbPool, user!.id, cycle!.id);
     // expect the latest votes
-    expect(votes[0]?.numOfVotes).toBe(10);
+    assert.equal(votes[0]?.numOfVotes, 10);
   });
 
   test('should not get votes for other user', async function () {
@@ -100,10 +97,10 @@ describe('service: cycles', () => {
     const votes = await getCycleVotes(dbPool, user!.id, cycle!.id);
 
     // no votes have otherUser's id in array
-    expect(votes.filter((vote) => vote.userId === secondUser?.id).length).toBe(0);
+    assert.equal(votes.filter((vote) => vote.userId === secondUser?.id).length, 0);
   });
 
-  afterAll(async () => {
+  after(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
   });

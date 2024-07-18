@@ -75,7 +75,7 @@ async function seed(dbPool: NodePgDatabase<typeof schema>) {
     {
       questionId: forumQuestions[0]!.id,
       title: 'Great',
-      show: true,
+      show: false,
     },
     {
       questionId: forumQuestions[0]!.id,

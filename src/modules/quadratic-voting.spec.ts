@@ -1,5 +1,7 @@
+import assert from 'assert';
 import { logger } from '../utils/logger';
 import { quadraticVoting } from './quadratic-voting';
+import { describe, test } from 'node:test';
 
 describe('quadraticVoting', () => {
   test('calculates quadratic votes for each agent and sum of quadratic votes', () => {
@@ -21,8 +23,8 @@ describe('quadraticVoting', () => {
     const [resultQuadraticVotesDict, resultSumQuadraticVotes] = quadraticVoting(votes);
 
     // Verify that the result is as expected
-    expect(resultQuadraticVotesDict).toEqual(expectedQuadraticVotesDict);
-    expect(resultSumQuadraticVotes).toEqual(expectedSumQuadraticVotes);
+    assert.deepStrictEqual(resultQuadraticVotesDict, expectedQuadraticVotesDict);
+    assert.strictEqual(resultSumQuadraticVotes, expectedSumQuadraticVotes);
   });
 
   test('', () => {
@@ -33,9 +35,7 @@ describe('quadraticVoting', () => {
       user3: 16,
     };
     const [result, sum] = quadraticVoting(votes);
-
-    logger.debug('Quadratic Votes:', result);
-    logger.debug('Sum of Quadratic Votes:', sum);
-    expect(true).toBe(true);
+    assert.deepStrictEqual(result, { user1: 2, user2: 3, user3: 4 });
+    assert.strictEqual(sum, 9);
   });
 });
