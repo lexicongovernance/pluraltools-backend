@@ -206,9 +206,6 @@ export async function queryGroupCategories(
 
 /**
  * Queries group data and creates group dictionary based on user IDs and option ID.
- * @param {Record<string, number>} numOfVotesDictionary - Dictionary of user IDs and their respective number of votes.
- * @param {Array<string>} groupCategoryIds - Array of group category IDs.
- * @returns {Promise<Record<string, string[]>>} - Dictionary of group IDs and their corresponding user IDs.
  */
 export async function groupsDictionary(
   dbPool: NodePgDatabase<typeof schema>,

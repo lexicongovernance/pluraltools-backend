@@ -1,6 +1,7 @@
 import { cleanup, createDbClient, runMigrations, seed } from '../db';
 import * as schema from '../db/schema';
 import { environmentVariables } from '../types';
+import { logger } from '../utils/logger';
 import {
   saveVote,
   validateVote,
@@ -319,7 +320,7 @@ describe('service: votes', () => {
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
     const votesDictionary = await numOfVotesDictionary(voteArray);
     const groups = await groupsDictionary(dbPool, votesDictionary, [groupCategory!.id]);
-    console.log(groups);
+    logger.error(groups);
     expect(groups).toBeDefined();
     expect(groups['unexpectedKey']).toBeUndefined();
     expect(typeof groups).toBe('object');

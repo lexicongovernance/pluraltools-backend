@@ -1,13 +1,15 @@
 import pino from 'pino';
+import pretty from 'pino-pretty';
 
-// this requires pino-pretty to be installed as dev dep
-export const logger = pino({
-  transport: {
-    target: process.env.NODE_ENV === 'production' ? 'pino' : 'pino-pretty',
-    // FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-    level: process.env.LOG_LEVEL || 'info',
-    options: {
-      colorize: true,
-    },
-  },
+export const stream = pretty({
+  sync: true,
+  colorize: true,
 });
+
+// have logger use pretty stream in dev mode, else just use default pino
+export const logger = pino(
+  {
+    level: process.env.LOG_LEVEL || 'info',
+  },
+  process.env.NODE_ENV === 'production' ? undefined : stream,
+);
