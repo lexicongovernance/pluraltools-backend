@@ -49,7 +49,8 @@ jobs:
         run: pnpm install
 
       - name: Run unit tests
-        run: pnpm test
+        # creates a .env so node does not throw error
+        run: touch .env && pnpm test
         env:
           DATABASE_PASSWORD: secretpassword
           DATABASE_USER: postgres
