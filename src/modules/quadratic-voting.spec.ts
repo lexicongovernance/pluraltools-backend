@@ -1,5 +1,4 @@
 import assert from 'assert';
-import { logger } from '../utils/logger';
 import { quadraticVoting } from './quadratic-voting';
 import { describe, test } from 'node:test';
 

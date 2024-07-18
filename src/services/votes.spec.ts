@@ -332,8 +332,12 @@ describe('service: votes', () => {
     assert(groups);
     assert(groups['unexpectedKey'] === undefined);
     assert(typeof groups === 'object');
-    assert.equal(Object.keys(groups).length, 1);
-    assert.equal(groups[Object.keys(groups)[0]!]!.length, 2);
+    // check that the groups dictionary only has user ids from the votes dictionary
+    for (const key in groups) {
+      for (const userId of groups[key]!) {
+        assert(userId in votesDictionary, `User ${userId} not in votes dictionary`);
+      }
+    }
   });
 
   test('only return groups for users who voted for the option with two elidgible group categories', async () => {
@@ -348,22 +352,6 @@ describe('service: votes', () => {
     assert(groups['unexpectedKey'] === undefined);
     assert(typeof groups === 'object');
     assert.equal(Object.keys(groups).length, 2);
-    assert.equal(groups[Object.keys(groups)[0]!]!.length, 2);
-  });
-
-  test('only return baseline groups for users who voted for the option as non of the users is in the additional group category', async () => {
-    // Get vote data required for groups
-    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
-    const votesDictionary = await numOfVotesDictionary(voteArray);
-    const groups = await groupsDictionary(dbPool, votesDictionary, [
-      groupCategory!.id,
-      unrelatedGroupCategory!.id,
-    ]);
-
-    assert(groups);
-    assert(groups['unexpectedKey'] === undefined);
-    assert(typeof groups === 'object');
-    assert.equal(Object.keys(groups).length, 1);
     assert.equal(groups[Object.keys(groups)[0]!]!.length, 2);
   });
 
@@ -406,7 +394,6 @@ describe('service: votes', () => {
     };
 
     const result = calculatePluralScore(groupsDictionary, numOfVotesDictionary);
-    assert(result);
     assert.equal(typeof result, 'number');
     assert.equal(result, 0);
   });

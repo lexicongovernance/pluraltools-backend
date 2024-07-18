@@ -193,9 +193,9 @@ async function seed(dbPool: NodePgDatabase<typeof schema>) {
 
   const usersToGroups = await createUsersToGroups(
     dbPool,
-    // user1 => [group1, group2]
-    // user2 => [group1, group2]
-    // user3 => [group1, group3]
+    // user0 => [group0, group1]
+    // user1 => [group0, group1]
+    // user2 => [group0, group2]
     [
       // user1
       {

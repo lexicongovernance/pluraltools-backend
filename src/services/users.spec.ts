@@ -5,6 +5,8 @@ import { updateUser, upsertUserData, validateUserData } from './users';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { z } from 'zod';
+import { describe, before, test, after } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('service: users', () => {
   let dbPool: NodePgDatabase<typeof schema>;
@@ -18,7 +20,7 @@ describe('service: users', () => {
   };
   let user: schema.User;
   let secondUser: schema.User;
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
       database: envVariables.DATABASE_NAME,
@@ -58,7 +60,7 @@ describe('service: users', () => {
 
     // Loop through all keys and check if they are not empty strings
     for (const key of Object.keys(transformedUser)) {
-      expect(transformedUser[key]).not.toBe('');
+      assert.notStrictEqual(transformedUser[key], '');
     }
   });
 
@@ -72,8 +74,9 @@ describe('service: users', () => {
     };
 
     const response = await validateUserData(dbPool, user?.id, userData);
-    expect(response).toBeDefined();
-    expect(response).toEqual(expect.arrayContaining([expect.any(String)]));
+    assert(response !== null);
+    assert(response?.length > 0);
+    assert(response?.[0] !== null);
   });
 
   test('validateUserData returns an error if username already exists', async () => {
@@ -86,8 +89,9 @@ describe('service: users', () => {
     };
 
     const response = await validateUserData(dbPool, user?.id, userData);
-    expect(response).toBeDefined();
-    expect(response).toEqual(expect.arrayContaining([expect.any(String)]));
+    assert(response !== null);
+    assert(response?.length > 0);
+    assert(response?.[0] !== null);
   });
 
   test('validateUserData returns null if validation is successful', async () => {
@@ -100,7 +104,7 @@ describe('service: users', () => {
     };
 
     const response = await validateUserData(dbPool, user?.id, userData);
-    expect(response).toBeNull();
+    assert(response === null);
   });
 
   test('upsertUserData returns updated user data if insertion is successful', async () => {
@@ -113,11 +117,13 @@ describe('service: users', () => {
     };
 
     const response = await upsertUserData(dbPool, user?.id, userData);
-    expect(response).toBeDefined();
-    expect(Array.isArray(response)).toBe(true);
-    const updatedUser = response![0];
-    expect(updatedUser!.firstName).toBe('Some Name');
-    expect(updatedUser!.lastName).toBe('Some Other Name');
+    assert(response);
+    assert(Array.isArray(response));
+    assert(response.length > 0);
+    assert(response[0] !== null);
+    const updatedUser = response[0];
+    assert.equal(updatedUser!.firstName, 'Some Name');
+    assert.equal(updatedUser!.lastName, 'Some Other Name');
   });
 
   test('updateUser returns the respective error if validation fails', async () => {
@@ -134,8 +140,9 @@ describe('service: users', () => {
     };
 
     const response = await updateUser(dbPool, mockData);
-    expect(response.errors).toBeDefined();
-    expect(response.errors![0]).toEqual(expect.any(String));
+    assert(response.errors);
+    assert(response.errors?.length > 0);
+    assert(response.errors![0] !== null);
   });
 
   test('updateUser returns user data if validation and insertion succeeds', async () => {
@@ -152,12 +159,14 @@ describe('service: users', () => {
     };
 
     const response = await updateUser(dbPool, mockData);
-    expect(response.data).toBeDefined();
-    expect(response.data![0]!.firstName).toBe('Some Name');
-    expect(response.data![0]!.lastName).toBe('Some Other Name');
+    assert(response.data);
+    assert(response.data?.length > 0);
+    assert(response.data![0] !== null);
+    assert.equal(response.data![0]!.id, user?.id);
+    assert.equal(response.data![0]!.email, user?.email);
   });
 
-  afterAll(async () => {
+  after(async () => {
     await cleanup(dbPool);
     await dbConnection.end();
   });

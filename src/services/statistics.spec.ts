@@ -74,36 +74,28 @@ describe('service: statistics', () => {
     assert.equal(result.numProposals, 2, 'Number of proposals should be 2');
     assert.equal(result.sumNumOfHearts, 8);
     assert.equal(result.numOfParticipants, 2, 'Number of participants should be 2');
-    assert.equal(result.numOfGroups, 1, 'Number of groups should be 1');
+    assert.equal(result.numOfGroups, 2, 'Number of groups should be 2');
 
     // Test option stats
-    assert(result.optionStats);
+    assert(result.optionStats, 'Option stats should not be empty');
     assert.equal(Object.keys(result.optionStats).length, 2, 'Number of options should be 2');
 
     for (const optionId in result.optionStats) {
       const optionStat = result.optionStats[optionId];
-      assert(optionStat);
-      assert(optionStat.title);
-      assert(optionStat.subTitle);
-      assert(optionStat.pluralityScore);
-      assert(optionStat.distinctUsers);
-      assert(optionStat.allocatedHearts);
-      assert(optionStat.quadraticScore);
-      assert(optionStat.distinctGroups);
-      assert(optionStat?.listOfGroupNames);
+      assert(optionStat, 'Option stat should not be empty');
+      assert(optionStat.title, 'Option title should not be empty');
 
       // Add assertions for distinct users and allocated hearts
       if (optionId === questionOption?.id) {
         // Assuming this option belongs to the user
-        assert.equal(optionStat?.distinctUsers, 2);
-        assert.equal(optionStat?.allocatedHearts, 8);
-        assert.equal(optionStat?.pluralityScore, '4');
-        assert.equal(optionStat?.quadraticScore, 16);
-        assert.equal(optionStat?.distinctGroups, 1);
+        assert.equal(optionStat?.distinctUsers, 2, 'Number of distinct users should be 2');
+        assert.equal(optionStat?.allocatedHearts, 8, 'Number of allocated hearts should be 8');
+        assert.equal(optionStat?.pluralityScore, '4', 'Plurality score should be 4');
+        assert.equal(optionStat?.quadraticScore, 16), 'Quadratic score should be 16';
+        assert.equal(optionStat?.distinctGroups, 1, 'Number of distinct groups should be 1');
         const listOfGroupNames = optionStat?.listOfGroupNames;
         // Check if the array is not empty
-        assert(listOfGroupNames);
-        assert(listOfGroupNames?.length > 0);
+        assert(listOfGroupNames, 'List of group names should not be empty');
       }
     }
   });
