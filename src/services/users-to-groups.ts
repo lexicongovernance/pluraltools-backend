@@ -13,7 +13,7 @@ export async function createUsersToGroups(
   });
 
   if (!group) {
-    logger.error('Group not found with ID:', groupId);
+    logger.info('Group not found with ID:', groupId);
     throw new Error('Group not found');
   }
 
@@ -48,7 +48,7 @@ export async function updateUsersToGroups({
   });
 
   if (!group) {
-    logger.error('Group not found with ID:', groupId);
+    logger.info('Group not found with ID:', groupId);
     throw new Error('Group not found');
   }
 
