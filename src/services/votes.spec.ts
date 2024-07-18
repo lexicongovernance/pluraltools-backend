@@ -1,30 +1,29 @@
-import { cleanup, createDbClient, runMigrations, seed } from '../db';
+import { eq } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
 import * as schema from '../db/schema';
 import { environmentVariables } from '../types';
 import {
-  saveVote,
-  validateVote,
-  queryVoteData,
-  queryGroupCategories,
-  numOfVotesDictionary,
-  groupsDictionary,
   calculatePluralScore,
   calculateQuadraticScore,
+  groupsDictionary,
+  numOfVotesDictionary,
+  queryGroupCategories,
+  queryVoteData,
+  saveVote,
+  updateOptionScore,
   updateVoteScoreInDatabase,
   updateVoteScorePlural,
   updateVoteScoreQuadratic,
   userCanVote,
-  updateOptionScore,
+  validateVote,
 } from './votes';
-import { eq } from 'drizzle-orm';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { describe, before, test, after } from 'node:test';
-import assert from 'node:assert/strict';
 
 describe('service: votes', () => {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
+  let deleteTestDatabase: () => Promise<void>;
   let testData: { optionId: string; numOfVotes: number };
   let cycle: schema.Cycle | undefined;
   let questionOption: schema.Option | undefined;
@@ -33,31 +32,15 @@ describe('service: votes', () => {
   let otherForumQuestion: schema.Question | undefined;
   let groupCategory: schema.GroupCategory | undefined;
   let otherGroupCategory: schema.GroupCategory | undefined;
-  let unrelatedGroupCategory: schema.GroupCategory | undefined;
   let user: schema.User | undefined;
   let secondUser: schema.User | undefined;
   let thirdUser: schema.User | undefined;
 
   before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { users, questionOptions, forumQuestions, cycles, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user
@@ -67,7 +50,6 @@ describe('service: votes', () => {
     otherForumQuestion = forumQuestions[1];
     groupCategory = groupCategories[0];
     otherGroupCategory = groupCategories[1];
-    unrelatedGroupCategory = groupCategories[2];
     user = users[0];
     secondUser = users[1];
     thirdUser = users[2];
@@ -447,7 +429,6 @@ describe('service: votes', () => {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });

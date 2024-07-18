@@ -1,19 +1,18 @@
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { z } from 'zod';
+import { createTestDatabase, seed } from '../db';
 import * as schema from '../db/schema';
-import { createDbClient, cleanup, runMigrations, seed } from '../db';
+import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
 import {
   createSecretGroup,
   generateSecret,
-  getSecretGroup,
   getGroupMembers,
   getGroupRegistrations,
+  getSecretGroup,
   isUserIsPartOfGroup,
 } from './groups';
-import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
-import { z } from 'zod';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { describe, before, test, after } from 'node:test';
-import assert from 'node:assert/strict';
 
 // Define sample wordlist to test the secret generator
 const wordlist: string[] = [
@@ -47,34 +46,19 @@ const wordlist: string[] = [
 
 describe('service: groups', () => {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
   let group: schema.Group[];
   let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
   let secretGroup: schema.Group[];
   let cycle: schema.Cycle | undefined;
   let user: schema.User | undefined;
   let groupCategory: schema.GroupCategory | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
   before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
 
     const { users, cycles, groups, groupCategories } = await seed(dbPool);
     group = groups.filter((group) => group !== undefined) as schema.Group[];
@@ -216,7 +200,6 @@ describe('service: groups', () => {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });

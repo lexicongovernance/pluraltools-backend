@@ -19,7 +19,7 @@
     "db:up": "pnpm exec drizzle-kit up",
     "db:seed": "node --import tsx --env-file=.env ./scripts/db/seed.ts",
     "db:seed:cleanup": "pnpm run db:seed --cleanup",
-    "test": "node --import tsx --test-concurrency 1 --env-file=.env --test ./src/**/*.spec.ts",
+    "test": "node --import tsx --env-file=.env --test ./src/**/*.spec.ts",
     "format": "pnpm exec prettier --check \"src/**/*.{ts,md}\"",
     "format:fix": "pnpm exec prettier --write \"src/**/*.{ts,md}\""
   },

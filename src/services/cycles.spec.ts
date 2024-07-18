@@ -1,41 +1,26 @@
-import { Client } from 'pg';
-import * as schema from '../db/schema';
-import { createDbClient, cleanup, runMigrations, seed } from '../db';
-import { GetCycleById, getCycleVotes } from './cycles';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { environmentVariables } from '../types';
-import { describe, before, test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables } from '../types';
+import { GetCycleById, getCycleVotes } from './cycles';
 
 describe('service: cycles', () => {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
   let cycle: schema.Cycle | undefined;
   let questionOption: schema.Option | undefined;
   let forumQuestion: schema.Question | undefined;
   let user: schema.User | undefined;
   let secondUser: schema.User | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
   before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
 
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
     // Seed the database
     const { cycles, questionOptions, forumQuestions, users } = await seed(dbPool);
     cycle = cycles[0];
@@ -101,7 +86,6 @@ describe('service: cycles', () => {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });

@@ -1,40 +1,24 @@
-import * as schema from '../db/schema';
-import { createDbClient, cleanup, runMigrations, seed } from '../db';
-import { createUsersToGroups, updateUsersToGroups } from './users-to-groups';
-import { eq, and } from 'drizzle-orm';
 import { randUuid } from '@ngneat/falso';
+import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { environmentVariables } from '../types';
-import { describe, before, test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables } from '../types';
+import { createUsersToGroups, updateUsersToGroups } from './users-to-groups';
 
 describe('service: usersToGroups', function () {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
+  let deleteTestDatabase: () => Promise<void>;
   let user: schema.User | undefined;
   let defaultGroups: schema.Group[];
 
   before(async function () {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { users, groups } = await seed(dbPool);
     user = users[0];
@@ -126,7 +110,6 @@ describe('service: usersToGroups', function () {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });

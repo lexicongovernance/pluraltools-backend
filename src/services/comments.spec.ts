@@ -1,17 +1,15 @@
-import * as schema from '../db/schema';
-import { createDbClient, cleanup, runMigrations, seed } from '../db';
-import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
-import { z } from 'zod';
-import { getOptionUsers } from './comments';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { describe, before, test, after } from 'node:test';
 import { assert } from 'node:console';
+import { after, before, describe, test } from 'node:test';
+import { z } from 'zod';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
+import { getOptionUsers } from './comments';
 
 describe('service: comments', () => {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
   let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
   let secretCategory: schema.GroupCategory | undefined;
   let questionOption: schema.Option | undefined;
@@ -19,27 +17,13 @@ describe('service: comments', () => {
   let cycle: schema.Cycle | undefined;
   let user: schema.User | undefined;
   let otherUser: schema.User | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
   before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { users, questionOptions, cycles, groups, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user
@@ -109,7 +93,6 @@ describe('service: comments', () => {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });

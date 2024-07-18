@@ -1,37 +1,21 @@
-import { cleanup, createDbClient, seed, runMigrations } from '../db';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
 import * as schema from '../db/schema';
 import { environmentVariables } from '../types';
 import { calculateFunding } from './funding-mechanism';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { describe, before, test, after } from 'node:test';
-import assert from 'node:assert/strict';
 
 describe('service: funding-mechanism', () => {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
   let question: schema.Question;
+  let deleteTestDatabase: () => Promise<void>;
 
   before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     const { forumQuestions } = await seed(dbPool);
     question = forumQuestions[0]!;
   });
@@ -51,7 +35,6 @@ describe('service: funding-mechanism', () => {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });

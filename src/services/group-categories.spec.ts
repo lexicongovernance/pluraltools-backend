@@ -1,38 +1,22 @@
-import * as schema from '../db/schema';
-import { environmentVariables } from '../types';
-import { createDbClient, cleanup, runMigrations, seed } from '../db';
-import { canCreateGroupInGroupCategory, canViewGroupsInGroupCategory } from './group-categories';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { describe, before, test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables } from '../types';
+import { canCreateGroupInGroupCategory, canViewGroupsInGroupCategory } from './group-categories';
 
 describe('service: groupCategories', () => {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
   let groupCategory: schema.GroupCategory | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
   before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { groupCategories } = await seed(dbPool);
 
@@ -98,7 +82,6 @@ describe('service: groupCategories', () => {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });

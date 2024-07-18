@@ -1,43 +1,28 @@
-import * as schema from '../db/schema';
-import { createDbClient, cleanup, runMigrations, seed } from '../db';
-import { environmentVariables, insertVotesSchema } from '../types';
-import { z } from 'zod';
-import { executeResultQueries } from './statistics';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { describe, before, test, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { z } from 'zod';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables, insertVotesSchema } from '../types';
+import { executeResultQueries } from './statistics';
 
 describe('service: statistics', () => {
   let dbPool: NodePgDatabase<typeof schema>;
-  let dbConnection: Client;
   let userTestData: z.infer<typeof insertVotesSchema>;
   let otherUserTestData: z.infer<typeof insertVotesSchema>;
   let questionOption: schema.Option | undefined;
   let forumQuestion: schema.Question | undefined;
   let user: schema.User | undefined;
   let otherUser: schema.User | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
   before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
 
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
     // seed
     const { users, questionOptions, forumQuestions } = await seed(dbPool);
     // Insert registration fields for the user
@@ -101,7 +86,6 @@ describe('service: statistics', () => {
   });
 
   after(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+    await deleteTestDatabase();
   });
 });
