@@ -1,16 +1,14 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
+import { cleanup, createDbClient, seed, runMigrations } from '../db';
+import * as schema from '../db/schema';
 import { environmentVariables } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
 import { calculateFunding } from './funding-mechanism';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 
 describe('service: funding-mechanism', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
-  let question: db.Question;
+  let question: schema.Question;
 
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);

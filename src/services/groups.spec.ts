@@ -152,7 +152,7 @@ describe('service: groups', () => {
   describe('authorization', function () {
     test('when the user is not in the group', async function () {
       const rows = await dbPool
-        .insert(db.groups)
+        .insert(schema.groups)
         .values({
           groupCategoryId: groupCategory!.id,
           name: 'Test Group',
@@ -177,7 +177,7 @@ describe('service: groups', () => {
     });
     test('when the user is in the group', async function () {
       const rows = await dbPool
-        .insert(db.groups)
+        .insert(schema.groups)
         .values({
           groupCategoryId: groupCategory!.id,
           name: 'Test Group',
@@ -193,7 +193,7 @@ describe('service: groups', () => {
       }
 
       const userGroup = await dbPool
-        .insert(db.usersToGroups)
+        .insert(schema.usersToGroups)
         .values({
           userId: user!.id,
           groupId: rows[0].id,

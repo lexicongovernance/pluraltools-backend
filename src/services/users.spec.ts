@@ -1,15 +1,13 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
+import * as schema from '../db/schema';
+import { cleanup, createDbClient, runMigrations, seed } from '../db';
 import { environmentVariables, insertUserSchema } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
 import { updateUser, upsertUserData, validateUserData } from './users';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { z } from 'zod';
 
 describe('service: users', () => {
-  let dbPool: NodePgDatabase<typeof db>;
+  let dbPool: NodePgDatabase<typeof schema>;
   let dbConnection: Client;
   let userData: {
     email: string | null;
@@ -18,8 +16,8 @@ describe('service: users', () => {
     lastName: string | null;
     telegram: string | null;
   };
-  let user: db.User;
-  let secondUser: db.User;
+  let user: schema.User;
+  let secondUser: schema.User;
   beforeAll(async () => {
     const envVariables = environmentVariables.parse(process.env);
     const initDb = await createDbClient({
