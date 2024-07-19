@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { dataSchema, fieldsSchema } from '../types';
 import { enforceRules } from './validation';
+import { describe, test } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('service: validation', function () {
   describe('rule: required', function () {
@@ -20,8 +22,8 @@ describe('service: validation', function () {
 
       const result = enforceRules({ data, fields });
 
-      expect(result.length).toBe(1);
-      expect(result).toEqual(['Name is required']);
+      assert.equal(result.length, 1);
+      assert.deepEqual(result, ['Name is required']);
     });
 
     test('should not return an error if a required field is present', function () {
@@ -46,7 +48,7 @@ describe('service: validation', function () {
 
       const result = enforceRules({ data, fields });
 
-      expect(result.length).toBe(0);
+      assert.equal(result.length, 0);
     });
   });
 
@@ -75,8 +77,8 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(1);
-        expect(result).toEqual(['Name must be at least 5 characters']);
+        assert.equal(result.length, 1);
+        assert.deepEqual(result, ['Name must be at least 5 characters']);
       });
 
       test('should not return an error if the string is long enough', function () {
@@ -102,7 +104,7 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(0);
+        assert.equal(result.length, 0);
       });
     });
     describe('rule: maxLength', function () {
@@ -129,8 +131,8 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(1);
-        expect(result).toEqual(['Name must be at most 5 characters']);
+        assert.equal(result.length, 1);
+        assert.deepEqual(result, ['Name must be at most 5 characters']);
       });
 
       test('should not return an error if the string is short enough', function () {
@@ -156,7 +158,7 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(0);
+        assert.equal(result.length, 0);
       });
     });
   });
@@ -186,8 +188,8 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(1);
-        expect(result).toEqual(['Age must be at least 18']);
+        assert.equal(result.length, 1);
+        assert.deepEqual(result, ['Age must be at least 18']);
       });
 
       test('should not return an error if the number is large enough', function () {
@@ -213,7 +215,7 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(0);
+        assert.equal(result.length, 0);
       });
     });
     describe('rule: maxLength', function () {
@@ -240,8 +242,8 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(1);
-        expect(result).toEqual(['Age must be at most 18']);
+        assert.equal(result.length, 1);
+        assert.deepEqual(result, ['Age must be at most 18']);
       });
       test('should not return an error if the number is small enough', function () {
         const fields: z.infer<typeof fieldsSchema> = [
@@ -266,7 +268,7 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(0);
+        assert.equal(result.length, 0);
       });
     });
   });
@@ -296,8 +298,8 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(1);
-        expect(result).toEqual(['Colors must have at least 2 items']);
+        assert.equal(result.length, 1);
+        assert.deepEqual(result, ['Colors must have at least 2 items']);
       });
       test('should not return an error if the array is large enough', function () {
         const fields: z.infer<typeof fieldsSchema> = [
@@ -322,7 +324,7 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(0);
+        assert.equal(result.length, 0);
       });
     });
     describe('rule: maxLength', function () {
@@ -349,8 +351,8 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(1);
-        expect(result).toEqual(['Colors must have at most 2 items']);
+        assert.equal(result.length, 1);
+        assert.deepEqual(result, ['Colors must have at most 2 items']);
       });
       test('should not return an error if the array is small enough', function () {
         const fields: z.infer<typeof fieldsSchema> = [
@@ -375,7 +377,7 @@ describe('service: validation', function () {
 
         const result = enforceRules({ data, fields });
 
-        expect(result.length).toBe(0);
+        assert.equal(result.length, 0);
       });
     });
   });

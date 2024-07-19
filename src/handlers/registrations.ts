@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { insertRegistrationSchema } from '../types';
 import {
   saveRegistration,
@@ -12,7 +12,7 @@ import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
-export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const registrationId = req.params.id;
     const userId = req.session.userId;
@@ -29,7 +29,7 @@ export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
         with: {
           registrationData: true,
         },
-        where: eq(db.registrations.id, registrationId),
+        where: eq(schema.registrations.id, registrationId),
       });
 
       const out = [...(registration?.registrationData ?? [])];
@@ -41,7 +41,7 @@ export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     req.body.userId = userId;
@@ -80,7 +80,7 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
+export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const registrationId = req.params.id;
 

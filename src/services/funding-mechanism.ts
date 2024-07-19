@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { allocateFunding } from '../modules/funding-mechanism';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
@@ -12,7 +12,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
  * - A promise resolving to an object containing the allocated funding for each project and the remaining funding.
  */
 export async function calculateFunding(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   forumQuestionId: string,
 ): Promise<{
   allocatedFunding: { [key: string]: number } | null;
@@ -21,12 +21,12 @@ export async function calculateFunding(
 }> {
   const getOptionData = await dbPool
     .select({
-      id: db.options.id,
-      voteScore: db.options.voteScore,
-      fundingRequest: db.options.fundingRequest,
+      id: schema.options.id,
+      voteScore: schema.options.voteScore,
+      fundingRequest: schema.options.fundingRequest,
     })
-    .from(db.options)
-    .where(eq(db.options.questionId, forumQuestionId));
+    .from(schema.options)
+    .where(eq(schema.options.questionId, forumQuestionId));
 
   if (getOptionData.length === 0) {
     return {

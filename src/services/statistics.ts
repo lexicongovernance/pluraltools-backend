@@ -1,5 +1,5 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { sql } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 
@@ -25,14 +25,10 @@ type ResultData = {
 
 /**
  * Executes multiple queries concurrently to retrieve statistics related to a forum question from the database.
- *
- * @param {string | undefined} forumQuestionId - The ID of the forum question for which statistics are to be retrieved.
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Promise<unknown>} - A promise resolving to an object containing various statistics related to the forum question.
  */
 export async function executeResultQueries(
   forumQuestionId: string | undefined,
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
 ): Promise<ResultData> {
   try {
     // Execute all queries concurrently

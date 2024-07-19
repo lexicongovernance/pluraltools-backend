@@ -1,5 +1,5 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { insertOptionsSchema } from '../types/options';
@@ -7,6 +7,10 @@ import { fieldsSchema } from '../types';
 import { enforceRules } from './validation';
 import { logger } from '../utils/logger';
 
+/**
+ * Calculates number of hearts that a participant has available. The underlying assumption of the calculation is
+  that a participant must assign at least one heart to each available proposal.
+ */
 export function availableHearts(
   numProposals: number,
   baseNumerator: number,
@@ -14,15 +18,6 @@ export function availableHearts(
   maxRatio: number,
   customHearts: number | null = null,
 ): number | null {
-  // Calculates number of hearts that a participant has available. The underlying assumption of the calculation is
-  // that a participant must assign at least one heart to each available proposal.
-  // :param: numProposals: number of proposals (options) that can be votes on.
-  // :param: baseNumerator: specifies the minimum amounts of hearts a participant must allocate to a given proposal to satisfy the max ratio.
-  // :param: baseDenominator: specifies the minimum amount of hearts a participant must have available to satisfy the max ratio.
-  // :param: maxRatio: specifies the preference ratio a participant should be able to express over two project options.
-  // :param: customHearts: if this parameter is set then the function will return custom hearts independent of the number of projects.
-  // :returns: number of a available heart for each participant given a number of proposals.
-
   if (customHearts !== null && customHearts >= 2) {
     return customHearts;
   }
@@ -44,7 +39,7 @@ export function availableHearts(
 }
 
 export async function getQuestionHearts(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   data: {
     forumQuestionId: string;
   },
@@ -81,13 +76,13 @@ export async function validateQuestionFields({
   option,
   dbPool,
 }: {
-  dbPool: NodePgDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof schema>;
   option: z.infer<typeof insertOptionsSchema>;
 }) {
   const rows = await dbPool
     .select()
-    .from(db.questions)
-    .where(eq(db.questions.id, option.questionId));
+    .from(schema.questions)
+    .where(eq(schema.questions.id, option.questionId));
 
   if (!rows.length) {
     return [];

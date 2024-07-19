@@ -1,13 +1,13 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function canCreateGroupInGroupCategory(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   groupCategoryId: string,
 ) {
   const groupCategory = await dbPool.query.groupCategories.findFirst({
-    where: eq(db.groupCategories.id, groupCategoryId),
+    where: eq(schema.groupCategories.id, groupCategoryId),
   });
 
   if (!groupCategory) {
@@ -18,11 +18,11 @@ export async function canCreateGroupInGroupCategory(
 }
 
 export async function canViewGroupsInGroupCategory(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   groupCategoryId: string,
 ) {
   const groupCategory = await dbPool.query.groupCategories.findFirst({
-    where: eq(db.groupCategories.id, groupCategoryId),
+    where: eq(schema.groupCategories.id, groupCategoryId),
   });
 
   if (!groupCategory) {

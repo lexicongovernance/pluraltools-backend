@@ -1,5 +1,5 @@
 import { createInsertSchema } from 'drizzle-zod';
-import { groups } from '../db';
+import { groups } from '../db/schema';
 import { z } from 'zod';
 
 export const insertGroupsSchema = createInsertSchema(groups, {

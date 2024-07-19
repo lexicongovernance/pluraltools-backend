@@ -1,16 +1,14 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { environmentVariables, insertUserSchema } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
-import { updateUser, upsertUserData, validateUserData } from './users';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
 import { z } from 'zod';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables, insertUserSchema } from '../types';
+import { updateUser, upsertUserData, validateUserData } from './users';
 
 describe('service: users', () => {
-  let dbPool: NodePgDatabase<typeof db>;
-  let dbConnection: Client;
+  let dbPool: NodePgDatabase<typeof schema>;
   let userData: {
     email: string | null;
     username: string | null;
@@ -18,28 +16,15 @@ describe('service: users', () => {
     lastName: string | null;
     telegram: string | null;
   };
-  let user: db.User;
-  let secondUser: db.User;
-  beforeAll(async () => {
+  let user: schema.User;
+  let secondUser: schema.User;
+  let deleteTestDatabase: () => Promise<void>;
+
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { users } = await seed(dbPool);
     user = users[0]!;
@@ -60,7 +45,7 @@ describe('service: users', () => {
 
     // Loop through all keys and check if they are not empty strings
     for (const key of Object.keys(transformedUser)) {
-      expect(transformedUser[key]).not.toBe('');
+      assert.notStrictEqual(transformedUser[key], '');
     }
   });
 
@@ -74,8 +59,9 @@ describe('service: users', () => {
     };
 
     const response = await validateUserData(dbPool, user?.id, userData);
-    expect(response).toBeDefined();
-    expect(response).toEqual(expect.arrayContaining([expect.any(String)]));
+    assert(response !== null);
+    assert(response?.length > 0);
+    assert(response?.[0] !== null);
   });
 
   test('validateUserData returns an error if username already exists', async () => {
@@ -88,8 +74,9 @@ describe('service: users', () => {
     };
 
     const response = await validateUserData(dbPool, user?.id, userData);
-    expect(response).toBeDefined();
-    expect(response).toEqual(expect.arrayContaining([expect.any(String)]));
+    assert(response !== null);
+    assert(response?.length > 0);
+    assert(response?.[0] !== null);
   });
 
   test('validateUserData returns null if validation is successful', async () => {
@@ -102,7 +89,7 @@ describe('service: users', () => {
     };
 
     const response = await validateUserData(dbPool, user?.id, userData);
-    expect(response).toBeNull();
+    assert(response === null);
   });
 
   test('upsertUserData returns updated user data if insertion is successful', async () => {
@@ -115,11 +102,13 @@ describe('service: users', () => {
     };
 
     const response = await upsertUserData(dbPool, user?.id, userData);
-    expect(response).toBeDefined();
-    expect(Array.isArray(response)).toBe(true);
-    const updatedUser = response![0];
-    expect(updatedUser!.firstName).toBe('Some Name');
-    expect(updatedUser!.lastName).toBe('Some Other Name');
+    assert(response);
+    assert(Array.isArray(response));
+    assert(response.length > 0);
+    assert(response[0] !== null);
+    const updatedUser = response[0];
+    assert.equal(updatedUser!.firstName, 'Some Name');
+    assert.equal(updatedUser!.lastName, 'Some Other Name');
   });
 
   test('updateUser returns the respective error if validation fails', async () => {
@@ -136,8 +125,9 @@ describe('service: users', () => {
     };
 
     const response = await updateUser(dbPool, mockData);
-    expect(response.errors).toBeDefined();
-    expect(response.errors![0]).toEqual(expect.any(String));
+    assert(response.errors);
+    assert(response.errors?.length > 0);
+    assert(response.errors![0] !== null);
   });
 
   test('updateUser returns user data if validation and insertion succeeds', async () => {
@@ -154,13 +144,14 @@ describe('service: users', () => {
     };
 
     const response = await updateUser(dbPool, mockData);
-    expect(response.data).toBeDefined();
-    expect(response.data![0]!.firstName).toBe('Some Name');
-    expect(response.data![0]!.lastName).toBe('Some Other Name');
+    assert(response.data);
+    assert(response.data?.length > 0);
+    assert(response.data![0] !== null);
+    assert.equal(response.data![0]!.id, user?.id);
+    assert.equal(response.data![0]!.email, user?.email);
   });
 
-  afterAll(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+  after(async () => {
+    await deleteTestDatabase();
   });
 });

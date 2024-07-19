@@ -1,38 +1,22 @@
-import * as db from '../db';
-import { environmentVariables } from '../types';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { cleanup, seed } from '../utils/db/seed';
-import { canCreateGroupInGroupCategory, canViewGroupsInGroupCategory } from './group-categories';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables } from '../types';
+import { canCreateGroupInGroupCategory, canViewGroupsInGroupCategory } from './group-categories';
 
 describe('service: groupCategories', () => {
-  let dbPool: NodePgDatabase<typeof db>;
-  let dbConnection: Client;
-  let groupCategory: db.GroupCategory | undefined;
+  let dbPool: NodePgDatabase<typeof schema>;
+  let groupCategory: schema.GroupCategory | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { groupCategories } = await seed(dbPool);
 
@@ -47,7 +31,7 @@ describe('service: groupCategories', () => {
 
       const canCreate = await canCreateGroupInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canCreate).toBe(false);
+      assert.equal(canCreate, false);
     });
 
     test('userCanCreate: true', async function () {
@@ -56,13 +40,13 @@ describe('service: groupCategories', () => {
       }
 
       await dbPool
-        .update(db.groupCategories)
+        .update(schema.groupCategories)
         .set({ userCanCreate: true })
-        .where(eq(db.groupCategories.id, groupCategory.id));
+        .where(eq(schema.groupCategories.id, groupCategory.id));
 
       const canCreate = await canCreateGroupInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canCreate).toBe(true);
+      assert.equal(canCreate, true);
     });
   });
 
@@ -73,13 +57,13 @@ describe('service: groupCategories', () => {
       }
 
       await dbPool
-        .update(db.groupCategories)
+        .update(schema.groupCategories)
         .set({ userCanView: false })
-        .where(eq(db.groupCategories.id, groupCategory.id));
+        .where(eq(schema.groupCategories.id, groupCategory.id));
 
       const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canView).toBe(false);
+      assert.equal(canView, false);
     });
     test('userCanView: true', async function () {
       if (!groupCategory) {
@@ -87,18 +71,17 @@ describe('service: groupCategories', () => {
       }
 
       await dbPool
-        .update(db.groupCategories)
+        .update(schema.groupCategories)
         .set({ userCanView: true })
-        .where(eq(db.groupCategories.id, groupCategory.id));
+        .where(eq(schema.groupCategories.id, groupCategory.id));
 
       const canView = await canViewGroupsInGroupCategory(dbPool, groupCategory.id);
 
-      expect(canView).toBe(true);
+      assert.equal(canView, true);
     });
   });
 
-  afterAll(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+  after(async () => {
+    await deleteTestDatabase();
   });
 });

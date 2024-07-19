@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { insertGroupsSchema } from '../types/groups';
 import { canCreateGroupInGroupCategory } from '../services/group-categories';
 import { createUsersToGroups } from '../services/users-to-groups';
@@ -7,7 +7,7 @@ import { createSecretGroup, getGroupMembers, getGroupRegistrations } from '../se
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
-export function createGroupHandler(dbPool: NodePgDatabase<typeof db>) {
+export function createGroupHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const body = insertGroupsSchema.safeParse(req.body);
@@ -46,14 +46,8 @@ export function createGroupHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves author and co-author data for a given question option created as a secret group.
- *
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @returns {Promise<Response>} - A promise that resolves with the Express response containing the author data.
- */
-export function getGroupMembersHandler(dbPool: NodePgDatabase<typeof db>) {
+ * */
+export function getGroupMembersHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const groupId = req.params.id;
@@ -77,14 +71,8 @@ export function getGroupMembersHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves group registration data of a secret group for a given group Id.
- *
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @returns {Promise<Response>} - A promise that resolves with the Express response containing the registration data.
  */
-export function getGroupRegistrationsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getGroupRegistrationsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const groupId = req.params.id;
