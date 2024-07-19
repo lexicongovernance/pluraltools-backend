@@ -1,5 +1,4 @@
 import assert from 'node:assert';
-import { logger } from '../utils/logger';
 import { PluralVoting } from './plural-voting';
 import { describe, test } from 'node:test';
 
