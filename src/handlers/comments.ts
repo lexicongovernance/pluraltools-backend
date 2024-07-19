@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { deleteCommentLike, saveCommentLike, userCanLike } from '../services/likes';
 import { insertCommentSchema } from '../types';
@@ -7,7 +7,7 @@ import { deleteComment, saveComment, userCanComment } from '../services/comments
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
-export function getCommentLikesHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getCommentLikesHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
 
@@ -16,14 +16,14 @@ export function getCommentLikesHandler(dbPool: NodePgDatabase<typeof db>) {
     }
 
     const likes = await dbPool.query.likes.findMany({
-      where: eq(db.likes.commentId, commentId),
+      where: eq(schema.likes.commentId, commentId),
     });
 
     return res.json({ data: likes });
   };
 }
 
-export function saveCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveCommentLikeHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
     const userId = req.session.userId;
@@ -48,7 +48,7 @@ export function saveCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
+export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
     const userId = req.session.userId;
@@ -77,7 +77,7 @@ export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
  * @param { NodePgDatabase<typeof db>} dbPool - The database pool connection.
  * @returns {Promise<void>} - A promise that resolves once the comment is saved.
  */
-export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveCommentHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const body = insertCommentSchema.safeParse(req.body);
@@ -108,7 +108,7 @@ export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
  * @returns {Promise<void>} - A promise that resolves once the comment and associated likes are deleted.
  * @throws {Error} - Throws an error if the deletion fails.
  */
-export function deleteCommentHandler(dbPool: NodePgDatabase<typeof db>) {
+export function deleteCommentHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
     const userId = req.session.userId;

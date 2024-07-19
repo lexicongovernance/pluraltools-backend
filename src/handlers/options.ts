@@ -1,6 +1,6 @@
 import { eq, getTableColumns } from 'drizzle-orm';
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { getOptionUsers, getOptionComments } from '../services/comments';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
@@ -14,7 +14,7 @@ import {
   validateOptionData,
 } from '../services/options';
 
-export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const { optionId } = req.params;
 
@@ -22,14 +22,14 @@ export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing optionId' });
     }
 
-    const { voteScore, ...rest } = getTableColumns(db.options);
+    const { voteScore, ...rest } = getTableColumns(schema.options);
 
     const rows = await dbPool
       .select({
         ...rest,
       })
-      .from(db.options)
-      .where(eq(db.options.id, optionId));
+      .from(schema.options)
+      .where(eq(schema.options.id, optionId));
 
     if (!rows.length) {
       return res.status(404).json({ error: 'Option not found' });
@@ -41,10 +41,8 @@ export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves comments related to a specific question option from the database and associates them with corresponding user information.
- * @param { NodePgDatabase<typeof db>} dbPool - The database pool connection.
- * @returns {Promise<void>} - A promise that resolves with the retrieved comments, each associated with user information if available.
  */
-export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const optionId = req.params.optionId ?? '';
 
@@ -61,14 +59,8 @@ export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves author and co-author data for a given question option created as a secret group.
- *
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @returns {Promise<Response>} - A promise that resolves with the Express response containing the author data.
  */
-export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const optionId = req.params.optionId;
@@ -90,7 +82,7 @@ export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function saveOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const body = insertOptionsSchema.safeParse(req.body);
@@ -137,7 +129,7 @@ export function saveOptionHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function updateOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+export function updateOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const optionId = req.params.optionId;
 

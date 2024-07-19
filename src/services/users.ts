@@ -1,4 +1,4 @@
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { and, eq, ne, or } from 'drizzle-orm';
 import { UserData, insertUserSchema } from '../types/users';
 import { z } from 'zod';
@@ -7,24 +7,20 @@ import { logger } from '../utils/logger';
 
 /**
  * Checks user data for existing entries in the database.
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @param {string} userId - The ID of the user to check.
- * @param {UserData} userData - The user data to check.
- * @returns {Promise<Array<string> | null>} - An array of errors if user data conflicts, otherwise null.
  */
 export async function validateUserData(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   userData: UserData,
 ) {
   if (userData.email || userData.username) {
     const existingUser = await dbPool
       .select()
-      .from(db.users)
+      .from(schema.users)
       .where(
         or(
-          and(eq(db.users.email, userData.email ?? ''), ne(db.users.id, userId)),
-          and(eq(db.users.username, userData.username ?? ''), ne(db.users.id, userId)),
+          and(eq(schema.users.email, userData.email ?? ''), ne(schema.users.id, userId)),
+          and(eq(schema.users.username, userData.username ?? ''), ne(schema.users.id, userId)),
         ),
       );
 
@@ -48,18 +44,15 @@ export async function validateUserData(
 
 /**
  * Upserts user data in the database.
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @param {string} userId - The ID of the user to update.
- * @param {UserData} userData - The updated user data.
  */
 export async function upsertUserData(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   userData: UserData,
 ) {
   try {
     const user = await dbPool
-      .update(db.users)
+      .update(schema.users)
       .set({
         email: userData.email,
         username: userData.username,
@@ -68,7 +61,7 @@ export async function upsertUserData(
         telegram: userData.telegram,
         updatedAt: new Date(),
       })
-      .where(eq(db.users.id, userId))
+      .where(eq(schema.users.id, userId))
       .returning();
 
     return user;
@@ -79,11 +72,9 @@ export async function upsertUserData(
 
 /**
  * Updates user data in the database.
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @returns {Function} - Express middleware function to handle the request.
  */
 export async function updateUser(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   data: {
     userId: string;
     userData: z.infer<typeof insertUserSchema>;

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import {
   joinGroupsSchema,
   leaveGroupsSchema,
@@ -15,7 +15,7 @@ import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
-export function joinGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function joinGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async (req: Request, res: Response) => {
     const userId = req.session.userId;
     const body = joinGroupsSchema.safeParse(req.body);
@@ -29,7 +29,7 @@ export function joinGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
       // public group
       if ('groupId' in body.data) {
         const group = await dbPool.query.groups.findFirst({
-          where: eq(db.groups.id, body.data.groupId),
+          where: eq(schema.groups.id, body.data.groupId),
         });
 
         if (!group) {
@@ -76,7 +76,7 @@ export function joinGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function updateGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function updateGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const body = updateUsersToGroupsSchema.safeParse({
@@ -107,7 +107,7 @@ export function updateGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function leaveGroupsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function leaveGroupsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const id = req.params.id;

@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client, Pool } from 'pg';
-import * as db from '../../db';
-import { logger } from '../logger';
+import * as schema from '../db/schema';
+import { logger } from '../utils/logger';
 
 /**
  * creates a postgres database pool connection
@@ -37,7 +37,7 @@ export function createDbPool({
 
   return {
     pool,
-    db: drizzle(pool, { schema: db }),
+    db: drizzle(pool, { schema }),
   };
 }
 
@@ -69,6 +69,6 @@ export async function createDbClient({
   await client.connect();
   return {
     client,
-    db: drizzle(client, { schema: db }),
+    db: drizzle(client, { schema }),
   };
 }

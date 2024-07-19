@@ -1,10 +1,10 @@
 import { eq, sql } from 'drizzle-orm';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: string) {
+export async function GetCycleById(dbPool: NodePgDatabase<typeof schema>, cycleId: string) {
   const cycle = await dbPool.query.cycles.findFirst({
-    where: eq(db.cycles.id, cycleId),
+    where: eq(schema.cycles.id, cycleId),
     with: {
       questions: {
         with: {
@@ -27,7 +27,7 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
                 },
               },
             },
-            where: eq(db.options.show, true),
+            where: eq(schema.options.show, true),
           },
         },
       },
@@ -73,7 +73,7 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
  * @param {string} cycleId - The ID of the cycle.
  */
 export async function getCycleVotes(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   cycleId: string,
 ) {
@@ -88,7 +88,7 @@ export async function getCycleVotes(
             with: {
               votes: {
                 where: ({ optionId }) =>
-                  sql`${db.votes.createdAt} = (
+                  sql`${schema.votes.createdAt} = (
                     SELECT MAX(created_at) FROM (
                         SELECT created_at, user_id FROM votes 
                         WHERE user_id = ${userId} AND option_id = ${optionId}
@@ -100,7 +100,7 @@ export async function getCycleVotes(
         },
       },
     },
-    where: eq(db.cycles.id, cycleId),
+    where: eq(schema.cycles.id, cycleId),
   });
 
   const out = response.flatMap((cycle) =>

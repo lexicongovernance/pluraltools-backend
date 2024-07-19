@@ -1,5 +1,6 @@
-import { logger } from '../utils/logger';
+import assert from 'node:assert';
 import { PluralVoting } from './plural-voting';
+import { describe, test } from 'node:test';
 
 // Define instance outside the tests
 const groups: Record<string, string[]> = {
@@ -21,7 +22,7 @@ const pluralVoting = new PluralVoting(groups, contributions);
 describe('createGroupMemberships', () => {
   test('creates group memberships correctly', () => {
     const result = pluralVoting.createGroupMemberships(groups);
-    expect(result).toEqual({
+    assert.deepEqual(result, {
       user0: ['group0', 'group2'],
       user1: ['group0', 'group1'],
       user2: ['group1', 'group2'],
@@ -41,7 +42,7 @@ describe('commonGroup', () => {
     };
 
     const result = pluralVoting.commonGroup('user0', 'user1', groupMemberships);
-    expect(result).toBe(true);
+    assert.equal(result, true);
   });
 
   test('should return false if participants do not share a common group', () => {
@@ -53,7 +54,7 @@ describe('commonGroup', () => {
     };
 
     const result = pluralVoting.commonGroup('user0', 'user3', groupMemberships);
-    expect(result).toBe(false);
+    assert.equal(result, false);
   });
 });
 
@@ -66,7 +67,7 @@ describe('K function', () => {
     const contributions = { user0: 4, user1: 9 };
 
     const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
-    expect(result).toEqual(4);
+    assert.equal(result, 4);
   });
 
   test('should attenuate votes of agent if agent has a shared group membership with another member of the group even if agent is not in the group', () => {
@@ -76,7 +77,7 @@ describe('K function', () => {
     const contributions = { user0: 4, user1: 9 };
 
     const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
-    expect(result).toEqual(2);
+    assert.equal(result, 2);
   });
 
   test('should attenuate votes of agent solely because agent is in the other group himself', () => {
@@ -88,7 +89,7 @@ describe('K function', () => {
     const contributions = { user0: 4, user1: 9 };
 
     const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
-    expect(result).toEqual(2);
+    assert.equal(result, 2);
   });
 
   test('should attenuate votes of agent if both conditions above that lead to attenuation are satisfied', () => {
@@ -98,7 +99,7 @@ describe('K function', () => {
     const contributions = { user0: 4, user1: 9 };
 
     const result = pluralVoting.K(agent, otherGroup, groupMemberships, contributions);
-    expect(result).toEqual(2);
+    assert.equal(result, 2);
   });
 });
 
@@ -108,7 +109,7 @@ describe('arraysEqual', () => {
     const array1 = ['user0', 'user1'];
     const array2 = ['user1', 'user0'];
     const result = pluralVoting.arraysEqual(array1, array2);
-    expect(result).toBe(true);
+    assert(result);
   });
 });
 
@@ -123,7 +124,7 @@ describe('removeDuplicateGroups', () => {
       group4: ['user2', 'user1'],
     };
     const result = pluralVoting.removeDuplicateGroups(groups);
-    expect(result).toEqual({
+    assert.deepEqual(result, {
       group0: ['user0'],
       group1: ['user1'],
       group3: ['user1', 'user2'],
@@ -139,7 +140,7 @@ describe('removeDuplicateGroups', () => {
       group4: ['user1', 'user2'],
     };
     const result = pluralVoting.removeDuplicateGroups(groups);
-    expect(result).toEqual({
+    assert.deepEqual(result, {
       group0: ['user0'],
       group1: ['user1'],
       group3: ['user1', 'user2'],
@@ -151,7 +152,7 @@ describe('removeDuplicateGroups', () => {
       group0: ['user0'],
     };
     const result = pluralVoting.removeDuplicateGroups(groups);
-    expect(result).toEqual({
+    assert.deepEqual(result, {
       group0: ['user0'],
     });
   });
@@ -167,7 +168,7 @@ describe('clusterMatch', () => {
     const expectedScore = 4;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
-    expect(result).toEqual(expectedScore);
+    assert.equal(result, expectedScore);
   });
 
   test('calculates plurality score even if only one group is available', () => {
@@ -178,7 +179,7 @@ describe('clusterMatch', () => {
     const expectedScore = 3;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
-    expect(result).toEqual(expectedScore);
+    assert.equal(result, expectedScore);
   });
 
   test('that plural score equals quadratic score when a single participant has different group memberships', () => {
@@ -189,7 +190,7 @@ describe('clusterMatch', () => {
     const expectedScore = 3;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
-    expect(result).toEqual(expectedScore);
+    assert.equal(result, expectedScore);
   });
 
   test('that the interaction terms get neglected when calculating the plural score if all groups contain the same members', () => {
@@ -203,7 +204,7 @@ describe('clusterMatch', () => {
     const expectedScore = 4;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
-    expect(result).toEqual(expectedScore);
+    assert.equal(result, expectedScore);
   });
 
   test('that the interaction terms get neglected if all groups contain the same members but the order is scrambled', () => {
@@ -217,7 +218,7 @@ describe('clusterMatch', () => {
     const expectedScore = 4;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
-    expect(result).toEqual(expectedScore);
+    assert.equal(result, expectedScore);
   });
 
   test('that duplicate groups are excluded from the score calculation', () => {
@@ -232,7 +233,7 @@ describe('clusterMatch', () => {
     const expectedScore = 6;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
-    expect(result).toEqual(expectedScore);
+    assert.equal(result, expectedScore);
   });
 
   test('that the plurality score equals zero when everyone votes 0', () => {
@@ -243,12 +244,11 @@ describe('clusterMatch', () => {
     const expectedScore = 0;
 
     const result = pluralVoting.clusterMatch(groups, contributions);
-    expect(result).toEqual(expectedScore);
+    assert.equal(result, expectedScore);
   });
 
   test('calculates plurality score according to connection oriented cluster match', () => {
     const score = pluralVoting.pluralScoreCalculation();
-    logger.debug('Plurality Score:', score);
-    expect(true).toBe(true);
+    assert(score);
   });
 });

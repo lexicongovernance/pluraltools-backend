@@ -1,4 +1,6 @@
+import assert from 'node:assert';
 import { allocateFunding } from './funding-mechanism';
+import { describe, test } from 'node:test';
 
 describe('test funding mechanism', () => {
   test('calculates the funding according to the mechanism', () => {
@@ -28,7 +30,7 @@ describe('test funding mechanism', () => {
     };
 
     const result = allocateFunding(availableFunding, maxFunding, getOptionData);
-    expect(result).toEqual(expectedResult);
+    assert.deepEqual(result, expectedResult);
   });
 
   test('Does not allocate funding to the lowest plurality score if no funding is availabe anymore', () => {
@@ -58,7 +60,7 @@ describe('test funding mechanism', () => {
     };
 
     const result = allocateFunding(availableFunding, maxFunding, getOptionData);
-    expect(result).toEqual(expectedResult);
+    assert.deepEqual(result, expectedResult);
   });
 
   test('Does still allocate funding even if nothing was allocated to someone with a higher score because of a too high budget', () => {
@@ -88,7 +90,7 @@ describe('test funding mechanism', () => {
     };
 
     const result = allocateFunding(availableFunding, maxFunding, getOptionData);
-    expect(result).toEqual(expectedResult);
+    assert.deepEqual(result, expectedResult);
   });
 
   test('Excludes projects from funding who specify more than the maximum amount', () => {
@@ -118,6 +120,6 @@ describe('test funding mechanism', () => {
     };
 
     const result = allocateFunding(availableFunding, maxFunding, getOptionData);
-    expect(result).toEqual(expectedResult);
+    assert.deepEqual(result, expectedResult);
   });
 });
