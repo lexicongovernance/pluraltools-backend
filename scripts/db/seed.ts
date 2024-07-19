@@ -1,6 +1,5 @@
+import { cleanup, createDbClient, seed } from '../../src/db';
 import { environmentVariables } from '../../src/types';
-import { createDbClient } from '../../src/utils/db/create-db-connection';
-import { cleanup, seed } from '../../src/utils/db/seed';
 import { logger } from '../../src/utils/logger';
 
 async function main() {

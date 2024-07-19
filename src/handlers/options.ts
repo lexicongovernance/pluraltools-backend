@@ -82,7 +82,7 @@ export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof schema>) {
   };
 }
 
-export function saveOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const body = insertOptionsSchema.safeParse(req.body);
@@ -129,7 +129,7 @@ export function saveOptionHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function updateOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+export function updateOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const optionId = req.params.optionId;
 
