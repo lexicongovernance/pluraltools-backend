@@ -12,7 +12,7 @@ export const events = pgTable('events', {
   description: varchar('description'),
   link: varchar('link'),
   registrationDescription: varchar('registration_description'),
-  fields: jsonb('fields').notNull().default([]),
+  fields: jsonb('fields').notNull().default({}),
   imageUrl: varchar('image_url'),
   eventDisplayRank: integer('event_display_rank'),
   createdAt: timestamp('created_at').notNull().defaultNow(),

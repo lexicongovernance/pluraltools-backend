@@ -218,6 +218,13 @@
       "when": 1720536020805,
       "tag": "0030_polite_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1721839321746,
+      "tag": "0031_curious_maddog",
+      "breakpoints": true
     }
   ]
 }

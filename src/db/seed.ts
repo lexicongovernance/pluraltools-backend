@@ -33,12 +33,13 @@ const insertUsersSchema = createInsertSchema(schema.users);
 const insertUsersToGroupsSchema = createInsertSchema(schema.usersToGroups);
 
 async function seed(dbPool: NodePgDatabase<typeof schema>) {
+  const randId = randUuid();
   const events = await createEvent(dbPool, [
     {
       name: randCity(),
-      fields: [
-        {
-          id: randUuid(),
+      fields: {
+        [randId]: {
+          id: randId,
           name: 'submit project',
           type: 'TEXT',
           position: 0,
@@ -46,7 +47,7 @@ async function seed(dbPool: NodePgDatabase<typeof schema>) {
             required: true,
           },
         },
-      ],
+      },
     },
   ]);
   const cycles = await createCycle(dbPool, [
