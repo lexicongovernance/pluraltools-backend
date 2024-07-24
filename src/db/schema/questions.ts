@@ -13,8 +13,8 @@ export const questions = pgTable('questions', {
   subTitle: varchar('sub_title', { length: 256 }),
   voteModel: varchar('vote_model', { length: 256 }).notNull().default('COCM'),
   showScore: boolean('show_score').default(false),
-  fields: jsonb('fields').notNull().default({}),
   userCanCreate: boolean('user_can_create').default(false),
+  fields: jsonb('fields').notNull().default({}),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

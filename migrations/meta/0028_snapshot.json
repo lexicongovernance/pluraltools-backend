@@ -1,5 +1,5 @@
 {
-  "id": "3b3f3fe7-aab6-4ea0-88cd-e1c81a678986",
+  "id": "f5176ae8-f870-4d8c-82dc-550ae61ecb56",
   "prevId": "201665be-855d-4af0-8e69-731c400b4907",
   "version": "6",
   "dialect": "postgresql",
@@ -265,7 +265,7 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'[]'::jsonb"
+          "default": "'{}'::jsonb"
         },
         "image_url": {
           "name": "image_url",
@@ -754,12 +754,19 @@
           "notNull": false,
           "default": false
         },
+        "user_can_create": {
+          "name": "user_can_create",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
         "fields": {
           "name": "fields",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'[]'::jsonb"
+          "default": "'{}'::jsonb"
         },
         "created_at": {
           "name": "created_at",
@@ -875,6 +882,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "group_id": {
+          "name": "group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "question_id": {
           "name": "question_id",
           "type": "uuid",
@@ -956,6 +969,19 @@
           "tableTo": "registrations",
           "columnsFrom": [
             "registration_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "options_group_id_groups_id_fk": {
+          "name": "options_group_id_groups_id_fk",
+          "tableFrom": "options",
+          "tableTo": "groups",
+          "columnsFrom": [
+            "group_id"
           ],
           "columnsTo": [
             "id"
@@ -1613,7 +1639,7 @@
           "name": "group_category_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",

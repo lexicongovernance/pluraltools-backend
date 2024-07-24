@@ -16,7 +16,7 @@ export function enforceRules({
     return [];
   }
 
-  for (const field of fields) {
+  for (const field of Object.values(fields)) {
     const value = data?.[field.id]?.value;
 
     if (field.validation.required && !value) {
