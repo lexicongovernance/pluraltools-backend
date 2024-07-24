@@ -179,7 +179,7 @@ describe('service: validation', function () {
             type: 'NUMBER',
             validation: {
               required: true,
-              maxLength: 18,
+              minLength: 18,
             },
           },
         };
