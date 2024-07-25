@@ -6,21 +6,22 @@ import { z } from 'zod';
 
 const fieldType = z.enum(['TEXT', 'TEXTAREA', 'SELECT', 'CHECKBOX', 'MULTI_SELECT', 'NUMBER']);
 
-export const fieldsSchema = z.array(
-  z.object({
-    id: z.string().uuid(),
-    name: z.string(),
-    description: z.string().optional(),
-    type: fieldType,
-    position: z.number(),
-    options: z.array(z.string()).optional(),
-    validation: z.object({
-      required: z.boolean(),
-      minLength: z.number().optional(),
-      maxLength: z.number().optional(),
-    }),
+export const fieldSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().optional(),
+  type: fieldType,
+  position: z.coerce.number(),
+  options: z.array(z.string()).optional(),
+  validation: z.object({
+    required: z.boolean(),
+    minLength: z.coerce.number().optional().nullable(),
+    maxLength: z.coerce.number().optional().nullable(),
   }),
-);
+});
+
+// [fieldId] => { ...fieldSchema }
+export const fieldsSchema = z.record(z.string().uuid(), fieldSchema);
 
 /**
  * Data Schema
@@ -42,4 +43,4 @@ const dataForOneFieldSchema = z.object({
 });
 
 // [fieldId] => { value: [value], fieldId: [fieldId] }
-export const dataSchema = z.record(z.string(), dataForOneFieldSchema);
+export const dataSchema = z.record(z.string().uuid(), dataForOneFieldSchema);
