@@ -7,13 +7,14 @@ import {
   randFirstName,
   randJobTitle,
   randLastName,
+  randNumber,
   randUserName,
   randUuid,
 } from '@ngneat/falso';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { fieldsSchema, insertOptionsSchema } from '../types';
+import { dataSchema, fieldsSchema, insertOptionsSchema } from '../types';
 import * as schema from './schema';
 
 // Define the data types for the seed function
@@ -33,15 +34,25 @@ const insertUsersSchema = createInsertSchema(schema.users);
 const insertUsersToGroupsSchema = createInsertSchema(schema.usersToGroups);
 
 async function seed(dbPool: NodePgDatabase<typeof schema>) {
-  const randId = randUuid();
+  const randCityFieldId = randUuid();
+  const randAgeFieldId = randUuid();
   const events = await createEvent(dbPool, [
     {
       name: randCity(),
       fields: {
-        [randId]: {
-          id: randId,
-          name: 'submit project',
+        [randCityFieldId]: {
+          id: randCityFieldId,
+          name: 'city',
           type: 'TEXT',
+          position: 0,
+          validation: {
+            required: true,
+          },
+        },
+        [randAgeFieldId]: {
+          id: randAgeFieldId,
+          name: 'age',
+          type: 'NUMBER',
           position: 0,
           validation: {
             required: true,
@@ -240,6 +251,28 @@ async function seed(dbPool: NodePgDatabase<typeof schema>) {
       groupCategoryId: groupCategories[0]!.id,
     },
   ]);
+
+  const registration: z.infer<typeof dataSchema> = {
+    [randCityFieldId]: {
+      fieldId: randCityFieldId,
+      value: randCity(),
+      type: 'TEXT',
+    },
+    [randAgeFieldId]: {
+      fieldId: randAgeFieldId,
+      value: randNumber({ min: 18, max: 99 }),
+      type: 'NUMBER',
+    },
+  };
+
+  await dbPool
+    .insert(schema.registrations)
+    .values({
+      eventId: events[0]!.id,
+      userId: users[0]!.id,
+      data: registration,
+    })
+    .returning();
 
   return {
     events,
