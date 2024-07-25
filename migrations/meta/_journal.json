@@ -201,22 +201,8 @@
     {
       "idx": 28,
       "version": "6",
-      "when": 1720187374529,
-      "tag": "0028_green_gamora",
-      "breakpoints": true
-    },
-    {
-      "idx": 29,
-      "version": "6",
-      "when": 1720519200977,
-      "tag": "0029_quick_ares",
-      "breakpoints": true
-    },
-    {
-      "idx": 30,
-      "version": "6",
-      "when": 1720536020805,
-      "tag": "0030_polite_forge",
+      "when": 1721839965156,
+      "tag": "0028_chilly_sentry",
       "breakpoints": true
     }
   ]
