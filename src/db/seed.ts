@@ -53,7 +53,7 @@ async function seed(dbPool: NodePgDatabase<typeof schema>) {
           id: randAgeFieldId,
           name: 'age',
           type: 'NUMBER',
-          position: 0,
+          position: 1,
           validation: {
             required: true,
           },
