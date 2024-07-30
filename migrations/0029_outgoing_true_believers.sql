@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "status_idx" ON "cycles" ("status");

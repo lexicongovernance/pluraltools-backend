@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -50,7 +50,27 @@ export function getEventGroupCategoriesHandler(dbPool: NodePgDatabase<typeof sch
 
 export function getEventsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
-    const events = await dbPool.query.events.findMany();
+    const events = await dbPool.query.events.findMany({
+      extras: {
+        status: sql<string>`
+          CASE
+            WHEN EXISTS (
+              SELECT 1
+              FROM ${schema.cycles}
+              WHERE ${schema.cycles.eventId} = ${schema.events.id}
+                AND ${schema.cycles.status} = 'OPEN'
+            ) THEN 'OPEN'
+            WHEN EXISTS (
+              SELECT 1
+              FROM ${schema.cycles}
+              WHERE ${schema.cycles.eventId} = ${schema.events.id}
+                AND ${schema.cycles.status} = 'CLOSED'
+            ) THEN 'CLOSED'
+            ELSE 'UPCOMING'
+          END
+        `.as('status'),
+      },
+    });
     return res.json({ data: events });
   };
 }
