@@ -1,5 +1,5 @@
 {
-  "id": "f5176ae8-f870-4d8c-82dc-550ae61ecb56",
+  "id": "38b232a4-f172-4406-8b6a-bcd48ee6c5b0",
   "prevId": "201665be-855d-4af0-8e69-731c400b4907",
   "version": "6",
   "dialect": "postgresql",
@@ -199,7 +199,15 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "status_idx": {
+          "name": "status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "cycles_event_id_events_id_fk": {
           "name": "cycles_event_id_events_id_fk",
