@@ -1,5 +1,5 @@
 {
-  "name": "forum",
+  "name": "pluraltools-backend",
   "version": "2.6.0",
   "description": "",
   "main": "dist/index.js",
