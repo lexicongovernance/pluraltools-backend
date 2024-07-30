@@ -64,9 +64,9 @@ export function getEventsHandler(dbPool: NodePgDatabase<typeof schema>) {
               SELECT 1
               FROM ${schema.cycles}
               WHERE ${schema.cycles.eventId} = ${schema.events.id}
-                AND ${schema.cycles.status} = 'CLOSED'
-            ) THEN 'CLOSED'
-            ELSE 'UPCOMING'
+                AND ${schema.cycles.status} = 'UPCOMING'
+            ) THEN 'UPCOMING'
+            ELSE 'CLOSED'
           END
         `.as('status'),
       },
