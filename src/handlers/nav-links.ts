@@ -4,13 +4,13 @@ import { and, eq, gte, lte, or } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
-export function getActiveAlerts(dbPool: NodePgDatabase<typeof schema>) {
+export function getActiveNavLinks(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
-      const alerts = await dbPool.query.alerts.findMany({
+      const alerts = await dbPool.query.navLinks.findMany({
         where: or(
-          eq(schema.alerts.active, true),
-          and(lte(schema.alerts.startAt, new Date()), gte(schema.alerts.endAt, new Date())),
+          eq(schema.navLinks.active, true),
+          and(lte(schema.navLinks.startAt, new Date()), gte(schema.navLinks.endAt, new Date())),
         ),
       });
 
