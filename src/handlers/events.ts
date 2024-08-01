@@ -1,7 +1,7 @@
-import { and, eq, gte, lte, or, sql } from 'drizzle-orm';
+import { and, eq, getTableColumns, gte, lte, or, sql } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { Request, Response } from 'express';
 import * as schema from '../db/schema';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
 export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof schema>) {
@@ -50,27 +50,28 @@ export function getEventGroupCategoriesHandler(dbPool: NodePgDatabase<typeof sch
 
 export function getEventsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
-    const events = await dbPool.query.events.findMany({
-      extras: {
-        status: sql<string>`
-          CASE
-            WHEN EXISTS (
-              SELECT 1
-              FROM ${schema.cycles}
-              WHERE ${schema.cycles.eventId} = ${schema.events.id}
-                AND ${schema.cycles.status} = 'OPEN'
-            ) THEN 'OPEN'
-            WHEN EXISTS (
-              SELECT 1
-              FROM ${schema.cycles}
-              WHERE ${schema.cycles.eventId} = ${schema.events.id}
-                AND ${schema.cycles.status} = 'UPCOMING'
-            ) THEN 'UPCOMING'
-            ELSE 'CLOSED'
-          END
-        `.as('status'),
-      },
-    });
+    const columns = getTableColumns(schema.events);
+
+    const events = await dbPool
+      .select({
+        ...columns,
+        status: sql`CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM ${schema.cycles}
+            WHERE ${schema.cycles.eventId} = events.id
+              AND ${schema.cycles.status} = 'OPEN'
+          ) THEN 'OPEN'
+          WHEN EXISTS (
+            SELECT 1
+            FROM ${schema.cycles}
+            WHERE ${schema.cycles.eventId} = events.id
+              AND ${schema.cycles.status} = 'UPCOMING'
+          ) THEN 'UPCOMING'
+          ELSE 'CLOSED'
+        END`,
+      })
+      .from(schema.events);
     return res.json({ data: events });
   };
 }
