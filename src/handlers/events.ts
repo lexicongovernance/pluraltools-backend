@@ -1,7 +1,7 @@
 import { and, eq, getTableColumns, gte, lte, or, sql } from 'drizzle-orm';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { Request, Response } from 'express';
 import * as schema from '../db/schema';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { logger } from '../utils/logger';
 
 export function getEventCyclesHandler(dbPool: NodePgDatabase<typeof schema>) {
