@@ -15,7 +15,7 @@ import { votesRouter } from './votes';
 import { registrationsRouter } from './registrations';
 import { usersToGroupsRouter } from './users-to-groups';
 import { groupCategoriesRouter } from './group-categories';
-import { alertsRouter } from './alerts';
+import { navLinksRouter } from './nav-links';
 import { pinoHttp } from 'pino-http';
 import { logger } from '../utils/logger';
 import type { Request } from 'express';
@@ -69,7 +69,7 @@ export function apiRouter({
   router.use('/group-categories', groupCategoriesRouter({ dbPool }));
   router.use('/registrations', registrationsRouter({ dbPool }));
   router.use('/users-to-groups', usersToGroupsRouter({ dbPool }));
-  router.use('/alerts', alertsRouter({ dbPool }));
+  router.use('/nav-links', navLinksRouter({ dbPool }));
 
   return router;
 }

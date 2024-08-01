@@ -18,4 +18,4 @@ export * from './notification-types';
 export * from './users-to-notifications';
 export * from './group-categories';
 export * from './questions-to-group-categories';
-export * from './alerts';
+export * from './nav-links';

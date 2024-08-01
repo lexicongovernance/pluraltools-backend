@@ -4,6 +4,7 @@ import { registrations } from './registrations';
 import { cycles } from './cycles';
 import { registrationFields } from './registration-fields';
 import { groupCategories } from './group-categories';
+import { navLinks } from './nav-links';
 
 export const events = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -24,6 +25,7 @@ export const eventsRelations = relations(events, ({ many }) => ({
   registrationFields: many(registrationFields),
   cycles: many(cycles),
   groupCategories: many(groupCategories),
+  navLinks: many(navLinks),
 }));
 
 export type Event = typeof events.$inferSelect;

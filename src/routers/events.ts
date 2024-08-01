@@ -5,6 +5,7 @@ import {
   getEventCyclesHandler,
   getEventGroupCategoriesHandler,
   getEventHandler,
+  getEventNavLinksHandler,
   getEventRegistrationFieldsHandler,
   getEventRegistrationsHandler,
   getEventsHandler,
@@ -26,6 +27,7 @@ export function eventsRouter({ dbPool }: { dbPool: NodePgDatabase<typeof schema>
     getEventRegistrationFieldsHandler(dbPool),
   );
   router.get('/:eventId/cycles', isLoggedIn(dbPool), getEventCyclesHandler(dbPool));
+  router.get('/:eventId/nav-links', isLoggedIn(dbPool), getEventNavLinksHandler(dbPool));
   router.get('/:eventId/registrations', isLoggedIn(dbPool), getEventRegistrationsHandler(dbPool));
   return router;
 }

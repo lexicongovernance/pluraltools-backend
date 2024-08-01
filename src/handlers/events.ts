@@ -1,4 +1,4 @@
-import { and, eq, getTableColumns, sql } from 'drizzle-orm';
+import { and, eq, getTableColumns, gte, lte, or, sql } from 'drizzle-orm';
 import type { Request, Response } from 'express';
 import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -133,5 +133,27 @@ export function getEventRegistrationsHandler(dbPool: NodePgDatabase<typeof schem
       logger.error('error getting registration ' + e);
       return res.sendStatus(500);
     }
+  };
+}
+
+export function getEventNavLinksHandler(dbPool: NodePgDatabase<typeof schema>) {
+  return async function (req: Request, res: Response) {
+    const { eventId } = req.params;
+
+    if (!eventId) {
+      return res.status(400).json({ error: 'Missing eventId' });
+    }
+
+    const eventNavLinks = await dbPool.query.navLinks.findMany({
+      where: and(
+        eq(schema.navLinks.eventId, eventId),
+        or(
+          eq(schema.navLinks.active, true),
+          and(lte(schema.navLinks.startAt, new Date()), gte(schema.navLinks.endAt, new Date())),
+        ),
+      ),
+    });
+
+    return res.json({ data: eventNavLinks });
   };
 }
