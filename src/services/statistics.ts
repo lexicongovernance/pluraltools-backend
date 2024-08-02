@@ -1,6 +1,7 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { sql } from 'drizzle-orm';
+import { logger } from '../utils/logger';
 
 type ResultData = {
   numProposals: number;
@@ -10,8 +11,8 @@ type ResultData = {
   optionStats: Record<
     string,
     {
-      optionTitle: string;
-      optionSubTitle: string;
+      title: string;
+      subTitle: string;
       pluralityScore: string;
       distinctUsers: number;
       allocatedHearts: number;
@@ -24,14 +25,10 @@ type ResultData = {
 
 /**
  * Executes multiple queries concurrently to retrieve statistics related to a forum question from the database.
- *
- * @param {string | undefined} forumQuestionId - The ID of the forum question for which statistics are to be retrieved.
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Promise<unknown>} - A promise resolving to an object containing various statistics related to the forum question.
  */
 export async function executeResultQueries(
   forumQuestionId: string | undefined,
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
 ): Promise<ResultData> {
   try {
     // Execute all queries concurrently
@@ -46,9 +43,9 @@ export async function executeResultQueries(
       dbPool.execute<{ numProposals: number }>(
         sql.raw(`
           SELECT count("id")::int AS "numProposals" 
-          FROM question_options
+          FROM options
           WHERE question_id = '${forumQuestionId}'
-          AND accepted = TRUE
+          AND show = TRUE
         `),
       ),
 
@@ -100,8 +97,8 @@ export async function executeResultQueries(
       // Get individual results
       dbPool.execute<{
         optionId: string;
-        optionTitle: string;
-        optionSubTitle: string;
+        title: string;
+        subTitle: string;
         pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
@@ -118,10 +115,10 @@ export async function executeResultQueries(
           ),
           
           plural_score_and_title AS (
-              SELECT "id" AS "optionId", "option_title" AS "optionTitle", "option_sub_title" AS "optionSubTitle", vote_score AS "pluralityScore"
-              FROM question_options
+              SELECT "id" AS "optionId", "title" AS "title", "sub_title" AS "subTitle", vote_score AS "pluralityScore"
+              FROM options
               WHERE question_id = '${forumQuestionId}'
-              AND accepted = TRUE -- makes sure to only expose data of accepted options
+              AND show = TRUE -- makes sure to only expose data of accepted options
           ),
           
           allocated_hearts AS (
@@ -189,8 +186,8 @@ export async function executeResultQueries(
           /* Aggregated results */
           merged_result AS (
               SELECT id_title_score."optionId", 
-                    id_title_score."optionTitle",
-                    id_title_score."optionSubTitle",
+                    id_title_score."title",
+                    id_title_score."subTitle",
                     id_title_score."pluralityScore",
                     distinct_users."distinctUsers",
                     hearts."allocatedHearts",
@@ -221,8 +218,8 @@ export async function executeResultQueries(
     const indivStats: Record<
       string,
       {
-        optionTitle: string;
-        optionSubTitle: string;
+        title: string;
+        subTitle: string;
         pluralityScore: string;
         distinctUsers: number;
         allocatedHearts: number;
@@ -236,8 +233,8 @@ export async function executeResultQueries(
     queryIndivStatistics.rows.forEach((row) => {
       const {
         optionId: indivOptionId,
-        optionTitle: indivOptionTitle,
-        optionSubTitle: indivOptionSubTitle,
+        title: indivOptionTitle,
+        subTitle: indivOptionSubTitle,
         pluralityScore: indivPluralityScore,
         distinctUsers: indivDistinctUsers,
         allocatedHearts: indivAllocatedHearts,
@@ -247,8 +244,8 @@ export async function executeResultQueries(
       } = row;
 
       indivStats[indivOptionId] = {
-        optionTitle: indivOptionTitle || 'No Title Provided',
-        optionSubTitle: indivOptionSubTitle || '',
+        title: indivOptionTitle || 'No Title Provided',
+        subTitle: indivOptionSubTitle || '',
         pluralityScore: indivPluralityScore || '0.0',
         distinctUsers: indivDistinctUsers || 0,
         allocatedHearts: indivAllocatedHearts || 0,
@@ -268,7 +265,7 @@ export async function executeResultQueries(
 
     return responseData;
   } catch (error) {
-    console.error('Error in executeQueries:', error);
+    logger.error('Error in executeQueries:', error);
     throw new Error('Error executing database queries');
   }
 }

@@ -5,7 +5,7 @@ const envVariables = environmentVariables.parse(process.env);
 /** @type { import("drizzle-kit").Config } */
 export default {
   dialect: 'postgresql',
-  schema: './src/db/*',
+  schema: './src/db/schema/*',
   out: './migrations',
   dbCredentials: {
     user: envVariables.DATABASE_USER,

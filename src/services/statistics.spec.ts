@@ -1,43 +1,28 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { environmentVariables, insertVotesSchema } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
-import { z } from 'zod';
-import { executeResultQueries } from './statistics';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { z } from 'zod';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables, insertVotesSchema } from '../types';
+import { executeResultQueries } from './statistics';
 
 describe('service: statistics', () => {
-  let dbPool: NodePgDatabase<typeof db>;
-  let dbConnection: Client;
+  let dbPool: NodePgDatabase<typeof schema>;
   let userTestData: z.infer<typeof insertVotesSchema>;
   let otherUserTestData: z.infer<typeof insertVotesSchema>;
-  let questionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
-  let user: db.User | undefined;
-  let otherUser: db.User | undefined;
+  let questionOption: schema.Option | undefined;
+  let forumQuestion: schema.Question | undefined;
+  let user: schema.User | undefined;
+  let otherUser: schema.User | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
 
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
     // seed
     const { users, questionOptions, forumQuestions } = await seed(dbPool);
     // Insert registration fields for the user
@@ -59,8 +44,8 @@ describe('service: statistics', () => {
     };
 
     // Add additional data to the Db
-    await dbPool.insert(db.votes).values(userTestData);
-    await dbPool.insert(db.votes).values(otherUserTestData);
+    await dbPool.insert(schema.votes).values(userTestData);
+    await dbPool.insert(schema.votes).values(otherUserTestData);
   });
 
   test('should return aggregated statistics when all queries return valid data', async () => {
@@ -70,45 +55,37 @@ describe('service: statistics', () => {
     const result = await executeResultQueries(questionId, dbPool);
 
     // Test aggregate result statistics
-    expect(result).toBeDefined();
-    expect(result.numProposals).toEqual(2);
-    expect(result.sumNumOfHearts).toEqual(8);
-    expect(result.numOfParticipants).toEqual(2);
-    expect(result.numOfGroups).toEqual(1);
+    assert(result);
+    assert.equal(result.numProposals, 2, 'Number of proposals should be 2');
+    assert.equal(result.sumNumOfHearts, 8);
+    assert.equal(result.numOfParticipants, 2, 'Number of participants should be 2');
+    assert.equal(result.numOfGroups, 2, 'Number of groups should be 2');
 
     // Test option stats
-    expect(result.optionStats).toBeDefined();
-    expect(Object.keys(result.optionStats)).toHaveLength(2);
+    assert(result.optionStats, 'Option stats should not be empty');
+    assert.equal(Object.keys(result.optionStats).length, 2, 'Number of options should be 2');
 
     for (const optionId in result.optionStats) {
       const optionStat = result.optionStats[optionId];
-      expect(optionStat).toBeDefined();
-      expect(optionStat?.optionTitle).toBeDefined();
-      expect(optionStat?.optionSubTitle).toBeDefined();
-      expect(optionStat?.pluralityScore).toBeDefined();
-      expect(optionStat?.distinctUsers).toBeDefined();
-      expect(optionStat?.allocatedHearts).toBeDefined();
-      expect(optionStat?.quadraticScore).toBeDefined();
-      expect(optionStat?.distinctGroups).toBeDefined();
-      expect(optionStat?.listOfGroupNames).toBeDefined();
+      assert(optionStat, 'Option stat should not be empty');
+      assert(optionStat.title, 'Option title should not be empty');
 
       // Add assertions for distinct users and allocated hearts
       if (optionId === questionOption?.id) {
         // Assuming this option belongs to the user
-        expect(optionStat?.distinctUsers).toEqual(2);
-        expect(optionStat?.allocatedHearts).toEqual(8);
-        expect(optionStat?.quadraticScore).toEqual('4');
-        expect(optionStat?.distinctGroups).toEqual(1);
+        assert.equal(optionStat?.distinctUsers, 2, 'Number of distinct users should be 2');
+        assert.equal(optionStat?.allocatedHearts, 8, 'Number of allocated hearts should be 8');
+        assert.equal(optionStat?.pluralityScore, '4', 'Plurality score should be 4');
+        assert.equal(optionStat?.quadraticScore, 16), 'Quadratic score should be 16';
+        assert.equal(optionStat?.distinctGroups, 1, 'Number of distinct groups should be 1');
         const listOfGroupNames = optionStat?.listOfGroupNames;
         // Check if the array is not empty
-        expect(listOfGroupNames).toBeDefined();
-        expect(listOfGroupNames?.length).toBeGreaterThan(0);
+        assert(listOfGroupNames, 'List of group names should not be empty');
       }
     }
   });
 
-  afterAll(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+  after(async () => {
+    await deleteTestDatabase();
   });
 });

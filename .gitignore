@@ -33,7 +33,8 @@ yarn-error.log*
 .env.production.local
 .direnv
 
-# input files
-groups.csv
+# testing
+.nyc_output
+
 
 tmp

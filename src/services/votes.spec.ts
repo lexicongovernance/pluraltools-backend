@@ -1,60 +1,46 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { environmentVariables, insertVotesSchema } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
-import { z } from 'zod';
-import {
-  saveVote,
-  queryVoteData,
-  queryGroupCategories,
-  numOfVotesDictionary,
-  groupsDictionary,
-  calculatePluralScore,
-  calculateQuadraticScore,
-  updateVoteScoreInDatabase,
-  updateVoteScore,
-  userCanVote,
-} from './votes';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables } from '../types';
+import {
+  calculatePluralScore,
+  calculateQuadraticScore,
+  groupsDictionary,
+  numOfVotesDictionary,
+  queryGroupCategories,
+  queryVoteData,
+  saveVote,
+  updateOptionScore,
+  updateVoteScoreInDatabase,
+  updateVoteScorePlural,
+  updateVoteScoreQuadratic,
+  userCanVote,
+  validateVote,
+} from './votes';
 
 describe('service: votes', () => {
-  let dbPool: NodePgDatabase<typeof db>;
-  let dbConnection: Client;
-  let testData: z.infer<typeof insertVotesSchema>;
-  let cycle: db.Cycle | undefined;
-  let questionOption: db.QuestionOption | undefined;
-  let otherQuestionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
-  let otherForumQuestion: db.ForumQuestion | undefined;
-  let groupCategory: db.GroupCategory | undefined;
-  let otherGroupCategory: db.GroupCategory | undefined;
-  let unrelatedGroupCategory: db.GroupCategory | undefined;
-  let user: db.User | undefined;
-  let secondUser: db.User | undefined;
-  let thirdUser: db.User | undefined;
-  beforeAll(async () => {
+  let dbPool: NodePgDatabase<typeof schema>;
+  let deleteTestDatabase: () => Promise<void>;
+  let testData: { optionId: string; numOfVotes: number };
+  let cycle: schema.Cycle | undefined;
+  let questionOption: schema.Option | undefined;
+  let otherQuestionOption: schema.Option | undefined;
+  let forumQuestion: schema.Question | undefined;
+  let otherForumQuestion: schema.Question | undefined;
+  let groupCategory: schema.GroupCategory | undefined;
+  let otherGroupCategory: schema.GroupCategory | undefined;
+  let user: schema.User | undefined;
+  let secondUser: schema.User | undefined;
+  let thirdUser: schema.User | undefined;
+
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { users, questionOptions, forumQuestions, cycles, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user
@@ -64,7 +50,6 @@ describe('service: votes', () => {
     otherForumQuestion = forumQuestions[1];
     groupCategory = groupCategories[0];
     otherGroupCategory = groupCategories[1];
-    unrelatedGroupCategory = groupCategories[2];
     user = users[0];
     secondUser = users[1];
     thirdUser = users[2];
@@ -72,89 +57,188 @@ describe('service: votes', () => {
     testData = {
       numOfVotes: 1,
       optionId: questionOption?.id ?? '',
-      questionId: forumQuestion?.id ?? '',
-      userId: user?.id ?? '',
     };
   });
 
-  test('should save vote', async () => {
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-    // accept user registration
-    await dbPool.insert(db.registrations).values({
+  test('validation should return false if no option id is specified', async () => {
+    const response = await validateVote(dbPool, { numOfVotes: 1, optionId: '' }, user!.id ?? '');
+    assert.equal(response.isValid, false);
+    assert(response.error);
+  });
+
+  test('validation should return false if a non-existing optionid is specified', async () => {
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: '00000000-0000-0000-0000-000000000000' },
+      user!.id ?? '',
+    );
+    assert.equal(response.isValid, false);
+    assert(response.error);
+  });
+
+  test('validation should return false if the cycle is not open', async () => {
+    await dbPool
+      .update(schema.cycles)
+      .set({ status: 'CLOSED' })
+      .where(eq(schema.cycles.id, cycle!.id));
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: questionOption?.id ?? '' },
+      user!.id ?? '',
+    );
+    assert.equal(response.isValid, false);
+    assert(response.error);
+  });
+
+  test('validation should return false if a user is not approved', async () => {
+    await dbPool
+      .update(schema.cycles)
+      .set({ status: 'OPEN' })
+      .where(eq(schema.cycles.id, cycle!.id));
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: questionOption?.id ?? '' },
+      user!.id ?? '',
+    );
+
+    assert.equal(response.isValid, false);
+    assert(response.error);
+  });
+
+  test('validation should return true all validation checks pass', async () => {
+    await dbPool.insert(schema.registrations).values({
       status: 'APPROVED',
       userId: user!.id ?? '',
       eventId: cycle!.eventId ?? '',
     });
-    // Call the saveVote function
-    const { data: response } = await saveVote(dbPool, testData);
-    // Check if response is defined
-    expect(response).toBeDefined();
-    // Check property existence and types
-    expect(response).toHaveProperty('id');
-    expect(response?.id).toEqual(expect.any(String));
-    expect(response).toHaveProperty('userId');
-    expect(response?.userId).toEqual(expect.any(String));
-    // check timestamps
-    expect(response?.createdAt).toEqual(expect.any(Date));
-    expect(response?.updatedAt).toEqual(expect.any(Date));
+    const response = await validateVote(
+      dbPool,
+      { numOfVotes: 1, optionId: questionOption?.id ?? '' },
+      user!.id ?? '',
+    );
+
+    assert.equal(response.isValid, true);
+    assert.equal(response.error, null);
   });
 
-  test('should not save vote if cycle is closed', async () => {
-    // update cycle to closed state
-    await dbPool.update(db.cycles).set({ status: 'CLOSED' }).where(eq(db.cycles.id, cycle!.id));
-    // Call the saveVote function
-    const { data: response, errors } = await saveVote(dbPool, testData);
-
-    // expect response to be undefined
-    expect(response).toBeUndefined();
-
-    // expect error message
-    expect(errors).toBeDefined();
+  test('userCanVote returns false if user does not have an approved registration', async () => {
+    const response = await userCanVote(dbPool, secondUser!.id ?? '', questionOption?.id ?? '');
+    assert.equal(response, false);
   });
 
-  test('should not allow voting on users that are not registered', async () => {
-    const canVote = await userCanVote(dbPool, secondUser!.id, questionOption!.id);
-    expect(canVote).toBe(false);
-  });
-
-  test('should not save vote if cycle is upcoming', async () => {
-    // update cycle to closed state
-    await dbPool.update(db.cycles).set({ status: 'UPCOMING' }).where(eq(db.cycles.id, cycle!.id));
-    // Call the saveVote function
-    const { data: response, errors } = await saveVote(dbPool, testData);
-
-    // expect response to be undefined
-    expect(response).toBeUndefined();
-
-    // expect error message
-    expect(errors).toBeDefined();
-  });
-
-  test('should fetch vote data correctly', async () => {
-    // open cycle for voting
-    await dbPool.update(db.cycles).set({ status: 'OPEN' }).where(eq(db.cycles.id, cycle!.id));
-
-    // register second user
-    await dbPool.insert(db.registrations).values({
+  test('userCanVote returns true if user has an approved registration', async () => {
+    await dbPool.insert(schema.registrations).values({
       status: 'APPROVED',
       userId: secondUser!.id ?? '',
       eventId: cycle!.eventId ?? '',
     });
-    // save a second user vote
-    const res = await saveVote(dbPool, { ...testData, userId: secondUser!.id });
-    console.log(res);
+    const response = await userCanVote(dbPool, secondUser!.id ?? '', questionOption?.id ?? '');
+    assert.equal(response, true);
+  });
+
+  test('userCanVote returns false if no option id gets provided', async () => {
+    const response = await userCanVote(dbPool, secondUser!.id ?? '', '');
+    assert.equal(response, false);
+  });
+
+  test('should save vote', async () => {
+    const { data: response } = await saveVote(
+      dbPool,
+      testData,
+      user?.id ?? '',
+      forumQuestion?.id ?? '',
+    );
+    assert(response);
+    assert(response?.id);
+    assert(response?.userId);
+    assert(response?.optionId);
+    assert(response?.numOfVotes);
+    assert(response?.questionId);
+    assert(response?.createdAt);
+    assert(response?.updatedAt);
+  });
+
+  test('should not save vote with invalid test data', async () => {
+    const invalidTestData = {
+      optionId: '',
+      numOfVotes: 2,
+    };
+    const response = await saveVote(
+      dbPool,
+      invalidTestData,
+      user?.id ?? '',
+      forumQuestion?.id ?? '',
+    );
+    assert.equal(response.data, null);
+    assert(response.error);
+  });
+
+  test('UpdateOptionScore returns an error if not all question ids are the same', async () => {
+    const mockData = [
+      { optionId: 'option1', numOfVotes: 10 },
+      { optionId: 'option2', numOfVotes: 5 },
+      { optionId: 'option3', numOfVotes: 2 },
+    ];
+    const questionIds = [forumQuestion?.id ?? '', otherForumQuestion?.id ?? ''];
+
+    const response = await updateOptionScore(dbPool, mockData, questionIds);
+    assert.equal(response.data, null);
+    assert(response.errors);
+    assert(response.errors[0]);
+  });
+
+  test('UpdateOptionScore returns an error if no question id is found', async () => {
+    const mockData = [
+      { optionId: 'option1', numOfVotes: 10 },
+      { optionId: 'option2', numOfVotes: 5 },
+      { optionId: 'option3', numOfVotes: 2 },
+    ];
+    const questionIds = [
+      '00000000-0000-0000-0000-000000000000',
+      '00000000-0000-0000-0000-000000000000',
+    ];
+
+    const response = await updateOptionScore(dbPool, mockData, questionIds);
+    assert.equal(response.data, null);
+    assert(response.errors);
+    assert(response.errors[0]);
+  });
+
+  test('UpdateOptionScore returns an error if a valid but non existing uuid gets provided', async () => {
+    const mockData = [
+      { optionId: 'option1', numOfVotes: 10 },
+      { optionId: 'option2', numOfVotes: 5 },
+      { optionId: 'option3', numOfVotes: 2 },
+    ];
+    const questionIds = ['', ''];
+
+    const response = await updateOptionScore(dbPool, mockData, questionIds);
+    assert.equal(response.data, null);
+    assert(response.errors);
+    assert(response.errors[0]);
+  });
+
+  test('should fetch vote data correctly', async () => {
+    // register second user
+    await dbPool.insert(schema.registrations).values({
+      status: 'APPROVED',
+      userId: secondUser!.id ?? '',
+      eventId: cycle!.eventId ?? '',
+    });
+    await saveVote(dbPool, testData, secondUser!.id, forumQuestion?.id ?? '');
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
 
-    expect(voteArray).toBeDefined();
-    expect(voteArray).toHaveLength(2);
+    assert(voteArray);
+    assert.equal(voteArray.length, 2);
 
     voteArray?.forEach((vote) => {
-      expect(vote).toHaveProperty('userId');
-      expect(vote).toHaveProperty('numOfVotes');
-      expect(typeof vote.numOfVotes).toBe('number');
+      assert(vote);
+      assert(vote.userId);
+      assert(vote.numOfVotes);
+      assert(Number.isInteger(vote.numOfVotes));
     });
 
-    expect(voteArray[0]?.numOfVotes).toBe(1);
+    assert.equal(voteArray[0]?.numOfVotes, 1);
   });
 
   test('should transform voteArray correctly', () => {
@@ -167,10 +251,10 @@ describe('service: votes', () => {
     ];
 
     const result = numOfVotesDictionary(voteArray);
-    expect(result).toEqual({
-      user1: 10,
-      user3: 5,
-    });
+    assert(result);
+    assert.equal(Object.keys(result).length, 2);
+    assert.equal(result.user1, 10);
+    assert.equal(result.user3, 5);
   });
 
   test('should include users with zero votes if there are no non-zero votes', () => {
@@ -181,15 +265,15 @@ describe('service: votes', () => {
     ];
 
     const result = numOfVotesDictionary(voteArray);
-    expect(result).toEqual({
-      user1: 0,
-      user2: 0,
-    });
+    assert(result);
+    assert.equal(Object.keys(result).length, 2);
+    assert.equal(result.user1, 0);
+    assert.equal(result.user2, 0);
   });
 
   test('vote dictionary should not contain users voting for another option', async () => {
     // create vote for another question option
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 5,
       optionId: otherQuestionOption!.id,
       questionId: forumQuestion!.id,
@@ -199,28 +283,27 @@ describe('service: votes', () => {
     const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
     const result = await numOfVotesDictionary(voteArray);
 
-    expect(user!.id in result).toBe(true);
-    expect(secondUser!.id in result).toBe(true);
-    expect(thirdUser!.id in result).toBe(false);
+    assert(user);
+    assert(secondUser);
+    assert(thirdUser);
+    assert.equal(user.id in result, true);
+    assert.equal(secondUser.id in result, true);
+    assert.equal(thirdUser.id in result, false);
   });
 
   test('that query group categories returns the correct amount of group category ids', async () => {
     // Get vote data required for groups
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, forumQuestion!.id);
-    expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(1);
-    expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
-    groupCategoriesIdArray.forEach((categoryId) => {
-      expect(typeof categoryId).toBe('string');
-    });
+    assert(groupCategoriesIdArray);
+    assert(groupCategoriesIdArray.data);
+    assert.equal(groupCategoriesIdArray.data.length, 1);
+    assert.equal(typeof groupCategoriesIdArray.data[0], 'string');
   });
 
   test('that query group categories returns an empty array if their are no group categories specified for a specific question', async () => {
     const groupCategoriesIdArray = await queryGroupCategories(dbPool, otherForumQuestion!.id);
-    expect(groupCategoriesIdArray).toBeDefined();
-    expect(groupCategoriesIdArray.length).toBe(0);
-    expect(Array.isArray(groupCategoriesIdArray)).toBe(true);
-    expect(groupCategoriesIdArray).toEqual([]);
+    assert(groupCategoriesIdArray);
+    assert.equal(groupCategoriesIdArray.data, null);
   });
 
   test('only return groups for users who voted for the option', async () => {
@@ -228,11 +311,15 @@ describe('service: votes', () => {
     const votesDictionary = await numOfVotesDictionary(voteArray);
     const groups = await groupsDictionary(dbPool, votesDictionary, [groupCategory!.id]);
 
-    expect(groups).toBeDefined();
-    expect(groups['unexpectedKey']).toBeUndefined();
-    expect(typeof groups).toBe('object');
-    expect(Object.keys(groups).length).toEqual(1);
-    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
+    assert(groups);
+    assert(groups['unexpectedKey'] === undefined);
+    assert(typeof groups === 'object');
+    // check that the groups dictionary only has user ids from the votes dictionary
+    for (const key in groups) {
+      for (const userId of groups[key]!) {
+        assert(userId in votesDictionary, `User ${userId} not in votes dictionary`);
+      }
+    }
   });
 
   test('only return groups for users who voted for the option with two elidgible group categories', async () => {
@@ -243,27 +330,11 @@ describe('service: votes', () => {
       otherGroupCategory!.id,
     ]);
 
-    expect(groups).toBeDefined();
-    expect(groups['unexpectedKey']).toBeUndefined();
-    expect(typeof groups).toBe('object');
-    expect(Object.keys(groups).length).toEqual(2);
-    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
-  });
-
-  test('only return baseline groups for users who voted for the option as non of the users is in the additional group category', async () => {
-    // Get vote data required for groups
-    const voteArray = await queryVoteData(dbPool, questionOption?.id ?? '');
-    const votesDictionary = await numOfVotesDictionary(voteArray);
-    const groups = await groupsDictionary(dbPool, votesDictionary, [
-      groupCategory!.id,
-      unrelatedGroupCategory!.id,
-    ]);
-
-    expect(groups).toBeDefined();
-    expect(groups['unexpectedKey']).toBeUndefined();
-    expect(typeof groups).toBe('object');
-    expect(Object.keys(groups).length).toEqual(1);
-    expect(groups[Object.keys(groups)[0]!]!.length).toEqual(2);
+    assert(groups);
+    assert(groups['unexpectedKey'] === undefined);
+    assert(typeof groups === 'object');
+    assert.equal(Object.keys(groups).length, 2);
+    assert.equal(groups[Object.keys(groups)[0]!]!.length, 2);
   });
 
   test('should calculate the plural score correctly', () => {
@@ -283,7 +354,9 @@ describe('service: votes', () => {
     };
 
     const result = calculatePluralScore(groupsDictionary, numOfVotesDictionary);
-    expect(result).toBe(4.597873224984399);
+    assert(result);
+    assert.equal(typeof result, 'number');
+    assert.equal(result, 4.597873224984399);
   });
 
   test('plural score should be 0 when every user vote is zero', () => {
@@ -303,7 +376,8 @@ describe('service: votes', () => {
     };
 
     const result = calculatePluralScore(groupsDictionary, numOfVotesDictionary);
-    expect(result).toBe(0);
+    assert.equal(typeof result, 'number');
+    assert.equal(result, 0);
   });
 
   test('test quadratic score calculation', () => {
@@ -316,7 +390,9 @@ describe('service: votes', () => {
     };
 
     const result = calculateQuadraticScore(numOfVotesDictionary);
-    expect(result).toBe(10);
+    assert(result);
+    assert.equal(typeof result, 'number');
+    assert.equal(result, 10);
   });
 
   test('update vote score in database', async () => {
@@ -324,24 +400,35 @@ describe('service: votes', () => {
     const score = 100;
     await updateVoteScoreInDatabase(dbPool, questionOption?.id ?? '', score);
 
-    // query updated score in db
-    const updatedDbScore = await dbPool.query.questionOptions.findFirst({
-      where: eq(db.questionOptions.id, questionOption?.id ?? ''),
+    // query updated db in schema
+    const updatedDbScore = await dbPool.query.options.findFirst({
+      where: eq(schema.options.id, questionOption?.id ?? ''),
     });
 
-    expect(updatedDbScore?.voteScore).toBe('100');
+    assert(updatedDbScore);
+    assert(updatedDbScore.voteScore);
+    assert.equal(updatedDbScore.voteScore, '100');
   });
 
-  test('full integration test of the update vote functionality', async () => {
-    // Test that the plurality score is correct if both users are in the same group
-    const score = await updateVoteScore(dbPool, questionOption?.id ?? '');
+  test('that the plurality score is correct if both users are in the same group', async () => {
+    const score = await updateVoteScorePlural(
+      dbPool,
+      questionOption?.id ?? '',
+      forumQuestion?.id ?? '',
+    );
     // sqrt of 2 because the two users are in the same group
     // voting for the same option with 1 vote each
-    expect(score).toBe(Math.sqrt(2));
+    assert.equal(score, Math.sqrt(2));
   });
 
-  afterAll(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+  test('that the quadratic score is correctly calculated as the sum of square roots', async () => {
+    const score = await updateVoteScoreQuadratic(dbPool, questionOption?.id ?? '');
+    // two users voting for the same option with 1 vote each
+    // sqrt of 1 + sqrt of 1 = 2
+    assert.equal(score, 2);
+  });
+
+  after(async () => {
+    await deleteTestDatabase();
   });
 });

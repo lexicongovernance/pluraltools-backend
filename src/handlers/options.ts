@@ -1,10 +1,20 @@
 import { eq, getTableColumns } from 'drizzle-orm';
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { getOptionUsers, getOptionComments } from '../services/comments';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
+import { insertOptionsSchema } from '../types';
+import { isUserIsPartOfGroup } from '../services/groups';
+import {
+  getUserOption,
+  saveOption,
+  updateOption,
+  canUserCreateOption,
+  validateOptionData,
+} from '../services/options';
 
-export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const { optionId } = req.params;
 
@@ -12,14 +22,14 @@ export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ error: 'Missing optionId' });
     }
 
-    const { voteScore, ...rest } = getTableColumns(db.questionOptions);
+    const { voteScore, ...rest } = getTableColumns(schema.options);
 
     const rows = await dbPool
       .select({
         ...rest,
       })
-      .from(db.questionOptions)
-      .where(eq(db.questionOptions.id, optionId));
+      .from(schema.options)
+      .where(eq(schema.options.id, optionId));
 
     if (!rows.length) {
       return res.status(404).json({ error: 'Option not found' });
@@ -31,10 +41,8 @@ export function getOptionHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves comments related to a specific question option from the database and associates them with corresponding user information.
- * @param { NodePgDatabase<typeof db>} dbPool - The database pool connection.
- * @returns {Promise<void>} - A promise that resolves with the retrieved comments, each associated with user information if available.
  */
-export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const optionId = req.params.optionId ?? '';
 
@@ -43,7 +51,7 @@ export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: commentsWithUserNames });
     } catch (error) {
-      console.error('Error getting comments: ', error);
+      logger.error('Error getting comments: ', error);
       return res.sendStatus(500);
     }
   };
@@ -51,14 +59,8 @@ export function getOptionCommentsHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Retrieves author and co-author data for a given question option created as a secret group.
- *
- * @param { NodePgDatabase<typeof db>} dbPool - The PostgreSQL database pool instance.
- * @returns {Function} - An Express middleware function handling the request to retrieve result statistics.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @returns {Promise<Response>} - A promise that resolves with the Express response containing the author data.
  */
-export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     try {
       const optionId = req.params.optionId;
@@ -74,8 +76,113 @@ export function getOptionUsersHandler(dbPool: NodePgDatabase<typeof db>) {
       // Send response
       return res.status(200).json({ data: responseData });
     } catch (error) {
-      console.error('Error in getOptionUsers:', error);
+      logger.error('Error in getOptionUsers:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+}
+
+export function saveOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
+  return async function (req: Request, res: Response) {
+    const userId = req.session.userId;
+    const body = insertOptionsSchema.safeParse(req.body);
+
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.issues });
+    }
+
+    const brokenRules = await validateOptionData({
+      dbPool,
+      option: body.data,
+    });
+
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
+    }
+
+    const userCanCreate = await canUserCreateOption({
+      dbPool,
+      option: body.data,
+    });
+
+    if (!userCanCreate) {
+      return res.status(401).json({ errors: ['User can not create this option'] });
+    }
+
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
+      dbPool,
+      userId,
+      groupId: body.data.groupId,
+    });
+
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
+    }
+
+    try {
+      const out = await saveOption(dbPool, body.data);
+      return res.json({ data: out });
+    } catch (e) {
+      logger.error('error saving option ' + e);
+      return res.sendStatus(500);
+    }
+  };
+}
+
+export function updateOptionHandler(dbPool: NodePgDatabase<typeof schema>) {
+  return async function (req: Request, res: Response) {
+    const optionId = req.params.optionId;
+
+    if (!optionId) {
+      return res.status(400).json({ errors: ['optionId is required'] });
+    }
+
+    const userId = req.session.userId;
+    const body = insertOptionsSchema.safeParse(req.body);
+
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.issues });
+    }
+
+    const brokenRules = await validateOptionData({
+      dbPool,
+      option: body.data,
+    });
+
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
+    }
+
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
+      dbPool,
+      userId,
+      groupId: body.data.groupId,
+    });
+
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
+    }
+
+    const existingOption = await getUserOption({
+      dbPool,
+      optionId,
+      userId,
+    });
+
+    if (!existingOption) {
+      return res.status(400).json({ errors: ['Cannot update this option'] });
+    }
+
+    try {
+      const out = await updateOption({
+        data: body.data,
+        option: existingOption,
+        dbPool,
+      });
+      return res.json({ data: out });
+    } catch (e) {
+      logger.error('error saving option ' + e);
+      return res.sendStatus(500);
     }
   };
 }

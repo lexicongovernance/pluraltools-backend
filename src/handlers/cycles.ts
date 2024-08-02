@@ -1,21 +1,21 @@
 import { and, eq, gte, lte } from 'drizzle-orm';
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { GetCycleById, getCycleVotes } from '../services/cycles';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function getActiveCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getActiveCyclesHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const activeCycles = await dbPool.query.cycles.findMany({
-      where: and(lte(db.cycles.startAt, new Date()), gte(db.cycles.endAt, new Date())),
+      where: and(lte(schema.cycles.startAt, new Date()), gte(schema.cycles.endAt, new Date())),
       with: {
-        forumQuestions: {
+        questions: {
           with: {
-            questionOptions: {
+            options: {
               columns: {
                 voteScore: false,
               },
-              where: eq(db.questionOptions.accepted, true),
+              where: eq(schema.options.show, true),
             },
           },
         },
@@ -26,7 +26,7 @@ export function getActiveCyclesHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function getCycleHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getCycleHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const { cycleId } = req.params;
 
@@ -42,11 +42,8 @@ export function getCycleHandler(dbPool: NodePgDatabase<typeof db>) {
 
 /**
  * Handler to receive the votes for a specific cycle and user.
- * @param { NodePgDatabase<typeof db>} dbPool - The database connection pool.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
  */
-export function getCycleVotesHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getCycleVotesHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const cycleId = req.params.cycleId;

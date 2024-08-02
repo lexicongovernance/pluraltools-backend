@@ -1,8 +1,8 @@
 import { default as express } from 'express';
 import { apiRouter } from './routers/api';
 import { environmentVariables } from './types';
-import { createDbPool } from './utils/db/create-db-connection';
-import { runMigrations } from './utils/db/run-migrations';
+import { logger } from './utils/logger';
+import { createDbPool, runMigrations } from './db';
 const app = express();
 
 async function main() {
@@ -25,7 +25,7 @@ async function main() {
 
   app.use('/api', apiRouter({ dbPool: db, cookiePassword: envVariables.COOKIE_PASSWORD }));
   app.listen(!isNaN(Number(envVariables.PORT)) ? envVariables.PORT! : 8080, '0.0.0.0', () => {
-    console.log(`Listening on :${envVariables.PORT ?? 8080}`);
+    logger.info(`Listening on :${envVariables.PORT ?? 8080}`);
   });
 }
 

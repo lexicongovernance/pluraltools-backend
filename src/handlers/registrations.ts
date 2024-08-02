@@ -1,17 +1,18 @@
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { insertRegistrationSchema } from '../types';
-import { validateRequiredRegistrationFields } from '../services/registration-fields';
 import {
   saveRegistration,
   updateRegistration,
-  validateCreateRegistrationPermissions,
-  validateUpdateRegistrationPermissions,
+  getUserRegistration,
+  validateEventFields,
 } from '../services/registrations';
+import { isUserIsPartOfGroup } from '../services/groups';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
-export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const registrationId = req.params.id;
     const userId = req.session.userId;
@@ -28,7 +29,7 @@ export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
         with: {
           registrationData: true,
         },
-        where: eq(db.registrations.id, registrationId),
+        where: eq(schema.registrations.id, registrationId),
       });
 
       const out = [...(registration?.registrationData ?? [])];
@@ -40,7 +41,7 @@ export function getRegistrationDataHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     req.body.userId = userId;
@@ -50,38 +51,36 @@ export function saveRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields({
+    const brokenRules = await validateEventFields({
       dbPool,
-      data: body.data,
-      forGroup: !!body.data.groupId,
-      forUser: !body.data.groupId,
+      registration: body.data,
     });
 
-    if (missingRequiredFields.length > 0) {
-      return res.status(400).json({ errors: missingRequiredFields });
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
     }
 
-    const canRegisterGroup = await validateCreateRegistrationPermissions({
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
       dbPool,
       userId,
       groupId: body.data.groupId,
     });
 
-    if (!canRegisterGroup) {
-      return res.status(400).json({ errors: ['Cannot register for this group'] });
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
     }
 
     try {
       const out = await saveRegistration(dbPool, body.data);
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving registration ' + e);
+      logger.error('error saving registration ' + e);
       return res.sendStatus(500);
     }
   };
 }
 
-export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
+export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const registrationId = req.params.id;
 
@@ -97,38 +96,44 @@ export function updateRegistrationHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const missingRequiredFields = await validateRequiredRegistrationFields({
+    const brokenRules = await validateEventFields({
       dbPool,
-      data: body.data,
-      forGroup: !!body.data.groupId,
-      forUser: !body.data.groupId,
+      registration: body.data,
     });
 
-    if (missingRequiredFields.length > 0) {
-      return res.status(400).json({ errors: missingRequiredFields });
+    if (brokenRules.length > 0) {
+      return res.status(400).json({ errors: brokenRules });
     }
 
-    const canUpdateRegistration = await validateUpdateRegistrationPermissions({
+    const userIsPartOfGroup = await isUserIsPartOfGroup({
       dbPool,
-      registrationId,
       userId,
       groupId: body.data.groupId,
     });
 
-    if (!canUpdateRegistration) {
-      return res.status(400).json({ errors: ['Cannot update this registration'] });
+    if (!userIsPartOfGroup) {
+      return res.status(400).json({ errors: ['Can not register for this group'] });
+    }
+
+    const existingRegistration = await getUserRegistration({
+      dbPool,
+      registrationId,
+      userId,
+    });
+
+    if (!existingRegistration) {
+      return res.status(400).json({ errors: ['Can not update this registration'] });
     }
 
     try {
       const out = await updateRegistration({
         data: body.data,
+        registration: existingRegistration,
         dbPool,
-        registrationId,
-        userId,
       });
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving registration ' + e);
+      logger.error('error saving registration ' + e);
       return res.sendStatus(500);
     }
   };

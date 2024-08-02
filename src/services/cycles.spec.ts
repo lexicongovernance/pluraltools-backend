@@ -1,41 +1,26 @@
-import { Client } from 'pg';
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { cleanup, seed } from '../utils/db/seed';
-import { GetCycleById, getCycleVotes } from './cycles';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import assert from 'node:assert/strict';
+import { after, before, describe, test } from 'node:test';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
 import { environmentVariables } from '../types';
+import { GetCycleById, getCycleVotes } from './cycles';
 
 describe('service: cycles', () => {
-  let dbPool: NodePgDatabase<typeof db>;
-  let dbConnection: Client;
-  let cycle: db.Cycle | undefined;
-  let questionOption: db.QuestionOption | undefined;
-  let forumQuestion: db.ForumQuestion | undefined;
-  let user: db.User | undefined;
-  let secondUser: db.User | undefined;
+  let dbPool: NodePgDatabase<typeof schema>;
+  let cycle: schema.Cycle | undefined;
+  let questionOption: schema.Option | undefined;
+  let forumQuestion: schema.Question | undefined;
+  let user: schema.User | undefined;
+  let secondUser: schema.User | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
 
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
     // Seed the database
     const { cycles, questionOptions, forumQuestions, users } = await seed(dbPool);
     cycle = cycles[0];
@@ -47,30 +32,25 @@ describe('service: cycles', () => {
 
   test('should get cycle by id', async () => {
     const response = await GetCycleById(dbPool, cycle?.id ?? '');
-    expect(response).toBeDefined();
-    expect(response).toHaveProperty('id');
-    expect(response.id).toEqual(cycle?.id);
-    expect(response).toHaveProperty('status');
-    expect(response.status).toEqual(cycle?.status);
-    expect(response).toHaveProperty('forumQuestions');
-    expect(response.forumQuestions).toEqual(expect.any(Array));
-    expect(response.forumQuestions?.[0]?.questionOptions).toEqual(expect.any(Array));
-    expect(response).toHaveProperty('createdAt');
-    expect(response.createdAt).toEqual(cycle?.createdAt);
-    expect(response).toHaveProperty('updatedAt');
-    expect(response.updatedAt).toEqual(cycle?.updatedAt);
+    assert.equal(response.id, cycle?.id);
+    assert.equal(response.status, cycle?.status);
+    assert(Array.isArray(response.forumQuestions));
+    assert(response.forumQuestions[0]);
+    assert(Array.isArray(response.forumQuestions[0].questionOptions));
+    assert.deepEqual(response.createdAt, cycle?.createdAt);
+    assert.deepEqual(response.updatedAt, cycle?.updatedAt);
   });
 
   test('should get latest votes related to user', async function () {
     // create vote in db
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 2,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
       userId: user!.id,
     });
     // create second interaction with option
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 10,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
@@ -79,19 +59,19 @@ describe('service: cycles', () => {
 
     const votes = await getCycleVotes(dbPool, user!.id, cycle!.id);
     // expect the latest votes
-    expect(votes[0]?.numOfVotes).toBe(10);
+    assert.equal(votes[0]?.numOfVotes, 10);
   });
 
   test('should not get votes for other user', async function () {
-    // create vote in db
-    await dbPool.insert(db.votes).values({
+    // create vote in schema
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 2,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
       userId: secondUser!.id,
     });
     // create second interaction with option
-    await dbPool.insert(db.votes).values({
+    await dbPool.insert(schema.votes).values({
       numOfVotes: 10,
       optionId: questionOption!.id,
       questionId: forumQuestion!.id,
@@ -102,11 +82,10 @@ describe('service: cycles', () => {
     const votes = await getCycleVotes(dbPool, user!.id, cycle!.id);
 
     // no votes have otherUser's id in array
-    expect(votes.filter((vote) => vote.userId === secondUser?.id).length).toBe(0);
+    assert.equal(votes.filter((vote) => vote.userId === secondUser?.id).length, 0);
   });
 
-  afterAll(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+  after(async () => {
+    await deleteTestDatabase();
   });
 });

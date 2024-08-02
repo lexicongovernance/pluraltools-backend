@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { allocateFunding } from '../modules/funding-mechanism';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
@@ -12,27 +12,39 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
  * - A promise resolving to an object containing the allocated funding for each project and the remaining funding.
  */
 export async function calculateFunding(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   forumQuestionId: string,
-): Promise<{ allocated_funding: { [key: string]: number }; remaining_funding: number }> {
+): Promise<{
+  allocatedFunding: { [key: string]: number } | null;
+  remainingFunding: number | null;
+  error: string | null;
+}> {
   const getOptionData = await dbPool
     .select({
-      id: db.questionOptions.id,
-      voteScore: db.questionOptions.voteScore,
-      fundingRequest: db.questionOptions.fundingRequest,
+      id: schema.options.id,
+      voteScore: schema.options.voteScore,
+      fundingRequest: schema.options.fundingRequest,
     })
-    .from(db.questionOptions)
-    .where(eq(db.questionOptions.questionId, forumQuestionId));
+    .from(schema.options)
+    .where(eq(schema.options.questionId, forumQuestionId));
 
-  if (!getOptionData) {
-    throw new Error('Error in query getOptionData');
+  if (getOptionData.length === 0) {
+    return {
+      allocatedFunding: null,
+      remainingFunding: null,
+      error: 'Error in query getOptionData',
+    };
   }
 
   const funding = allocateFunding(100000, 10000, getOptionData);
 
   if (!funding) {
-    throw new Error('Error in allocating funding');
+    return { allocatedFunding: null, remainingFunding: null, error: 'Error in allocating funding' };
   }
 
-  return funding;
+  return {
+    allocatedFunding: funding.allocated_funding,
+    remainingFunding: funding.remaining_funding,
+    error: null,
+  };
 }

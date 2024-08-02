@@ -1,78 +1,82 @@
 import { and, eq } from 'drizzle-orm';
-import { z } from 'zod';
-import { insertRegistrationSchema } from '../types';
-import * as db from '../db';
-import { upsertRegistrationData } from './registration-data';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { z } from 'zod';
+import * as schema from '../db/schema';
+import { fieldsSchema, insertRegistrationSchema } from '../types';
+import { enforceRules } from './validation';
 
-export async function validateCreateRegistrationPermissions({
-  dbPool,
-  userId,
-  groupId,
-}: {
-  dbPool: NodePgDatabase<typeof db>;
-  userId: string;
-  groupId?: string | null;
-}) {
-  if (groupId) {
-    const userGroup = dbPool.query.usersToGroups.findFirst({
-      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
-    });
-
-    if (!userGroup) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-export async function validateUpdateRegistrationPermissions({
+export async function getUserRegistration({
   dbPool,
   registrationId,
   userId,
-  groupId,
 }: {
-  dbPool: NodePgDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof schema>;
   userId: string;
   registrationId: string;
-  groupId?: string | null;
-}) {
+}): Promise<schema.Registration | null> {
   const existingRegistration = await dbPool.query.registrations.findFirst({
-    where: and(eq(db.registrations.userId, userId), eq(db.registrations.id, registrationId)),
+    where: and(
+      eq(schema.registrations.userId, userId),
+      eq(schema.registrations.id, registrationId),
+    ),
   });
 
   if (!existingRegistration) {
-    return false;
+    return null;
   }
 
-  if (existingRegistration.userId !== userId) {
-    return false;
+  return existingRegistration;
+}
+
+export async function validateEventFields({
+  registration,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof schema>;
+  registration: z.infer<typeof insertRegistrationSchema>;
+}) {
+  const rows = await dbPool
+    .select()
+    .from(schema.events)
+    .where(eq(schema.events.id, registration.eventId));
+
+  if (!rows.length) {
+    return [];
   }
 
-  if (groupId) {
-    const userGroup = dbPool.query.usersToGroups.findFirst({
-      where: and(eq(db.usersToGroups.userId, userId), eq(db.usersToGroups.groupId, groupId)),
-    });
+  const event = rows[0];
 
-    if (!userGroup) {
-      return false;
-    }
+  if (!event) {
+    return [];
   }
 
-  return true;
+  // get fields for the event
+  const eventFields = fieldsSchema.safeParse(event.fields);
+
+  if (!eventFields.success) {
+    return [];
+  }
+
+  return enforceRules({
+    data: registration.data,
+    fields: eventFields.data,
+  });
 }
 
 export async function saveRegistration(
-  dbPool: NodePgDatabase<typeof db>,
-  data: z.infer<typeof insertRegistrationSchema>,
+  dbPool: NodePgDatabase<typeof schema>,
+  registration: z.infer<typeof insertRegistrationSchema>,
 ) {
   const event = await dbPool.query.events.findFirst({
-    where: eq(db.events.id, data.eventId),
+    where: eq(schema.events.id, registration.eventId),
   });
 
+  if (!event) {
+    throw new Error('event not found');
+  }
+
   const newRegistration = await createRegistrationInDB(dbPool, {
-    ...data,
+    ...registration,
     status: event?.requireApproval ? 'DRAFT' : 'APPROVED',
   });
 
@@ -80,19 +84,8 @@ export async function saveRegistration(
     throw new Error('failed to save registration');
   }
 
-  const updatedRegistrationData = await upsertRegistrationData({
-    dbPool,
-    registrationId: newRegistration.id,
-    registrationData: data.registrationData,
-  });
-
-  if (!updatedRegistrationData) {
-    throw new Error('Failed to upsert registration data');
-  }
-
   const out = {
     ...newRegistration,
-    registrationData: updatedRegistrationData,
   };
 
   return out;
@@ -101,57 +94,37 @@ export async function saveRegistration(
 export async function updateRegistration({
   data,
   dbPool,
-  registrationId,
-  userId,
+  registration,
 }: {
-  dbPool: NodePgDatabase<typeof db>;
+  dbPool: NodePgDatabase<typeof schema>;
   data: z.infer<typeof insertRegistrationSchema>;
-  registrationId: string;
-  userId: string;
+  registration: schema.Registration;
 }) {
-  const existingRegistration = await dbPool.query.registrations.findFirst({
-    where: and(eq(db.registrations.userId, userId), eq(db.registrations.id, registrationId)),
-  });
-
-  if (!existingRegistration) {
-    throw new Error('registration not found');
-  }
-
-  const updatedRegistration = await updateRegistrationInDB(dbPool, existingRegistration, data);
+  const updatedRegistration = await updateRegistrationInDB(dbPool, registration, data);
 
   if (!updatedRegistration) {
     throw new Error('failed to save registration');
   }
 
-  const updatedRegistrationData = await upsertRegistrationData({
-    dbPool,
-    registrationId: updatedRegistration.id,
-    registrationData: data.registrationData,
-  });
-
-  if (!updatedRegistrationData) {
-    throw new Error('Failed to upsert registration data');
-  }
-
   const out = {
     ...updatedRegistration,
-    registrationData: updatedRegistrationData,
   };
 
   return out;
 }
 
 async function createRegistrationInDB(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   body: z.infer<typeof insertRegistrationSchema>,
 ) {
   // insert to registration table
   const newRegistration = await dbPool
-    .insert(db.registrations)
+    .insert(schema.registrations)
     .values({
       userId: body.userId,
       groupId: body.groupId,
       eventId: body.eventId,
+      data: body.data,
       status: body.status,
     })
     .returning();
@@ -159,18 +132,54 @@ async function createRegistrationInDB(
 }
 
 async function updateRegistrationInDB(
-  dbPool: NodePgDatabase<typeof db>,
-  registration: db.Registration,
+  dbPool: NodePgDatabase<typeof schema>,
+  registration: schema.Registration,
   body: z.infer<typeof insertRegistrationSchema>,
 ) {
   const updatedRegistration = await dbPool
-    .update(db.registrations)
+    .update(schema.registrations)
     .set({
       eventId: body.eventId,
       groupId: body.groupId,
+      data: body.data,
       updatedAt: new Date(),
     })
-    .where(eq(db.registrations.id, registration.id))
+    .where(eq(schema.registrations.id, registration.id))
     .returning();
   return updatedRegistration[0];
+}
+
+export async function validateRegistrationData({
+  registration,
+  dbPool,
+}: {
+  dbPool: NodePgDatabase<typeof schema>;
+  registration: z.infer<typeof insertRegistrationSchema>;
+}) {
+  const rows = await dbPool
+    .select()
+    .from(schema.events)
+    .where(eq(schema.events.id, registration.eventId));
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const event = rows[0];
+
+  if (!event) {
+    return [];
+  }
+
+  // get fields for the event
+  const eventFields = fieldsSchema.safeParse(event.fields);
+
+  if (!eventFields.success) {
+    return [];
+  }
+
+  return enforceRules({
+    data: registration.data,
+    fields: eventFields.data,
+  });
 }

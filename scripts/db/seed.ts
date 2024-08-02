@@ -1,6 +1,6 @@
+import { cleanup, createDbClient, seed } from '../../src/db';
 import { environmentVariables } from '../../src/types';
-import { createDbClient } from '../../src/utils/db/create-db-connection';
-import { cleanup, seed } from '../../src/utils/db/seed';
+import { logger } from '../../src/utils/logger';
 
 async function main() {
   if (process.argv.includes('--cleanup')) {
@@ -15,7 +15,7 @@ async function main() {
 
     await cleanup(db);
     await client.end();
-    console.log('Cleaned up database');
+    logger.info('Cleaned up database');
   } else {
     const envVariables = environmentVariables.parse(process.env);
     const { client, db } = await createDbClient({
@@ -27,13 +27,13 @@ async function main() {
     });
     await seed(db);
     await client.end();
-    console.log('Seeded database');
+    logger.info('Seeded database');
   }
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('Error seeding database:', error);
+    logger.error('Error seeding database:', error);
     process.exit(1);
   });

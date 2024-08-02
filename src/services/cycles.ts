@@ -1,14 +1,14 @@
 import { eq, sql } from 'drizzle-orm';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: string) {
+export async function GetCycleById(dbPool: NodePgDatabase<typeof schema>, cycleId: string) {
   const cycle = await dbPool.query.cycles.findFirst({
-    where: eq(db.cycles.id, cycleId),
+    where: eq(schema.cycles.id, cycleId),
     with: {
-      forumQuestions: {
+      questions: {
         with: {
-          questionOptions: {
+          options: {
             with: {
               user: {
                 with: {
@@ -27,7 +27,7 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
                 },
               },
             },
-            where: eq(db.questionOptions.accepted, true),
+            where: eq(schema.options.show, true),
           },
         },
       },
@@ -36,15 +36,15 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
 
   const out = {
     ...cycle,
-    forumQuestions: cycle?.forumQuestions.map((question) => {
+    forumQuestions: cycle?.questions.map((question) => {
       return {
         ...question,
-        questionOptions: question.questionOptions.map((option) => {
+        questionOptions: question.options.map((option) => {
           return {
             id: option.id,
-            accepted: option.accepted,
-            optionTitle: option.optionTitle,
-            optionSubTitle: option.optionSubTitle,
+            show: option.show,
+            title: option.title,
+            subTitle: option.subTitle,
             questionId: option.questionId,
             voteScore: question.showScore ? option.voteScore : undefined,
             registrationId: option.registrationId,
@@ -73,22 +73,22 @@ export async function GetCycleById(dbPool: NodePgDatabase<typeof db>, cycleId: s
  * @param {string} cycleId - The ID of the cycle.
  */
 export async function getCycleVotes(
-  dbPool: NodePgDatabase<typeof db>,
+  dbPool: NodePgDatabase<typeof schema>,
   userId: string,
   cycleId: string,
 ) {
   const response = await dbPool.query.cycles.findMany({
     with: {
-      forumQuestions: {
+      questions: {
         with: {
-          questionOptions: {
+          options: {
             columns: {
               voteScore: false,
             },
             with: {
               votes: {
                 where: ({ optionId }) =>
-                  sql`${db.votes.createdAt} = (
+                  sql`${schema.votes.createdAt} = (
                     SELECT MAX(created_at) FROM (
                         SELECT created_at, user_id FROM votes 
                         WHERE user_id = ${userId} AND option_id = ${optionId}
@@ -100,13 +100,11 @@ export async function getCycleVotes(
         },
       },
     },
-    where: eq(db.cycles.id, cycleId),
+    where: eq(schema.cycles.id, cycleId),
   });
 
   const out = response.flatMap((cycle) =>
-    cycle.forumQuestions.flatMap((question) =>
-      question.questionOptions.flatMap((option) => option.votes),
-    ),
+    cycle.questions.flatMap((question) => question.options.flatMap((option) => option.votes)),
   );
 
   return out;

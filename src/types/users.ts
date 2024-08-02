@@ -1,6 +1,6 @@
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { users } from '../db';
+import { users } from '../db/schema';
 
 export const insertUserSchema = createInsertSchema(users).transform((data) => {
   // make empty strings null

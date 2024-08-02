@@ -1,5 +1,5 @@
 import { default as express } from 'express';
-import type * as db from '../db';
+import type * as schema from '../db/schema';
 import {
   getUserAttributesHandler,
   getUsersToGroupsHandler,
@@ -13,7 +13,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 const router = express.Router();
 
-export function usersRouter({ dbPool }: { dbPool: NodePgDatabase<typeof db> }) {
+export function usersRouter({ dbPool }: { dbPool: NodePgDatabase<typeof schema> }) {
   router.get('/', isLoggedIn(dbPool), getUserHandler(dbPool));
   router.put('/:userId', isLoggedIn(dbPool), updateUserHandler(dbPool));
   router.get('/:userId/users-to-groups', isLoggedIn(dbPool), getUsersToGroupsHandler(dbPool));

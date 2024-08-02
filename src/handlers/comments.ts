@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { deleteCommentLike, saveCommentLike, userCanLike } from '../services/likes';
 import { insertCommentSchema } from '../types';
 import { deleteComment, saveComment, userCanComment } from '../services/comments';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { logger } from '../utils/logger';
 
-export function getCommentLikesHandler(dbPool: NodePgDatabase<typeof db>) {
+export function getCommentLikesHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
 
@@ -15,14 +16,14 @@ export function getCommentLikesHandler(dbPool: NodePgDatabase<typeof db>) {
     }
 
     const likes = await dbPool.query.likes.findMany({
-      where: eq(db.likes.commentId, commentId),
+      where: eq(schema.likes.commentId, commentId),
     });
 
     return res.json({ data: likes });
   };
 }
 
-export function saveCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveCommentLikeHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
     const userId = req.session.userId;
@@ -47,7 +48,7 @@ export function saveCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
   };
 }
 
-export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
+export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
     const userId = req.session.userId;
@@ -65,7 +66,7 @@ export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: deletedLike.data });
     } catch (e) {
-      console.error(`[ERROR] ${e}`);
+      logger.error(`[ERROR] ${e}`);
       return res.status(500).json({ errors: ['Failed to delete like'] });
     }
   };
@@ -76,7 +77,7 @@ export function deleteCommentLikeHandler(dbPool: NodePgDatabase<typeof db>) {
  * @param { NodePgDatabase<typeof db>} dbPool - The database pool connection.
  * @returns {Promise<void>} - A promise that resolves once the comment is saved.
  */
-export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
+export function saveCommentHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const userId = req.session.userId;
     const body = insertCommentSchema.safeParse(req.body);
@@ -85,7 +86,7 @@ export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
       return res.status(400).json({ errors: body.error.issues });
     }
 
-    const canComment = await userCanComment(dbPool, userId, body.data.questionOptionId);
+    const canComment = await userCanComment(dbPool, userId, body.data.optionId);
 
     if (!canComment) {
       return res.status(403).json({ errors: [{ message: 'User cannot comment on this option' }] });
@@ -95,7 +96,7 @@ export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
       const out = await saveComment(dbPool, body.data, userId);
       return res.json({ data: out });
     } catch (e) {
-      console.log('error saving comment ' + e);
+      logger.error('error saving comment ' + e);
       return res.sendStatus(500);
     }
   };
@@ -107,7 +108,7 @@ export function saveCommentHandler(dbPool: NodePgDatabase<typeof db>) {
  * @returns {Promise<void>} - A promise that resolves once the comment and associated likes are deleted.
  * @throws {Error} - Throws an error if the deletion fails.
  */
-export function deleteCommentHandler(dbPool: NodePgDatabase<typeof db>) {
+export function deleteCommentHandler(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response) {
     const commentId = req.params.commentId;
     const userId = req.session.userId;
@@ -125,7 +126,7 @@ export function deleteCommentHandler(dbPool: NodePgDatabase<typeof db>) {
 
       return res.json({ data: deletedComment.data });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return res.status(500).json({ errors: ['Failed to delete comment'] });
     }
   };

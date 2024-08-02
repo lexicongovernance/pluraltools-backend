@@ -1,4 +1,4 @@
 import { createInsertSchema } from 'drizzle-zod';
-import { comments } from '../db/comments';
+import { comments } from '../db/schema/comments';
 
 export const insertCommentSchema = createInsertSchema(comments);

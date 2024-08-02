@@ -1,45 +1,29 @@
-import * as db from '../db';
-import { createDbClient } from '../utils/db/create-db-connection';
-import { runMigrations } from '../utils/db/run-migrations';
-import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
-import { cleanup, seed } from '../utils/db/seed';
-import { z } from 'zod';
-import { getOptionUsers } from './comments';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
+import { assert } from 'node:console';
+import { after, before, describe, test } from 'node:test';
+import { z } from 'zod';
+import { createTestDatabase, seed } from '../db';
+import * as schema from '../db/schema';
+import { environmentVariables, insertSimpleRegistrationSchema } from '../types';
+import { getOptionUsers } from './comments';
 
 describe('service: comments', () => {
-  let dbPool: NodePgDatabase<typeof db>;
-  let dbConnection: Client;
+  let dbPool: NodePgDatabase<typeof schema>;
   let groupRegistrationData: z.infer<typeof insertSimpleRegistrationSchema>;
-  let secretCategory: db.GroupCategory | undefined;
-  let questionOption: db.QuestionOption | undefined;
-  let secretGroup: db.Group[];
-  let cycle: db.Cycle | undefined;
-  let user: db.User | undefined;
-  let otherUser: db.User | undefined;
+  let secretCategory: schema.GroupCategory | undefined;
+  let questionOption: schema.Option | undefined;
+  let secretGroup: schema.Group[];
+  let cycle: schema.Cycle | undefined;
+  let user: schema.User | undefined;
+  let otherUser: schema.User | undefined;
+  let deleteTestDatabase: () => Promise<void>;
 
-  beforeAll(async () => {
+  before(async () => {
     const envVariables = environmentVariables.parse(process.env);
-    const initDb = await createDbClient({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    await runMigrations({
-      database: envVariables.DATABASE_NAME,
-      host: envVariables.DATABASE_HOST,
-      password: envVariables.DATABASE_PASSWORD,
-      user: envVariables.DATABASE_USER,
-      port: envVariables.DATABASE_PORT,
-    });
-
-    dbPool = initDb.db;
-    dbConnection = initDb.client;
+    const { dbClient, teardown } = await createTestDatabase(envVariables);
+    dbPool = dbClient.db;
+    deleteTestDatabase = teardown;
     // seed
     const { users, questionOptions, cycles, groups, groupCategories } = await seed(dbPool);
     // Insert registration fields for the user
@@ -48,7 +32,7 @@ describe('service: comments', () => {
     user = users[0];
     otherUser = users[1];
     cycle = cycles[0];
-    secretGroup = groups.filter((group) => group !== undefined) as db.Group[];
+    secretGroup = groups.filter((group) => group !== undefined) as schema.Group[];
     const secretGroupId = secretGroup[4]?.id ?? '';
 
     groupRegistrationData = {
@@ -59,32 +43,35 @@ describe('service: comments', () => {
     };
 
     // Insert group registration data
-    await dbPool.insert(db.registrations).values(groupRegistrationData);
+    await dbPool.insert(schema.registrations).values(groupRegistrationData);
 
     // get registration Id
     const registrationIds = await dbPool
       .select({
-        registrationId: db.registrations.id,
+        registrationId: schema.registrations.id,
       })
-      .from(db.registrations);
+      .from(schema.registrations);
     const registrationId = registrationIds[0]?.registrationId;
 
     // update question options
     await dbPool
-      .update(db.questionOptions)
+      .update(schema.options)
       .set({ registrationId: registrationId!, userId: user?.id ?? '' })
-      .where(eq(db.questionOptions.id, questionOption!.id));
+      .where(eq(schema.options.id, questionOption!.id));
 
     // update secret group
-    await dbPool.update(db.groups).set({ secret: '12345' }).where(eq(db.groups.id, secretGroupId));
+    await dbPool
+      .update(schema.groups)
+      .set({ secret: '12345' })
+      .where(eq(schema.groups.id, secretGroupId));
 
     // insert users to groups
-    await dbPool.insert(db.usersToGroups).values({
+    await dbPool.insert(schema.usersToGroups).values({
       userId: user?.id ?? '',
       groupId: secretGroupId,
       groupCategoryId: secretCategory!.id,
     });
-    await dbPool.insert(db.usersToGroups).values({
+    await dbPool.insert(schema.usersToGroups).values({
       userId: otherUser?.id ?? '',
       groupId: secretGroupId,
       groupCategoryId: secretCategory!.id,
@@ -96,17 +83,16 @@ describe('service: comments', () => {
 
     // Call getOptionAuthors with the required parameters
     const result = await getOptionUsers(optionId, dbPool);
-    expect(result).toBeDefined();
+    assert(result !== null);
   });
 
   test('should return null if optionId does not exist', async () => {
     const nonExistentOptionId = '00000000-0000-0000-0000-000000000000';
     const result = await getOptionUsers(nonExistentOptionId, dbPool);
-    expect(result).toBeNull();
+    assert(result === null);
   });
 
-  afterAll(async () => {
-    await cleanup(dbPool);
-    await dbConnection.end();
+  after(async () => {
+    await deleteTestDatabase();
   });
 });

@@ -1,17 +1,17 @@
 import type { NextFunction, Response, Request } from 'express';
-import * as db from '../db';
+import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-export function isLoggedIn(dbPool: NodePgDatabase<typeof db>) {
+export function isLoggedIn(dbPool: NodePgDatabase<typeof schema>) {
   return async function (req: Request, res: Response, next: NextFunction) {
     if (req.session?.userId) {
       const rows = await dbPool
         .selectDistinct({
-          id: db.users.id,
+          id: schema.users.id,
         })
-        .from(db.users)
-        .where(eq(db.users.id, req.session.userId));
+        .from(schema.users)
+        .where(eq(schema.users.id, req.session.userId));
 
       if (!rows.length) {
         return res.status(401).send();
