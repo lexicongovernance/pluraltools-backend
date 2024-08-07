@@ -211,6 +211,13 @@
       "when": 1722437706757,
       "tag": "0029_mushy_vermin",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1723055190498,
+      "tag": "0030_sleepy_moira_mactaggert",
+      "breakpoints": true
     }
   ]
 }

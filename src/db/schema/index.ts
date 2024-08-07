@@ -19,3 +19,4 @@ export * from './users-to-notifications';
 export * from './group-categories';
 export * from './questions-to-group-categories';
 export * from './nav-links';
+export * from './access-rules';

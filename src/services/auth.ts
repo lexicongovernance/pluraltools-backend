@@ -2,11 +2,21 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { logger } from '../utils/logger';
+import { checkAccessRules } from './access-rules';
 
 export async function createOrSignInPCD(
   dbPool: NodePgDatabase<typeof schema>,
   data: { uuid: string; email: string },
 ): Promise<schema.User> {
+  const isAllowed = await checkAccessRules(dbPool, {
+    provider: 'zupass',
+    subject: data.uuid,
+  });
+
+  if (!isAllowed) {
+    throw new Error('Access denied');
+  }
+
   // check if there is a federated credential with the same subject
   const federatedCredential: schema.FederatedCredential[] = await dbPool
     .select()
@@ -59,6 +69,15 @@ export async function createOrSignInSIWE(
   dbPool: NodePgDatabase<typeof schema>,
   data: { chainId: string; address: string },
 ): Promise<schema.User> {
+  const isAllowed = await checkAccessRules(dbPool, {
+    provider: 'ethereum',
+    subject: `${data.chainId}:${data.address}`,
+  });
+
+  if (!isAllowed) {
+    throw new Error('Access denied');
+  }
+
   // check if there is a federated credential with the same subject
   const federatedCredential: schema.FederatedCredential[] = await dbPool
     .select()
