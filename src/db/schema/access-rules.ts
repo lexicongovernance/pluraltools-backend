@@ -11,7 +11,7 @@ export const accessRules = pgTable(
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
   (t) => ({
-    providerSubjectIndex: unique('provider_subject_idx').on(t.provider, t.subject),
+    providerSubjectIndex: unique('access_rules_provider_subject_idx').on(t.provider, t.subject),
     isAllowedIndex: index('is_allowed_idx').on(t.isAllowed),
   }),
 );

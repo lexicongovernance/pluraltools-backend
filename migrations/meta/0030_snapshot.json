@@ -1,5 +1,5 @@
 {
-  "id": "5e2b34b3-dee2-405d-b036-6c1189cef571",
+  "id": "6ad68a59-6387-4558-ad1d-39ba3a308c0e",
   "prevId": "284a39cb-1ea5-435f-abb0-33fe38b1d7e1",
   "version": "6",
   "dialect": "postgresql",
@@ -61,8 +61,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "provider_subject_idx": {
-          "name": "provider_subject_idx",
+        "access_rules_provider_subject_idx": {
+          "name": "access_rules_provider_subject_idx",
           "nullsNotDistinct": false,
           "columns": [
             "provider",

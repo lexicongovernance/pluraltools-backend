@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "access_rules" (
 	"is_allowed" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "provider_subject_idx" UNIQUE("provider","subject")
+	CONSTRAINT "access_rules_provider_subject_idx" UNIQUE("provider","subject")
 );
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "is_allowed_idx" ON "access_rules" ("is_allowed");
